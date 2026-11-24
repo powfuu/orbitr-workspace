@@ -243,7 +243,7 @@ export function Sidebar() {
           className="flex h-7 items-center gap-2 rounded-md px-2 text-[12px] text-muted hover:bg-surface hover:text-fg"
         >
           <Command size={13} />
-          Commands
+          commands
           <Kbd>{modKey}K</Kbd>
         </button>
         <IconButton icon={Settings} label="Settings" shortcut={`${modKey},`} size="sm" side="top" onClick={() => open({ type: "settings" })} />

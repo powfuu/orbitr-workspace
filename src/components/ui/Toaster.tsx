@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { CircleAlert, CircleCheck, Info, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useToasts } from "../../stores/toastStore";
 import { cn } from "../../lib/cn";
 
-const icons = { info: Info, success: CircleCheck, error: CircleAlert };
+/** Console-style status glyphs. */
+const glyph = { info: "›", success: "✓", error: "✗" };
 const tones = { info: "text-fg-2", success: "text-success", error: "text-error" };
 
 export function Toaster() {
@@ -12,7 +13,6 @@ export function Toaster() {
     <div aria-live="polite" className="pointer-events-none fixed bottom-9 right-4 z-[60] flex w-80 flex-col gap-2">
       <AnimatePresence initial={false}>
         {toasts.map((t) => {
-          const Icon = icons[t.kind];
           return (
             <motion.div
               key={t.id}
@@ -21,9 +21,9 @@ export function Toaster() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, x: 24, transition: { duration: 0.15 } }}
               transition={{ type: "spring", stiffness: 500, damping: 36 }}
-              className="pointer-events-auto flex items-start gap-2.5 rounded-xl bg-surface p-3 shadow-pop"
+              className="pointer-events-auto flex items-start gap-2 rounded-lg bg-surface px-3 py-2.5 shadow-pop"
             >
-              <Icon size={15} className={cn("mt-px shrink-0", tones[t.kind])} />
+              <span className={cn("w-3 shrink-0 text-center font-semibold", tones[t.kind])}>{glyph[t.kind]}</span>
               <div className="min-w-0 flex-1">
                 <div className="text-[12.5px] font-medium text-fg">{t.title}</div>
                 {t.detail && <div className="selectable mt-0.5 break-words text-[11.5px] text-muted">{t.detail}</div>}

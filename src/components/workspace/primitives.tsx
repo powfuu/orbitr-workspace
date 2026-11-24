@@ -44,7 +44,7 @@ export function ActionCard({ icon: Icon, title, description, shortcut, onClick, 
         {badge && <span className="whitespace-nowrap rounded-full border border-line px-2 py-0.5 font-mono text-[10px] text-faint">{badge}</span>}
       </div>
       <div>
-        <div className="text-[13px] font-medium text-fg">{title}</div>
+        <div className="text-[13px] font-medium lowercase text-fg"><span className="text-success">❯</span> {title}</div>
         <div className="mt-0.5 text-[12px] leading-relaxed text-muted">{description}</div>
       </div>
     </button>

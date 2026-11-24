@@ -4,8 +4,17 @@
 @import "@fontsource/jetbrains-mono/500.css";
 
 @theme {
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  /* Terminal-first: the UI font is monospace; prose (long help text) uses Inter. */
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: var(--font-mono);
+  --font-prose: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Sharper corners, closer to terminal windows. */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 5px;
+  --radius-xl: 6px;
+  --radius-2xl: 8px;
 
   --color-bg: #000000;
   --color-bg-2: #050505;
@@ -34,9 +43,9 @@ body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-fg);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-feature-settings: "cv11", "ss01", "ss03";
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-feature-settings: "calt" 0;
   -webkit-font-smoothing: antialiased;
   -webkit-user-select: none;
   user-select: none;

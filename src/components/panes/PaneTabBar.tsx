@@ -116,7 +116,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                     onAuxClick={(e) => e.button === 1 && closable(tab) && close(tab.id)}
                     onKeyDown={(e) => e.key === "Enter" && activate(tab.id)}
                     className={cn(
-                      "group relative flex h-8 min-w-0 max-w-56 cursor-default items-center gap-2 rounded-t-[10px] pl-3 pr-1.5 font-mono text-[12px] transition-colors duration-150",
+                      "group relative flex h-8 min-w-0 max-w-56 cursor-default items-center gap-2 rounded-t-md pl-3 pr-1.5 font-mono text-[12px] transition-colors duration-150",
                       active ? "text-fg" : "text-muted hover:text-fg-2",
                       agent && waiting.has(agent.id) && "bg-warning/10 text-fg ring-1 ring-inset ring-warning/40",
                     )}
@@ -126,7 +126,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                       <motion.span
                         layoutId={`tab-active-${paneId}`}
                         transition={{ type: "spring", stiffness: 520, damping: 44, mass: 0.7 }}
-                        className="absolute inset-0 -z-0 rounded-t-[10px] bg-bg-2 shadow-[inset_0_1px_0_0_#ffffff0f,0_0_0_1px_var(--color-line-soft)]"
+                        className="absolute inset-0 -z-0 rounded-t-md bg-bg-2 shadow-[inset_0_1px_0_0_#ffffff0f,0_0_0_1px_var(--color-line-soft)]"
                       >
                         <span
                           className={cn(

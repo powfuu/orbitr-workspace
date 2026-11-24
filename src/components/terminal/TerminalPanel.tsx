@@ -53,23 +53,25 @@ export function TerminalPanel() {
   );
 }
 
+/** Empty panel drawn like a fresh shell screen. */
 function EmptyTerminal({ onCreate, ready, shellName }: { onCreate: () => void; ready: boolean; shellName?: string }) {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-grid absolute inset-0 grid place-items-center">
-      <div className="flex flex-col items-center text-center">
-        <span className="mb-4 grid h-11 w-11 place-items-center rounded-xl bg-surface text-muted ring-1 ring-line">
-          <SquareTerminal size={18} strokeWidth={1.75} />
-        </span>
-        <div className="text-[13px] font-medium text-fg">No terminals open</div>
-        <div className="mt-1 max-w-56 text-[12px] leading-relaxed text-muted">
-          {ready ? "Spawn a real shell in a native PTY." : "Terminals need the Orbitr desktop runtime."}
-        </div>
-        {ready && (
-          <button onClick={onCreate} className="mt-4 flex h-8 items-center gap-2 rounded-lg bg-surface px-3 text-[12.5px] text-fg ring-1 ring-line hover:bg-surface-2">
-            <Plus size={13} /> New {shellName} terminal <Kbd>{modKey}T</Kbd>
-          </button>
-        )}
-      </div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 p-4 font-mono text-[12.5px] leading-relaxed">
+      <div className="text-faint"># no terminals open</div>
+      <div className="text-faint"># {ready ? `${modKey}T or click below to spawn ${shellName ?? "a shell"} in a native PTY` : "terminals need the Orbitr desktop runtime"}</div>
+      {ready && (
+        <button onClick={onCreate} className="group mt-3 flex items-center gap-2 text-left text-fg-2 hover:text-fg">
+          <span className="text-success">❯</span>
+          <span>{shellName ?? "shell"}</span>
+          <motion.span
+            aria-hidden
+            className="inline-block h-[1.05em] w-[0.55em] bg-fg-2 group-hover:bg-fg"
+            animate={{ opacity: [1, 1, 0, 0] }}
+            transition={{ duration: 1.1, repeat: Infinity, times: [0, 0.5, 0.5, 1], ease: "linear" }}
+          />
+          <Kbd>{modKey}T</Kbd>
+        </button>
+      )}
     </motion.div>
   );
 }
