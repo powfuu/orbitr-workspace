@@ -1,4 +1,5 @@
 import { Reorder } from "framer-motion";
+import { Bot, FileCode2, GitBranch } from "lucide-react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { removeProject, revealProject } from "../../features/workspaces/manageActions";
 import { Folder, FolderOpen, FolderSearch, PanelLeftClose, RotateCw, Search, Settings, Square, SquareTerminal, Trash2, Command } from "lucide-react";
@@ -78,7 +79,7 @@ export function Sidebar() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto pb-3">
-        <SidebarSection id="projects" title="Projects" count={projects.length} onAdd={addProjectFromDialog} addLabel="Add project">
+        <SidebarSection id="projects" icon={Folder} title="Projects" count={projects.length} onAdd={addProjectFromDialog} addLabel="Add project">
           {projects.length === 0 ? (
             <SidebarHint
               action={
@@ -127,7 +128,7 @@ export function Sidebar() {
           )}
         </SidebarSection>
 
-        <SidebarSection id="git" title="Git" count={gitProjects.length}>
+        <SidebarSection id="git" icon={GitBranch} defaultCollapsed title="Git" count={gitProjects.length}>
           {gitProjects.length === 0 ? (
             <SidebarHint>{q ? "No matching projects." : "Git status of each project appears here."}</SidebarHint>
           ) : (
@@ -135,7 +136,7 @@ export function Sidebar() {
           )}
         </SidebarSection>
 
-        <SidebarSection id="agents" title="Agents" count={agents.length} addLabel="Start agent" onAdd={() => setPaletteOpen(true, "Start ")}>
+        <SidebarSection id="agents" icon={Bot} title="Agents" count={agents.length} addLabel="Start agent" onAdd={() => setPaletteOpen(true, "Start ")}>
           {agents.length === 0 ? (
             <SidebarHint
               action={
@@ -179,7 +180,7 @@ export function Sidebar() {
           )}
         </SidebarSection>
 
-        <SidebarSection id="editors" title="Editors" count={editors.length} onAdd={() => void openInEditor()} addLabel={`Open Vim (${modKey}E)`}>
+        <SidebarSection id="editors" icon={FileCode2} title="Editors" count={editors.length} onAdd={() => void openInEditor()} addLabel={`Open Vim (${modKey}E)`}>
           {editors.length === 0 ? (
             <SidebarHint
               action={
@@ -208,7 +209,7 @@ export function Sidebar() {
           )}
         </SidebarSection>
 
-        <SidebarSection id="terminals" title="Terminals" count={terminals.length} onAdd={() => void newDefaultTerminal()} addLabel="New terminal">
+        <SidebarSection id="terminals" icon={SquareTerminal} title="Terminals" count={terminals.length} onAdd={() => void newDefaultTerminal()} addLabel="New terminal">
           {terminals.length === 0 ? (
             <SidebarHint>Shell sessions from the right panel are listed here.</SidebarHint>
           ) : (

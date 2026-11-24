@@ -4,6 +4,7 @@ import { compact, money } from "../../lib/format";
 import { timeAgo } from "../../lib/time";
 import { EmptyLine } from "../workspace/primitives";
 import { PeriodPicker, UsageSummary, usePeriod } from "./UsageSummary";
+import { PlanLimits } from "./PlanLimits";
 
 /** Claude Code usage for one project, with the most expensive sessions. */
 export function ProjectUsage({ path }: { path: string }) {
@@ -12,6 +13,9 @@ export function ProjectUsage({ path }: { path: string }) {
 
   return (
     <div>
+      <div className="mb-4 rounded-lg bg-bg p-3 ring-1 ring-line-soft">
+        <PlanLimits />
+      </div>
       <div className="mb-4 flex justify-end">
         <PeriodPicker days={days} onChange={setDays} />
       </div>

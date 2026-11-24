@@ -21,7 +21,8 @@ const letter = (f: FileChange, staged: boolean) => (f.untracked ? "U" : f.confli
 const tone: Record<string, string> = { M: "text-warning", A: "text-success", U: "text-success", D: "text-error", R: "text-fg-2", C: "text-fg-2", "!": "text-error" };
 
 /** Git for one project: branch, staged/unstaged changes with diffs, commit, push/pull, history. */
-export function GitPanel({ path }: { path: string }) {
+/** `full`: fills its container (Git tab) instead of the compact panel height. */
+export function GitPanel({ path, full = false }: { path: string; full?: boolean }) {
   const status = useGit((g) => g.byPath[path]);
   const refresh = useGit((g) => g.refresh);
   const [selected, setSelected] = useState<Selected | null>(null);
@@ -124,7 +125,7 @@ export function GitPanel({ path }: { path: string }) {
     );
 
   return (
-    <div className="-m-4 flex flex-col">
+    <div className={cn("flex flex-col", full ? "h-full min-h-0" : "-m-4")}>
       {/* Branch bar */}
       <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-2 border-b border-line-soft px-4 py-2.5">
         {/* Branch info takes the row; when the pane is narrow the actions wrap below instead of squeezing it. */}
@@ -161,10 +162,10 @@ export function GitPanel({ path }: { path: string }) {
         </div>
       </div>
 
-      <div className="grid min-h-[280px] grid-cols-[minmax(min(240px,100%),1fr)_2fr] @max-2xl:grid-cols-1">
+      <div className={cn("grid grid-cols-[minmax(min(260px,100%),1fr)_2fr] @max-2xl:grid-cols-1", full ? "min-h-0 flex-1" : "min-h-[280px]")}>
         {/* Changes + commit */}
         <div className="flex min-w-0 flex-col border-r border-line-soft @max-2xl:border-r-0 @max-2xl:border-b">
-          <div className="max-h-80 flex-1 overflow-y-auto py-1">
+          <div className={cn("flex-1 overflow-y-auto py-1", !full && "max-h-80")}>
             {status.files.length === 0 ? (
               <div className="flex items-center gap-2 px-4 py-6 text-[12px] text-muted"><Check size={13} className="text-success" /> Working tree clean</div>
             ) : (
@@ -219,7 +220,7 @@ export function GitPanel({ path }: { path: string }) {
                     )}
                   </span>
                 </div>
-                <div className="max-h-[420px] overflow-auto py-1">
+                <div className={cn("overflow-auto py-1", full ? "max-h-[calc(100vh-14rem)]" : "max-h-[420px]")}>
                   <DiffView diff={diff} />
                 </div>
               </motion.div>

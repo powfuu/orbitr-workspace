@@ -59,7 +59,8 @@ export type TabTarget =
   | { type: "workspace"; id: ID }
   | { type: "project"; id: ID }
   | { type: "agent"; id: ID }
-  | { type: "settings" };
+  | { type: "settings" }
+  | { type: "git"; id: ID };
 
 export interface Tab {
   id: ID;

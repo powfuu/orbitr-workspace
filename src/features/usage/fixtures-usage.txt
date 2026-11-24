@@ -1,0 +1,40 @@
+
+╭─── Claude Code v2.1.162 ─────────────────────────────────────────────────────────────────────────────────────────────╮
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
+   Settings  Status   Config   Usage   Stats
+
+   Session
+
+   Total cost:            $0.0000
+   Total duration (API):  0s
+   Total duration (wall): 10s
+   Total code changes:    0 lines added, 0 lines removed
+   Usage:                 0 input, 0 output, 0 cache read, 0 cache write
+
+   Current session
+   ██████████████████████████████████████████████▌    93% used
+   Resets 12:09am (Europe/Madrid)
+
+   Current week (all models)
+   ███████████████████████████▌                       55% used
+   Resets Nov 25 at 5:59pm (Europe/Madrid)
+
+   What's contributing to your limits usage?
+   Approximate, based on local sessions on this machine — does not include other devices or claude.ai
+
+   Last 24h · these are independent characteristics of your usage, not a breakdown
+
+   90% of your usage was at >150k context
+    Longer sessions are more expensive even when cached. /compact mid-task, /clear 
+    when switching to new tasks.
+
+   54% of your usage came from subagent-heavy sessions
+    Each subagent runs its own requests. Be deliberate about spawning them — and 
+    consider configuring a cheaper model for simpler subagents.
+   
+   20% of your usage came from MCP server "Claude Browser"
+    MCP tool results stay in context for the rest of the session. /compact to flush
+    them, or disable servers you don't need.
+   
+   Skills                  % of usage
+   /sdd-orchestrator               2%                                                                                 ↓

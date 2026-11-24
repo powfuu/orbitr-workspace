@@ -17,10 +17,9 @@ function summarize(s: GitStatus) {
   };
 }
 
-/** Opens the project and scrolls to its Git panel. */
+/** Opens the project's Git in its own full-size tab. */
 function openGit(projectId: string) {
-  useTabs.getState().open({ type: "project", id: projectId });
-  window.setTimeout(() => document.getElementById(`git-${projectId}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 180);
+  useTabs.getState().open({ type: "git", id: projectId });
 }
 
 function Card({ project }: { project: Project }) {

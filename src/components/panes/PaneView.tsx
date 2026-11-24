@@ -36,7 +36,7 @@ export function PaneView({ paneId, group, focused, multi, topLeft, topRight }: P
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.14, ease: [0.2, 0, 0, 1] }}
-            className={tab?.target.type === "agent" ? "relative h-full" : "relative h-full overflow-y-auto"}
+            className={tab?.target.type === "agent" || tab?.target.type === "git" ? "relative h-full" : "relative h-full overflow-y-auto"}
           >
             {tab && renderTarget(tab.target)}
           </motion.div>

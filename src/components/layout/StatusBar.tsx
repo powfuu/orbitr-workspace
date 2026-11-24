@@ -1,5 +1,6 @@
 import { ArrowUpCircle, BarChart3, Cpu, GitBranch } from "lucide-react";
 import { useUpdates } from "../../features/updates/updateStore";
+import { PlanLimitsCompact } from "../usage/PlanLimits";
 import { useUsage } from "../../features/usage/useUsage";
 import { money } from "../../lib/format";
 import { useActiveWorkspace } from "../../stores/workspaceStore";
@@ -27,6 +28,7 @@ export function StatusBar() {
           {money(today.total.cost)} today
         </span>
       )}
+      <PlanLimitsCompact />
       <span className="ml-auto">{platform ? `${platform.os} · ${platform.defaultShell}` : ""}</span>
       {update.status.kind === "available" ? (
         <button onClick={() => void update.install()} className="flex items-center gap-1 rounded bg-fg px-1.5 text-bg hover:bg-fg/85" title="Download, install and restart">

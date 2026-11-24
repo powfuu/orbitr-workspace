@@ -6,6 +6,7 @@ import { useTabs } from "../../stores/tabStore";
 import { money } from "../../lib/format";
 import { isTauri } from "../../lib/platform";
 import { PeriodPicker, UsageSummary, usePeriod } from "./UsageSummary";
+import { PlanLimits } from "./PlanLimits";
 
 /** All Claude Code usage on this machine, by project. */
 export function UsageOverview() {
@@ -23,6 +24,9 @@ export function UsageOverview() {
         <div className="font-mono text-2xs uppercase tracking-[0.14em] text-faint">Usage</div>
         <div className="flex-1" />
         <PeriodPicker days={days} onChange={setDays} />
+      </div>
+      <div className="mb-3 rounded-xl border border-line-soft bg-bg-2 p-4">
+        <PlanLimits />
       </div>
       <div className="rounded-xl border border-line-soft bg-bg-2 p-4">
         {!report ? (
