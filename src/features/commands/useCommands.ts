@@ -1,4 +1,4 @@
-import { ArrowRight, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useLayout } from "../../stores/layoutStore";
 import { getActiveTabs, useTabs } from "../../stores/tabStore";
@@ -21,6 +21,8 @@ export interface Command {
 }
 
 /** Every palette action. Only actions that genuinely work are listed. */
+const splitFocused = (side: "right" | "bottom") => useTabs.getState().splitFocused(side);
+
 function cycleHint(step: 1 | -1) {
   const { tabs, activeTabId } = getActiveTabs();
   const i = tabs.findIndex((t) => t.id === activeTabId);
@@ -53,6 +55,8 @@ export function useCommands(): Command[] {
       { id: "new-terminal", title: "New terminal", group: "Terminal", icon: SquareTerminal, shortcut: `${modKey}T`, run: () => void newDefaultTerminal() },
       { id: "voice", title: "Toggle voice input", group: "Voice", icon: Mic, shortcut: `${modKey}⇧V`, run: () => void useVoice.getState().toggle() },
       { id: "settings", title: "Open settings", group: "App", icon: Settings, shortcut: `${modKey},`, run: () => tabs.open({ type: "settings" }) },
+      { id: "split-right", title: "Split pane right", group: "View", icon: Columns2, shortcut: `${modKey}\\`, run: () => splitFocused("right") },
+      { id: "split-down", title: "Split pane down", group: "View", icon: Rows2, shortcut: `${modKey}⇧\\`, run: () => splitFocused("bottom") },
       { id: "next-tab", title: "Next tab", group: "View", icon: ArrowRight, shortcut: "⌃Tab", run: () => cycleHint(1) },
       { id: "add-project", title: "Add project…", group: "Project", icon: FolderPlus, run: addProjectFromDialog },
       { id: "sidebar", title: "Toggle sidebar", group: "View", icon: PanelLeft, shortcut: `${modKey}B`, run: layout.toggleSidebar },

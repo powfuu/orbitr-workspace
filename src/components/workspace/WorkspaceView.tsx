@@ -30,7 +30,7 @@ export function WorkspaceView({ id }: { id: ID }) {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl px-10 py-12">
+    <div className="mx-auto max-w-4xl px-5 py-8 @lg:px-10 @lg:py-12">
       <div className="mb-5"><WorkspaceGlyph name={workspace.name} size={40} /></div>
       <ViewHeader
         eyebrow="Workspace"
@@ -42,7 +42,7 @@ export function WorkspaceView({ id }: { id: ID }) {
         </button>
       </ViewHeader>
 
-      <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
+      <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(min(150px,100%),1fr))] gap-3">
         {stats.map((s) => (
           <div key={s.label} className="rounded-xl border border-line-soft bg-bg-2 p-4">
             <s.icon size={14} className="mb-3 text-faint" />

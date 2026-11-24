@@ -17,20 +17,20 @@ const fade = (i: number) => ({
 export function HomeView() {
   const setPaletteOpen = useLayout((s) => s.setPaletteOpen);
   return (
-    <div className="relative mx-auto flex min-h-full max-w-3xl flex-col justify-center px-10 py-14">
+    <div className="relative mx-auto flex min-h-full max-w-3xl flex-col justify-center px-5 py-10 @lg:px-10 @lg:py-14">
       <motion.div {...fade(0)} className="mb-10">
         <div className="relative mb-6 inline-grid h-14 w-14 place-items-center rounded-2xl bg-surface ring-1 ring-line">
           <div className="absolute inset-0 rounded-2xl bg-white/10 blur-xl" />
           <LogoMark size={30} />
         </div>
-        <h1 className="text-[30px] font-semibold uppercase leading-[1.15] tracking-[0.06em] text-fg">
+        <h1 className="text-[20px] @md:text-[26px] @xl:text-[30px] font-semibold uppercase leading-[1.15] tracking-[0.06em] text-fg">
           Your agents. Your terminals.
           <br />
           <span className="text-muted">One workspace.</span>
         </h1>
       </motion.div>
 
-      <motion.div {...fade(1)} className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
+      <motion.div {...fade(1)} className="grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-3">
         <ActionCard icon={FolderPlus} title="Add project" description="Anchor sessions to a folder on disk." onClick={addProjectFromDialog} />
         <ActionCard icon={Command} title="Command palette" description="Jump anywhere, run any action." shortcut={`${modKey}K`} onClick={() => setPaletteOpen(true)} />
         <ActionCard icon={Bot} title="Start an agent" description="Launch Claude Code or Codex in a real PTY." onClick={() => setPaletteOpen(true, "Start ")} />

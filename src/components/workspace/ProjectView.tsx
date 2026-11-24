@@ -34,7 +34,7 @@ export function ProjectView({ id }: { id: ID }) {
   if (!project) return <MissingView />;
 
   return (
-    <div className="mx-auto max-w-4xl px-10 py-12">
+    <div className="mx-auto max-w-4xl px-5 py-8 @lg:px-10 @lg:py-12">
       <ViewHeader
         eyebrow="Project"
         title={<InlineEdit value={project.name} label="project" onCommit={(v) => renameProject(project.id, v)} className="-mx-1.5 px-1.5" />}
@@ -54,7 +54,7 @@ export function ProjectView({ id }: { id: ID }) {
       </ViewHeader>
 
       <div className="mb-3 font-mono text-2xs uppercase tracking-[0.14em] text-faint">Launch here</div>
-      <div className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3">
+      <div className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(min(180px,100%),1fr))] gap-3">
         {agentList.filter((a) => !availability || availability[a.kind]).map((a) => {
           const path = availability?.[a.kind];
           const missing = availability !== undefined && !path;
@@ -79,7 +79,7 @@ export function ProjectView({ id }: { id: ID }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-4">
         <Panel title="Agent sessions" count={agents.length}>
           {agents.length === 0 ? (
             <EmptyLine icon={Bot}>No agents running in this project.</EmptyLine>

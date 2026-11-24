@@ -33,6 +33,8 @@ npm run tauri build    # release bundle
 | Mod+N | Start agent |
 | Mod+, | Settings |
 | Ctrl+Tab / Mod+Shift+[ ] | Cycle tabs |
+| Mod+\\ / Mod+Shift+\\ | Split pane right / down |
+| Mod+Shift+V | Voice input |
 | Mod+W | Close tab |
 
 ## Layout

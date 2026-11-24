@@ -1,5 +1,6 @@
 import { RotateCw, Square, Trash2 } from "lucide-react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
+import { usePaneFocused } from "../../features/panes/paneFocus";
 import { useSessions } from "../../stores/sessionStore";
 import { useWorkspaces } from "../../stores/workspaceStore";
 import { usePlatformInfo } from "../../hooks/usePlatformInfo";
@@ -20,6 +21,7 @@ export function AgentView({ id }: { id: ID }) {
   const project = useWorkspaces((s) => (agent ? s.projects[agent.projectId] : undefined));
   const platform = usePlatformInfo();
   const task = useActivitySubtitle(id);
+  const paneFocused = usePaneFocused();
   useEffect(() => markSeen(id), [id]);
   if (!agent) return <MissingView />;
 
@@ -51,7 +53,7 @@ export function AgentView({ id }: { id: ID }) {
         </div>
       </div>
       <div className="relative min-h-0 flex-1 bg-black py-2 pl-4 pr-1">
-        <TerminalView id={id} focused />
+        <TerminalView id={id} focused={paneFocused} />
       </div>
     </div>
   );

@@ -63,7 +63,7 @@ export function SettingsView() {
   const shells = useShells();
   const refresh = useAvailability((a) => a.refresh);
   return (
-    <div className="mx-auto max-w-3xl px-10 py-12">
+    <div className="mx-auto max-w-3xl px-5 py-8 @lg:px-10 @lg:py-12">
       <ViewHeader eyebrow="Preferences" title="Settings">
         <button onClick={s.reset} className="flex h-8 items-center gap-2 rounded-lg px-3 text-[12.5px] text-muted ring-1 ring-line hover:text-fg">
           <RotateCcw size={13} /> Reset

@@ -35,6 +35,12 @@ export function useGlobalShortcuts() {
       }
       // On Windows/Linux Ctrl+letter belongs to the shell (Ctrl+W, Ctrl+K…) while a terminal has focus.
       if (!isMac && (e.target as HTMLElement | null)?.closest?.(".xterm")) return;
+      if (e.code === "Backslash") {
+        e.preventDefault();
+        e.stopPropagation();
+        useTabs.getState().splitFocused(e.shiftKey ? "bottom" : "right");
+        return;
+      }
       const layout = useLayout.getState();
       const key = e.key.toLowerCase();
 
