@@ -1,4 +1,4 @@
-import { History, Play } from "lucide-react";
+import { ListTree, Play } from "lucide-react";
 import { useHistory, type HistoryEntry } from "../../stores/historyStore";
 import { useSessions } from "../../stores/sessionStore";
 import { useWorkspaces } from "../../stores/workspaceStore";
@@ -29,7 +29,7 @@ export function RecentSessions({ filter, limit = 8 }: { filter: Filter; limit?: 
     .filter((e) => ("projectId" in filter ? e.projectId === filter.projectId : e.workspaceId === filter.workspaceId))
     .slice(0, limit);
 
-  if (entries.length === 0) return <EmptyLine icon={History}>Session history appears once you start an agent here.</EmptyLine>;
+  if (entries.length === 0) return <EmptyLine icon={ListTree}>Session history appears once you start an agent here.</EmptyLine>;
 
   return (
     <div className="-m-2">

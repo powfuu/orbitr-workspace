@@ -1,4 +1,4 @@
-import { GitBranch, History, RotateCw, Square, Trash2 } from "lucide-react";
+import { GitBranch, ListTree, RotateCw, Square, Trash2 } from "lucide-react";
 import { useLayout } from "../../stores/layoutStore";
 import { isEditor } from "../../features/agents/registry";
 import { modKey, tildify } from "../../lib/platform";
@@ -66,7 +66,7 @@ export function AgentView({ id }: { id: ID }) {
           ) : (
             <IconButton icon={RotateCw} label="Restart agent" onClick={() => void restartAgent(id)} disabled={!project} />
           )}
-          {!editing && <IconButton icon={History} label={timelineOpen ? "Hide timeline" : "Timeline"} shortcut={`${modKey}⇧L`} active={timelineOpen} onClick={toggleTimeline} />}
+          {!editing && <IconButton icon={ListTree} label={timelineOpen ? "Hide timeline" : "Timeline"} shortcut={`${modKey}⇧L`} active={timelineOpen} onClick={toggleTimeline} />}
           <IconButton icon={Trash2} label="End session" onClick={() => void removeAgent(id)} />
         </div>
       </div>

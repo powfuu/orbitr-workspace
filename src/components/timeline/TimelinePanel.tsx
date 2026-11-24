@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import {
-  Bot, CircleStop, Clock, FilePen, FileText, GitCommitHorizontal, HelpCircle, MessageSquare, Mic, Play, Search,
-  ShieldCheck, Skull, SquareTerminal, Wrench, X, type LucideIcon,
+  Bot, CircleStop, FilePen, FileText, GitCommitHorizontal, HelpCircle, MessageSquare, Mic, Play, Search,
+  ListTree, ShieldCheck, Skull, SquareTerminal, Wrench, X, type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { openInEditor } from "../../features/editors/openInEditor";
@@ -94,7 +94,7 @@ export function TimelinePanel({ agent, cwd, onClose }: { agent: AgentSession; cw
       className="flex h-full max-w-[60%] shrink-0 flex-col overflow-hidden border-l border-line-soft bg-bg"
     >
       <div className="flex h-10 shrink-0 items-center gap-2 border-b border-line-soft px-3">
-        <Clock size={13} className="text-muted" />
+        <ListTree size={13} className="text-muted" />
         <span className="text-[12.5px] font-medium text-fg">Timeline</span>
         <span className="ml-auto" />
         <button aria-label="Close timeline" onClick={onClose} className="grid h-6 w-6 place-items-center rounded text-muted hover:bg-surface hover:text-fg"><X size={13} /></button>

@@ -15,6 +15,8 @@ import { IconButton } from "../ui/IconButton";
 import { ContextMenu } from "../ui/ContextMenu";
 import { VoiceButton } from "../voice/VoiceButton";
 import { ActivityIconFor } from "../agents/ActivityBadge";
+import { AgentGlyph } from "../ui/AgentGlyph";
+import { AGENTS } from "../../features/agents/registry";
 import { PromptChip } from "../approvals/PromptChip";
 import { useActivity } from "../../features/sessions/activityStore";
 
@@ -122,11 +124,12 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                     )}
                     {active && <span className="pointer-events-none absolute inset-0 rounded-t-lg border border-b-0 border-line-soft" />}
                     {agent ? (
-                      <ActivityIconFor id={agent.id} status={agent.status} size={12} />
+                      <AgentGlyph agent={AGENTS[agent.kind]} size={14} status={agent.status} />
                     ) : (
                       <Icon size={13} strokeWidth={1.75} className={active && focused ? "text-accent" : ""} />
                     )}
                     <span className="truncate">{title}</span>
+                    {agent && <ActivityIconFor id={agent.id} status={agent.status} size={10} />}
                     {agent && <PromptChip id={agent.id} />}
                     <button
                       aria-label={`Close ${title}`}
