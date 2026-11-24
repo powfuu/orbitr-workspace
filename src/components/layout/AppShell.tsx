@@ -40,7 +40,7 @@ export function AppShell() {
       <StatusBar />
       <CommandPalette />
       <Toaster />
-      <VoiceIndicator />
+      <ErrorBoundary label="Voice"><VoiceIndicator /></ErrorBoundary>
     </div>
   );
 }

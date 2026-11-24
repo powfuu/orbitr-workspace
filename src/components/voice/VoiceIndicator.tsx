@@ -104,8 +104,9 @@ export function VoiceIndicator() {
 /** Shown when a phrase was heard with nothing focused: big, explicit, one click to send. */
 function TargetPicker() {
   const { pending, sendPendingTo, discardPending } = useVoice();
-  const agents = useSessions((s) => s.agents.filter((a) => a.status === "running"));
-  const terminals = useSessions((s) => s.terminals.filter((t) => t.status === "running"));
+  // Select stable arrays, filter outside: a selector returning a new array loops forever.
+  const agents = useSessions((s) => s.agents).filter((a) => a.status === "running");
+  const terminals = useSessions((s) => s.terminals).filter((t) => t.status === "running");
   const none = agents.length + terminals.length === 0;
 
   return (
