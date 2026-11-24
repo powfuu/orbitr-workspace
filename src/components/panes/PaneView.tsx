@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useTabs, type TabGroup } from "../../stores/tabStore";
 import { renderTarget } from "../../features/tabs/renderTarget";
 import { cn } from "../../lib/cn";
@@ -30,18 +30,16 @@ export function PaneView({ paneId, group, focused, multi, topLeft, topRight }: P
         <div className="bg-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" />
         <PaneFocusContext.Provider value={focused}>
         <ErrorBoundary label="Pane">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={tab?.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, transition: { duration: 0.08 } }}
-              transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
-              className={tab?.target.type === "agent" ? "relative h-full" : "relative h-full overflow-y-auto"}
-            >
-              {tab && renderTarget(tab.target)}
-            </motion.div>
-          </AnimatePresence>
+          {/* Swap instantly and fade the new view in: waiting for an exit animation left a blank gap. */}
+          <motion.div
+            key={tab?.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.14, ease: [0.2, 0, 0, 1] }}
+            className={tab?.target.type === "agent" ? "relative h-full" : "relative h-full overflow-y-auto"}
+          >
+            {tab && renderTarget(tab.target)}
+          </motion.div>
         </ErrorBoundary>
         </PaneFocusContext.Provider>
         <DropZones paneId={paneId} />

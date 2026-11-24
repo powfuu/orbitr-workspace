@@ -80,10 +80,10 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
               <motion.div
                 key={tab.id}
                 layout="position"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, transition: { duration: 0.1 } }}
-                transition={{ duration: 0.16 }}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.12, ease: [0.4, 0, 1, 1] } }}
+                transition={{ type: "spring", stiffness: 560, damping: 42, mass: 0.6 }}
                 className="relative mb-[-1px] flex shrink-0"
               >
                 {dropIndex === i && <span className="absolute -left-[2px] bottom-1 top-1 z-10 w-[2px] rounded-full bg-white" />}
@@ -114,15 +114,28 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                     onAuxClick={(e) => e.button === 1 && close(tab.id)}
                     onKeyDown={(e) => e.key === "Enter" && activate(tab.id)}
                     className={cn(
-                      "group relative flex h-8 min-w-0 max-w-52 cursor-default items-center gap-2 rounded-t-lg pl-3 pr-1.5 text-[12.5px]",
-                      active ? "bg-bg-2 text-fg" : "text-muted hover:bg-bg-2/50 hover:text-fg-2",
+                      "group relative flex h-8 min-w-0 max-w-52 cursor-default items-center gap-2 rounded-t-[10px] pl-3 pr-1.5 text-[12.5px] transition-colors duration-150",
+                      active ? "text-fg" : "text-muted hover:text-fg-2",
                       agent && waiting.has(agent.id) && "bg-warning/10 text-fg ring-1 ring-inset ring-warning/40",
                     )}
                   >
+                    {/* One shared background per pane that glides between tabs; merges into the content below. */}
                     {active && (
-                      <span className={cn("absolute inset-x-0 top-0 h-[1.5px] rounded-full", focused || !multi ? "bg-accent" : "bg-faint")} />
+                      <motion.span
+                        layoutId={`tab-active-${paneId}`}
+                        transition={{ type: "spring", stiffness: 520, damping: 44, mass: 0.7 }}
+                        className="absolute inset-0 -z-0 rounded-t-[10px] bg-bg-2 shadow-[inset_0_1px_0_0_#ffffff0f,0_0_0_1px_var(--color-line-soft)]"
+                      >
+                        <span
+                          className={cn(
+                            "absolute left-1/2 top-0 h-[2px] w-6 -translate-x-1/2 rounded-b-full transition-colors",
+                            focused || !multi ? "bg-accent" : "bg-faint",
+                          )}
+                        />
+                      </motion.span>
                     )}
-                    {active && <span className="pointer-events-none absolute inset-0 rounded-t-lg border border-b-0 border-line-soft" />}
+                    {!active && <span className="pointer-events-none absolute inset-x-1 inset-y-1 rounded-md bg-bg-2/0 transition-colors group-hover:bg-bg-2/60" />}
+                    <span className="relative flex min-w-0 items-center gap-2">
                     {agent ? (
                       <AgentGlyph agent={AGENTS[agent.kind]} size={14} status={agent.status} />
                     ) : (
@@ -144,6 +157,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                     >
                       <X size={12} />
                     </button>
+                    </span>
                   </div>
                 </ContextMenu>
               </motion.div>

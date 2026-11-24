@@ -17,7 +17,10 @@ export const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
       { keys: [m, "K"], label: "Command palette" },
       { keys: [m, ","], label: "Settings" },
       { keys: ["?"], label: "Keyboard shortcuts" },
-      { keys: [m, "1–9"], label: "Switch workspace" },
+      { keys: [m, "1–9"], label: "Go to project" },
+      { keys: [m, shift, "1–9"], label: "Switch workspace" },
+      { keys: [isMac ? "⌥" : "Alt", "1–9"], label: "Go to tab (9 = last)" },
+      { keys: isMac ? [ctrl, "1–9"] : [ctrl, "Alt", "1–9"], label: "Go to terminal" },
     ],
   },
   {

@@ -5,7 +5,7 @@ import { useShells } from "../../hooks/useShells";
 import { useAvailability } from "../../features/agents/availabilityStore";
 import { cn } from "../../lib/cn";
 import { modKey } from "../../lib/platform";
-import { installedNerdFonts, terminalFontFamily } from "../../features/terminals/fonts";
+import { terminalFontFamily, useFonts } from "../../features/terminals/fonts";
 import { ViewHeader } from "../workspace/primitives";
 import { UpdatesSection } from "./UpdatesSection";
 
@@ -66,7 +66,7 @@ export function SettingsView() {
   const shells = useShells();
   const refresh = useAvailability((a) => a.refresh);
   const editorPaths = useAvailability((a) => a.paths);
-  const nerdFonts = installedNerdFonts();
+  const nerdFonts = useFonts((f) => f.nerd).map((f) => f.family);
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 @lg:px-10 @lg:py-12">
       <ViewHeader eyebrow="Preferences" title="Settings">

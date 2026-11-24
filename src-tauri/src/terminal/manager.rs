@@ -75,6 +75,13 @@ impl PtyManager {
         } else if let Some(home) = std::env::var_os(if cfg!(windows) { "USERPROFILE" } else { "HOME" }) {
             cmd.cwd(home);
         }
+        // Don't leak the launcher's npm environment (e.g. `npm run tauri dev`) into shells:
+        // nvm refuses npm_config_prefix and prompts like powerlevel10k then warn on every start.
+        for (key, _) in std::env::vars_os() {
+            if key.to_string_lossy().to_ascii_lowercase().starts_with("npm_") || key == "INIT_CWD" {
+                cmd.env_remove(&key);
+            }
+        }
         cmd.env("TERM", "xterm-256color");
         cmd.env("COLORTERM", "truecolor");
         cmd.env("TERM_PROGRAM", "Orbitr");

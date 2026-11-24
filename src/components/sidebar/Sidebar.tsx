@@ -105,7 +105,14 @@ export function Sidebar() {
                     onClick={() => open({ type: "project", id: p.id })}
                     icon={isActive ? <FolderOpen size={14} className="text-accent" /> : <Folder size={14} className="text-muted" />}
                     label={p.name}
-                    trailing={<GitBadge path={p.path} />}
+                    trailing={
+                      <span className="flex items-center gap-1.5">
+                        <GitBadge path={p.path} />
+                        {workspace.projectIds.indexOf(p.id) < 9 && (
+                          <span className="hidden font-mono text-[10px] text-faint group-hover:inline">{modKey}{workspace.projectIds.indexOf(p.id) + 1}</span>
+                        )}
+                      </span>
+                    }
                   />
                 </ContextMenu>
                 </Reorder.Item>

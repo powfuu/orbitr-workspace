@@ -75,7 +75,7 @@ export function WorkspaceSwitcher() {
               >
                 <WorkspaceGlyph name={w.name} hue={w.hue} size={18} />
                 <span className="flex-1 truncate text-left">{w.name}</span>
-                {i < 9 && <Kbd>{modKey}{i + 1}</Kbd>}
+                {i < 9 && <Kbd>{modKey}⇧{i + 1}</Kbd>}
                 <Check size={13} className={cn("text-accent", w.id !== active.id && "invisible")} />
               </button>
             ))}

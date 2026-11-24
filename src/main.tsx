@@ -9,6 +9,7 @@ import { useSessions } from "./stores/sessionStore";
 import { useSettings } from "./stores/settingsStore";
 import { useEventLog } from "./features/timeline/eventLog";
 import { restoreSessions } from "./features/sessions/restore";
+import { initFonts } from "./features/terminals/fonts";
 import { flushPendingWrites } from "./services/persistence";
 import "@xterm/xterm/css/xterm.css";
 import "./styles/index.css";
@@ -16,6 +17,7 @@ import "./styles/index.css";
 // Load persisted state before the first render so the UI never flashes defaults.
 await Promise.all([useLayout, useWorkspaces, useTabs, useHistory, useSessions, useSettings, useEventLog].map((s) => s.persist.rehydrate()));
 window.addEventListener("beforeunload", () => void flushPendingWrites());
+void initFonts(useSettings.getState().terminalFont);
 void restoreSessions();
 
 createRoot(document.getElementById("root")!).render(

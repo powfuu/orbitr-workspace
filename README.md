@@ -29,7 +29,10 @@ npm run tauri build    # release bundle
 | Mod+B | Toggle sidebar |
 | Mod+J | Toggle terminal panel |
 | Mod+T | New terminal |
-| Mod+1…9 | Switch workspace |
+| Mod+1…9 | Go to project |
+| Mod+Shift+1…9 | Switch workspace |
+| Option/Alt+1…9 | Go to tab (9 = last) |
+| Ctrl+1…9 (Ctrl+Alt on Windows) | Go to terminal |
 | Mod+N | Start agent |
 | Mod+, | Settings |
 | Ctrl+Tab / Mod+Shift+[ ] | Cycle tabs |

@@ -3,6 +3,8 @@ import { hasMod, isMac } from "../lib/platform";
 import { useLayout } from "../stores/layoutStore";
 import { getActiveTabs, useTabs } from "../stores/tabStore";
 import { useWorkspaces } from "../stores/workspaceStore";
+import { useSessions } from "../stores/sessionStore";
+import { terminalRegistry } from "../features/terminals/terminalRegistry";
 import { newDefaultTerminal } from "../features/terminals/newDefaultTerminal";
 import { openInEditor } from "../features/editors/openInEditor";
 import { useQuickOpen } from "../components/editors/QuickOpen";
@@ -20,7 +22,7 @@ function cycleTab(step: 1 | -1) {
 /**
  * App-wide shortcuts (Cmd on macOS, Ctrl elsewhere):
  * K palette · B sidebar · J terminal panel · T terminal · N start agent · W close tab
- * , settings · 1–9 workspace · Shift+[ / ] or Ctrl+(Shift+)Tab cycle tabs.
+ * , settings · 1–9 project, Shift+1–9 workspace, Ctrl+1–9 terminal · Shift+[ / ] or Ctrl+(Shift+)Tab cycle tabs.
  */
 export function useGlobalShortcuts() {
   useEffect(() => {
@@ -39,6 +41,29 @@ export function useGlobalShortcuts() {
       if (e.ctrlKey && e.key === "Tab") {
         e.preventDefault();
         return cycleTab(e.shiftKey ? -1 : 1);
+      }
+      // Number keys (e.code, so Shift/Option don't change the digit):
+      //   Mod+N project · Mod+Shift+N workspace · Option/Alt+N tab in the focused pane ·
+      //   Ctrl+N terminal on macOS (Ctrl+Alt+N on Windows/Linux, where Ctrl is the Mod key).
+      const digit = /^Digit([1-9])$/.exec(e.code)?.[1];
+      if (digit) {
+        const n = Number(digit) - 1;
+        const terminalKey = isMac ? e.ctrlKey && !e.metaKey && !e.altKey : e.ctrlKey && e.altKey;
+        const tabKey = e.altKey && !e.ctrlKey && !e.metaKey;
+        const action = terminalKey
+          ? () => focusTerminal(n)
+          : tabKey
+            ? () => goToTab(n)
+            : hasMod(e) && !e.altKey
+              ? e.shiftKey
+                ? () => switchWorkspace(n)
+                : () => openProject(n)
+              : null;
+        if (action) {
+          e.preventDefault();
+          e.stopPropagation();
+          return action();
+        }
       }
       if (!hasMod(e) || e.altKey) return;
       // Find in terminal: Cmd+F on macOS; Ctrl+Shift+F elsewhere (Ctrl+F is a shell key there).
@@ -85,10 +110,6 @@ export function useGlobalShortcuts() {
             e: () => void openInEditor(),
             p: () => useQuickOpen.getState().open(),
           };
-      if (!e.shiftKey && /^[1-9]$/.test(key)) {
-        const ws = useWorkspaces.getState().workspaces[Number(key) - 1];
-        if (ws) actions[key] = () => useWorkspaces.getState().setActiveWorkspace(ws.id);
-      }
       const action = actions[key];
       if (action) {
         e.preventDefault();
@@ -100,4 +121,33 @@ export function useGlobalShortcuts() {
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
   }, []);
+}
+
+/** Nth workspace (sidebar order). */
+function switchWorkspace(n: number) {
+  const ws = useWorkspaces.getState().workspaces[n];
+  if (ws) useWorkspaces.getState().setActiveWorkspace(ws.id);
+}
+
+/** Nth project of the active workspace, in sidebar order. */
+function openProject(n: number) {
+  const { workspaces, activeWorkspaceId } = useWorkspaces.getState();
+  const id = workspaces.find((w) => w.id === activeWorkspaceId)?.projectIds[n];
+  if (id) useTabs.getState().open({ type: "project", id });
+}
+
+/** Nth terminal in the right panel; opens the panel and focuses it. */
+function focusTerminal(n: number) {
+  const t = useSessions.getState().terminals[n];
+  if (!t) return;
+  useSessions.getState().setActiveTerminal(t.id);
+  useLayout.getState().openTerminalPanel();
+  window.setTimeout(() => terminalRegistry.focus(t.id), 60);
+}
+
+/** Nth tab of the focused pane; 9 = last tab, as in browsers. */
+function goToTab(n: number) {
+  const { tabs } = getActiveTabs();
+  const tab = n === 8 ? tabs[tabs.length - 1] : tabs[n];
+  if (tab) useTabs.getState().activate(tab.id);
 }

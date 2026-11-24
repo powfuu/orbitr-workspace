@@ -6,7 +6,7 @@ import { WebglAddon } from "@xterm/addon-webgl";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { terminalTheme } from "./theme";
-import { terminalFontFamily } from "./fonts";
+import { ensureTerminalFont, terminalFontFamily, useFonts } from "./fonts";
 import { useSettings, type Settings } from "../../stores/settingsStore";
 import { isTauri } from "../../lib/platform";
 import type { ID } from "../../types";
@@ -36,12 +36,25 @@ const optionsFrom = (s: Settings) => ({
   scrollback: s.scrollback,
 });
 
-// Settings changes apply live to every open terminal.
-useSettings.subscribe((s) => {
+/** Re-applies options and redraws every terminal (glyph atlas included). */
+function refreshAll() {
+  const opts = optionsFrom(useSettings.getState());
   for (const [id, e] of entries) {
-    Object.assign(e.term.options, optionsFrom(s));
+    Object.assign(e.term.options, opts);
+    e.term.clearTextureAtlas();
+    e.term.refresh(0, e.term.rows - 1);
     terminalRegistry.fit(id);
   }
+}
+
+// Settings changes apply live; a newly chosen font is loaded first.
+useSettings.subscribe((s, prev) => {
+  if (s.terminalFont !== prev.terminalFont) void ensureTerminalFont(s.terminalFont).then(refreshAll);
+  else refreshAll();
+});
+// Fonts arrive asynchronously at startup (read from disk): redraw once they're registered.
+useFonts.subscribe((s, prev) => {
+  if (s.loaded !== prev.loaded || s.ready !== prev.ready) refreshAll();
 });
 
 /** GPU renderer; falls back to the DOM renderer if WebGL is unavailable or the context is lost. */

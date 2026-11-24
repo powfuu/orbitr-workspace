@@ -1,5 +1,6 @@
 mod agents;
 mod commands;
+mod fonts;
 mod git;
 mod persistence;
 mod terminal;
@@ -52,6 +53,8 @@ pub fn run() {
             commands::git::git_add_worktree,
             commands::git::git_remove_worktree,
             commands::git::list_files,
+            commands::fonts::nerd_fonts,
+            commands::fonts::read_font,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Orbitr")
