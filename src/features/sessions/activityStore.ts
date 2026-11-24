@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { ID } from "../../types";
+import type { DetectedPrompt } from "../approvals/detectPrompt";
 
 /**
  * Live activity derived from real PTY traffic (see activityTracker.ts):
@@ -15,6 +16,8 @@ export interface Activity {
   attention: boolean;
   unread: boolean;
   since: number;
+  /** Approval prompt currently on screen, if any. */
+  prompt?: DetectedPrompt;
 }
 
 interface ActivityState {

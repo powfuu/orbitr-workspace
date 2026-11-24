@@ -7,6 +7,8 @@ import { getActiveTabs } from "../../stores/tabStore";
 import { toast } from "../../stores/toastStore";
 import { isTauri } from "../../lib/platform";
 import { sendText } from "../sessions/ptySession";
+import { useActivity } from "../sessions/activityStore";
+import { answerPrompt, optionFromSpeech } from "../approvals/answer";
 import type { ID } from "../../types";
 
 export type VoicePhase = "off" | "downloading" | "loading" | "listening" | "speaking" | "transcribing" | "needsTarget";
@@ -36,6 +38,8 @@ export function resolveVoiceTarget(): { id: ID; name: string } | null {
   const tab = tabs.find((t) => t.id === activeTabId)?.target;
   const s =
     byId(useFocusedSession.getState().id) ??
+    // Nothing focused: a session waiting for approval is the obvious listener.
+    all.find((x) => useActivity.getState().byId[x.id]?.prompt) ??
     (tab?.type === "agent" ? byId(tab.id) : undefined) ??
     byId(activeTerminalId);
   return s ? { id: s.id, name: s.name } : null;
@@ -126,6 +130,13 @@ async function deliver(text: string) {
   if (!target) {
     // Keep the words; the indicator asks where to send them.
     useVoice.setState({ phase: "needsTarget", pending: text });
+    return;
+  }
+  const prompt = useActivity.getState().byId[target.id]?.prompt;
+  const option = prompt && optionFromSpeech(text, prompt);
+  if (option) {
+    await answerPrompt(target.id, option);
+    useVoice.setState({ phase: "off", lastText: `${text} → ${option.label}`, lastTarget: target.name });
     return;
   }
   await send(target, text);

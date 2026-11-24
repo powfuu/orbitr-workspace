@@ -1,5 +1,6 @@
 import type { Terminal, IDisposable } from "@xterm/xterm";
 import { useActivity } from "./activityStore";
+import { detectPrompt } from "../approvals/detectPrompt";
 import { notify } from "../../services/notify";
 import { useSessions } from "../../stores/sessionStore";
 
@@ -23,6 +24,22 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean) 
   let idleTimer = 0;
   let draft = 0;
   let workingSince = 0;
+  let scanTimer = 0;
+  let lastSignature = "";
+
+  // Read the visible screen and look for an approval prompt (see detectPrompt).
+  const scan = () => {
+    const buf = term.buffer.active;
+    const rows: string[] = [];
+    for (let y = buf.baseY; y < buf.baseY + term.rows; y++) rows.push(buf.getLine(y)?.translateToString(true) ?? "");
+    const prompt = detectPrompt(rows);
+    patch(id, { prompt: prompt ?? undefined });
+    if (prompt && prompt.signature !== lastSignature) {
+      if (!isFocused()) patch(id, { attention: true });
+      void notify(`${nameOf(id)} needs approval`, prompt.context[0] ? `${prompt.question} — ${prompt.context[0]}` : prompt.question);
+    }
+    lastSignature = prompt?.signature ?? "";
+  };
 
   const goIdle = () => {
     const finishedWork = workingSince && Date.now() - workingSince > 2000;
@@ -49,6 +66,8 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean) 
     disposables,
     onOutput() {
       const now = Date.now();
+      window.clearTimeout(scanTimer);
+      scanTimer = window.setTimeout(scan, 200);
       window.clearTimeout(idleTimer);
       idleTimer = window.setTimeout(goIdle, IDLE_AFTER_MS);
       if (now - lastInput < ECHO_WINDOW_MS) return;
@@ -71,6 +90,8 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean) 
     },
     dispose() {
       window.clearTimeout(idleTimer);
+      window.clearTimeout(scanTimer);
+      patch(id, { prompt: undefined });
       disposables.forEach((d) => d.dispose());
     },
   };

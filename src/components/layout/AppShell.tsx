@@ -7,6 +7,7 @@ import { CommandPalette } from "../palette/CommandPalette";
 import { ResizeHandle } from "./ResizeHandle";
 import { StatusBar } from "./StatusBar";
 import { Toaster } from "../ui/Toaster";
+import { ApprovalsTray } from "../approvals/ApprovalsTray";
 import { VoiceIndicator } from "../voice/VoiceIndicator";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
 
@@ -41,6 +42,7 @@ export function AppShell() {
       <CommandPalette />
       <Toaster />
       <ErrorBoundary label="Voice"><VoiceIndicator /></ErrorBoundary>
+      <ErrorBoundary label="Approvals"><ApprovalsTray /></ErrorBoundary>
     </div>
   );
 }

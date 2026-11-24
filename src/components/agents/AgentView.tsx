@@ -1,5 +1,8 @@
 import { RotateCw, Square, Trash2 } from "lucide-react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
+import { AnimatePresence } from "framer-motion";
+import { useActivity } from "../../features/sessions/activityStore";
+import { ApprovalCard } from "../approvals/ApprovalCard";
 import { usePaneFocused } from "../../features/panes/paneFocus";
 import { useSessions } from "../../stores/sessionStore";
 import { useWorkspaces } from "../../stores/workspaceStore";
@@ -22,6 +25,7 @@ export function AgentView({ id }: { id: ID }) {
   const platform = usePlatformInfo();
   const task = useActivitySubtitle(id);
   const paneFocused = usePaneFocused();
+  const prompt = useActivity((s) => s.byId[id]?.prompt);
   useEffect(() => markSeen(id), [id]);
   if (!agent) return <MissingView />;
 
@@ -52,6 +56,13 @@ export function AgentView({ id }: { id: ID }) {
           <IconButton icon={Trash2} label="End session" onClick={() => void removeAgent(id)} />
         </div>
       </div>
+      <AnimatePresence>
+        {prompt && (
+          <div className="border-b border-line-soft bg-bg p-3">
+            <ApprovalCard id={id} name={agent.name} prompt={prompt} />
+          </div>
+        )}
+      </AnimatePresence>
       <div className="relative min-h-0 flex-1 bg-black py-2 pl-4 pr-1">
         <TerminalView id={id} focused={paneFocused} />
       </div>
