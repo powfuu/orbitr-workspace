@@ -2,7 +2,7 @@ import { Reorder } from "framer-motion";
 import { Bot, FileCode2, GitBranch } from "lucide-react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { removeProject, revealProject } from "../../features/workspaces/manageActions";
-import { Folder, FolderOpen, FolderSearch, PanelLeftClose, RotateCw, Search, Settings, Square, SquareTerminal, Trash2, Command } from "lucide-react";
+import { Folder, FolderOpen, FolderSearch, PanelLeftClose, RotateCw, Settings, Square, SquareTerminal, Trash2, Command } from "lucide-react";
 import { closeTerminal, restartTerminal } from "../../features/terminals/terminalActions";
 import { newDefaultTerminal } from "../../features/terminals/newDefaultTerminal";
 import { removeAgent, restartAgent, stopAgent } from "../../features/agents/agentActions";
@@ -68,12 +68,12 @@ export function Sidebar() {
 
       <div className="px-3 pt-2">
         <label className="flex h-7 items-center gap-2 rounded-md bg-bg px-2 ring-1 ring-line-soft transition focus-within:ring-accent/50">
-          <Search size={13} className="text-faint" />
+          <span className="font-mono text-[12px] text-success">❯</span>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search sessions"
-            className="min-w-0 flex-1 bg-transparent text-[12px] text-fg outline-none placeholder:text-faint"
+            placeholder="search sessions"
+            className="min-w-0 flex-1 bg-transparent font-mono text-[12px] text-fg outline-none placeholder:text-faint"
           />
         </label>
       </div>

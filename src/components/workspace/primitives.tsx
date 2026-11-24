@@ -7,8 +7,8 @@ export function ViewHeader({ eyebrow, title, subtitle, children }: { eyebrow: st
   return (
     <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pb-8">
       <div className="min-w-[12rem] flex-1">
-        <div className="mb-2 font-mono text-2xs uppercase tracking-[0.14em] text-accent/80">{eyebrow}</div>
-        <h1 className="truncate text-[24px] font-semibold uppercase tracking-[0.08em] text-fg">{title}</h1>
+        <div className="mb-2 font-mono text-[11px] lowercase text-muted"><span className="text-success">❯</span> {eyebrow}</div>
+        <h1 className="truncate font-mono text-[22px] font-semibold tracking-tight text-fg">{title}</h1>
         {subtitle && <div className="mt-1.5 text-[13px] text-muted">{subtitle}</div>}
       </div>
       {children && <div className="flex shrink-0 flex-wrap items-center gap-2">{children}</div>}
@@ -54,10 +54,10 @@ export function ActionCard({ icon: Icon, title, description, shortcut, onClick, 
 export function Panel({ title, count, children, className, id, icon }: { title: string; count?: number; children: ReactNode; className?: string; id?: string; icon?: ReactNode }) {
   return (
     <section id={id} className={cn("scroll-mt-4 rounded-xl border border-line-soft bg-bg-2", className)}>
-      <div className="flex h-10 items-center gap-2 border-b border-line-soft px-4 text-[12px] font-medium text-fg-2">
-        {icon}
-        {title}
-        {count !== undefined && <span className="font-mono text-2xs text-faint">{count}</span>}
+      <div className="flex h-10 items-center gap-2 border-b border-line-soft px-4 font-mono text-[12px] text-fg-2">
+        {icon ?? <span className="text-faint">#</span>}
+        <span className="lowercase">{title}</span>
+        {count !== undefined && <span className="text-2xs text-faint">[{count}]</span>}
       </div>
       <div className="p-4">{children}</div>
     </section>
@@ -66,11 +66,9 @@ export function Panel({ title, count, children, className, id, icon }: { title: 
 
 export function EmptyLine({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 py-2 text-[12.5px] text-muted">
-      <span className="grid h-7 w-7 place-items-center rounded-md border border-dashed border-line text-faint">
-        <Icon size={13} />
-      </span>
-      {children}
+    <div className="flex items-center gap-2.5 py-2 font-mono text-[12px] text-muted">
+      <Icon size={13} className="shrink-0 text-faint" />
+      <span><span className="text-faint"># </span>{children}</span>
     </div>
   );
 }

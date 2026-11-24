@@ -71,7 +71,7 @@ export function ProjectView({ id }: { id: ID }) {
       </ViewHeader>
 
       <div className="mb-3 flex items-center gap-3">
-        <span className="font-mono text-2xs uppercase tracking-[0.14em] text-faint">Launch here</span>
+        <span className="term-heading">Launch here</span>
         {isRepo && (
           <button
             role="switch"

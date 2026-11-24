@@ -45,7 +45,7 @@ export function WorktreesSection({ repo }: { repo: string }) {
 
   return (
     <div className="border-t border-line-soft py-2">
-      <div className="px-4 pb-1 text-2xs font-medium uppercase tracking-[0.08em] text-faint">Worktrees · {extra.length}</div>
+      <div className="px-4 pb-1 term-heading">Worktrees · {extra.length}</div>
       {extra.map((w) => {
         const inside = agents.filter((a) => a.cwd === w.path);
         return (

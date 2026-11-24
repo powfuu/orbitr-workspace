@@ -32,7 +32,7 @@ export function ProjectUsage({ path }: { path: string }) {
         <>
           <UsageSummary report={report} days={days} />
           <div className="mt-4 border-t border-line-soft pt-3">
-            <div className="mb-1 text-2xs font-medium uppercase tracking-[0.08em] text-faint">Sessions</div>
+            <div className="mb-1 term-heading">Sessions</div>
             {report.bySession.slice(0, 8).map((s) => (
               <div key={s.key} className="flex h-7 items-center gap-3 text-[12px]">
                 <span className="selectable font-mono text-[11px] text-fg-2">{s.key.slice(0, 8)}</span>

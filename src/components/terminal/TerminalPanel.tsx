@@ -23,10 +23,10 @@ export function TerminalPanel() {
   return (
     <aside className="flex h-full flex-col bg-bg">
       <div {...windowDragProps} className="flex h-11 shrink-0 items-center gap-1 border-b border-line-soft px-2">
-        <div className="flex items-center gap-2 pl-1.5 text-[12px] font-medium text-fg-2">
+        <div className="flex items-center gap-2 pl-1.5 font-mono text-[12px] text-fg-2">
           <SquareTerminal size={14} className="text-muted" />
-          Terminal
-          <span className="font-mono text-2xs text-faint">{terminals.length}</span>
+          terminal
+          <span className="text-2xs text-faint">[{terminals.length}]</span>
         </div>
         <div className="flex-1" />
         {active && active.status !== "running" && active.status !== "starting" && (

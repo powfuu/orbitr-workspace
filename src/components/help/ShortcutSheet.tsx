@@ -47,7 +47,7 @@ export function ShortcutSheet() {
             <div className="grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-x-8 gap-y-5 p-5">
               {SHORTCUTS.map((g) => (
                 <section key={g.group}>
-                  <div className="mb-2 font-mono text-2xs uppercase tracking-[0.14em] text-faint">{g.group}</div>
+                  <div className="mb-2 term-heading">{g.group}</div>
                   <ul className="space-y-1.5">
                     {g.items.map((s) => (
                       <li key={s.label} className="flex items-center justify-between gap-3 text-[12.5px] text-fg-2">

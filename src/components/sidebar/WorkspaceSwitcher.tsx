@@ -63,7 +63,7 @@ export function WorkspaceSwitcher() {
             transition={{ duration: 0.14, ease: "easeOut" }}
             className="absolute inset-x-2 top-full z-40 mt-1 origin-top rounded-lg bg-surface p-1 shadow-pop"
           >
-            <div className="px-2 pb-1 pt-1.5 text-2xs font-medium uppercase tracking-[0.08em] text-faint">Workspaces</div>
+            <div className="px-2 pb-1 pt-1.5 term-heading">Workspaces</div>
             {workspaces.map((w, i) => (
               <button
                 key={w.id}

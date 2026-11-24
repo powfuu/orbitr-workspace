@@ -59,7 +59,7 @@ function Segmented<K extends keyof Settings>({ k, options }: { k: K; options: { 
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section id={`settings-${title.toLowerCase()}`} className="mb-6 scroll-mt-6">
-    <div className="mb-2 font-mono text-2xs uppercase tracking-[0.14em] text-faint">{title}</div>
+    <div className="mb-2 term-heading">{title}</div>
     <div className="divide-y divide-line-soft rounded-xl border border-line-soft bg-bg-2">{children}</div>
   </section>
 );

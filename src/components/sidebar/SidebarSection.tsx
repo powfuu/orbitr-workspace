@@ -26,14 +26,14 @@ export function SidebarSection({ id, title, count, onAdd, addLabel, addDisabled,
         <button
           onClick={() => setCollapsed(!collapsed)}
           aria-expanded={!collapsed}
-          className="flex flex-1 items-center gap-1 text-2xs font-medium uppercase tracking-[0.08em] text-faint hover:text-muted"
+          className="flex flex-1 items-center gap-1 font-mono text-[11px] lowercase text-faint hover:text-muted"
         >
           <motion.span animate={{ rotate: collapsed ? 0 : 90 }} transition={{ duration: 0.15 }}>
             <ChevronRight size={11} strokeWidth={2.25} />
           </motion.span>
           {Icon && <Icon size={12} strokeWidth={2} className="ml-0.5 mr-0.5" />}
           {title}
-          <span className="ml-1 font-mono normal-case tracking-normal text-faint/80">{count}</span>
+          <span className="ml-1 text-faint/70">[{count}]</span>
         </button>
         {onAdd && (
           <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">

@@ -24,10 +24,19 @@ export function HomeView() {
           <div className="absolute inset-0 rounded-2xl bg-fg/10 blur-xl" />
           <LogoMark size={30} />
         </div>
-        <h1 className="text-[20px] @md:text-[26px] @xl:text-[30px] font-semibold uppercase leading-[1.15] tracking-[0.06em] text-fg">
-          Your agents. Your terminals.
+        <div className="mb-3 font-mono text-[12px] text-muted">
+          <span className="text-success">❯</span> orbitr <span className="text-faint">--welcome</span>
+        </div>
+        <h1 className="font-mono text-[20px] font-semibold leading-[1.25] tracking-tight text-fg @md:text-[26px] @xl:text-[30px]">
+          your agents. your terminals.
           <br />
-          <span className="text-muted">One workspace.</span>
+          <span className="text-muted">one workspace.</span>
+          <motion.span
+            aria-hidden
+            className="ml-1 inline-block h-[0.95em] w-[0.5em] translate-y-[0.12em] bg-fg"
+            animate={{ opacity: [1, 1, 0, 0] }}
+            transition={{ duration: 1.1, repeat: Infinity, times: [0, 0.5, 0.5, 1], ease: "linear" }}
+          />
         </h1>
       </motion.div>
 

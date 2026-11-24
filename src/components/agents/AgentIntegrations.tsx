@@ -20,7 +20,7 @@ export function AgentIntegrations() {
   return (
     <div>
       <div className="mb-3 flex items-center gap-3">
-        <div className="font-mono text-2xs uppercase tracking-[0.14em] text-faint">Agent integrations</div>
+        <div className="term-heading">Agent integrations</div>
         {availability && <span className="font-mono text-2xs text-faint">{installed}/{agentList.length} installed</span>}
         <div className="flex-1" />
         <span className={cn(checking && "animate-spin")}>

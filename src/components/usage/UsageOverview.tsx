@@ -21,7 +21,7 @@ export function UsageOverview() {
   return (
     <div id="dashboard-usage" className="scroll-mt-6">
       <div className="mb-3 flex items-center gap-3">
-        <div className="font-mono text-2xs uppercase tracking-[0.14em] text-faint">Usage</div>
+        <div className="term-heading">Usage</div>
         <div className="flex-1" />
         <PeriodPicker days={days} onChange={setDays} />
       </div>
@@ -36,7 +36,7 @@ export function UsageOverview() {
             <UsageSummary report={report} days={days} />
             {report.byProject.length > 0 && (
               <div className="mt-4 border-t border-line-soft pt-3">
-                <div className="mb-1 text-2xs font-medium uppercase tracking-[0.08em] text-faint">By project</div>
+                <div className="mb-1 term-heading">By project</div>
                 {report.byProject.slice(0, 6).map((b) => {
                   const p = byFolder.get(b.key);
                   return (

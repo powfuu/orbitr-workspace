@@ -36,7 +36,7 @@ export function ShellPicker({ onPick }: { onPick: (shellPath: string) => void })
             transition={{ duration: 0.12 }}
             className="absolute right-0 top-full z-40 mt-1 min-w-48 rounded-lg bg-surface p-1 shadow-pop"
           >
-            <div className="px-2 pb-1 pt-1.5 text-2xs font-medium uppercase tracking-[0.08em] text-faint">New terminal with</div>
+            <div className="px-2 pb-1 pt-1.5 term-heading">New terminal with</div>
             {shells.map((s, i) => (
               <button
                 key={s.path}

@@ -147,7 +147,7 @@ export function Select<V extends string>({ value, options, onChange, ariaLabel, 
                   lastGroup = o.group;
                   return (
                     <div key={o.value}>
-                      {heading && <div className="px-2.5 pb-1 pt-2 text-2xs font-medium uppercase tracking-[0.08em] text-faint">{heading}</div>}
+                      {heading && <div className="px-2.5 pb-1 pt-2 term-heading">{heading}</div>}
                       <button
                         type="button"
                         role="option"

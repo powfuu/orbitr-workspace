@@ -82,7 +82,7 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
   const section = (title: string, files: FileChange[], isStaged: boolean) =>
     files.length > 0 && (
       <div>
-        <div className="group flex h-7 items-center gap-2 px-3 text-2xs font-medium uppercase tracking-[0.08em] text-faint">
+        <div className="group flex h-7 items-center gap-2 px-3 term-heading">
           {title} <span className="font-mono normal-case tracking-normal">{files.length}</span>
           <span className="ml-auto opacity-0 group-hover:opacity-100">
             <IconButton
@@ -226,7 +226,7 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
               </motion.div>
             ) : (
               <motion.div key="log" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-2">
-                <div className="px-4 pb-1 text-2xs font-medium uppercase tracking-[0.08em] text-faint">Recent commits</div>
+                <div className="px-4 pb-1 term-heading">Recent commits</div>
                 {log.length === 0 && <div className="px-4 py-3 text-[12px] text-muted">No commits yet.</div>}
                 {log.map((c) => (
                   <div key={c.hash} className="flex h-7 items-center gap-3 px-4 text-[12px]">
