@@ -8,6 +8,7 @@ import { modKey } from "../../lib/platform";
 import { terminalFontFamily, useFonts } from "../../features/terminals/fonts";
 import { ViewHeader } from "../workspace/primitives";
 import { UpdatesSection } from "./UpdatesSection";
+import { ThemePicker } from "./ThemePicker";
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
@@ -29,9 +30,9 @@ function Toggle({ k }: { k: "cursorBlink" | "restoreOnLaunch" | "notifications" 
       role="switch"
       aria-checked={value}
       onClick={() => set(k, !value)}
-      className={cn("relative h-5 w-9 rounded-full transition-colors", value ? "bg-white" : "bg-surface-2 ring-1 ring-line")}
+      className={cn("relative h-5 w-9 rounded-full transition-colors", value ? "bg-fg" : "bg-surface-2 ring-1 ring-line")}
     >
-      <span className={cn("absolute top-0.5 h-4 w-4 rounded-full transition-all", value ? "left-[18px] bg-black" : "left-0.5 bg-muted")} />
+      <span className={cn("absolute top-0.5 h-4 w-4 rounded-full transition-all", value ? "left-[18px] bg-bg" : "left-0.5 bg-muted")} />
     </button>
   );
 }
@@ -75,10 +76,14 @@ export function SettingsView() {
         </button>
       </ViewHeader>
 
+      <Section title="Appearance">
+        <ThemePicker />
+      </Section>
+
       <Section title="Terminal">
         <Row label="Font size" hint="Applies to all terminals and agents immediately.">
           <div className="flex items-center gap-3">
-            <input type="range" min={10} max={18} step={0.5} value={s.terminalFontSize} onChange={(e) => s.set("terminalFontSize", Number(e.target.value))} className="w-32 accent-white" />
+            <input type="range" min={10} max={18} step={0.5} value={s.terminalFontSize} onChange={(e) => s.set("terminalFontSize", Number(e.target.value))} className="w-32 accent-fg" />
             <span className="w-10 text-right font-mono text-[12px] text-fg-2">{s.terminalFontSize}</span>
           </div>
         </Row>
@@ -93,7 +98,7 @@ export function SettingsView() {
               {nerdFonts.map((f) => <option key={f} value={f}>{f}</option>)}
               <option value="JetBrains Mono">JetBrains Mono (no icons)</option>
             </select>
-            <span className="rounded bg-black px-2 py-1 text-[13px] text-fg-2" style={{ fontFamily: terminalFontFamily(s.terminalFont) }} title="Preview">
+            <span className="rounded bg-term px-2 py-1 text-[13px] text-fg-2" style={{ fontFamily: terminalFontFamily(s.terminalFont) }} title="Preview">
               {"\uf07b \ue718 \ue7a8 \uf418 \uf113 \ue0b0 \uf489 \u{f0219} \uf00c "}main.ts
             </span>
           </div>

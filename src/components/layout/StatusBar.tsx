@@ -29,7 +29,7 @@ export function StatusBar() {
       )}
       <span className="ml-auto">{platform ? `${platform.os} · ${platform.defaultShell}` : ""}</span>
       {update.status.kind === "available" ? (
-        <button onClick={() => void update.install()} className="flex items-center gap-1 rounded bg-white px-1.5 text-black hover:bg-white/85" title="Download, install and restart">
+        <button onClick={() => void update.install()} className="flex items-center gap-1 rounded bg-fg px-1.5 text-bg hover:bg-fg/85" title="Download, install and restart">
           <ArrowUpCircle size={11} /> Update to {update.status.version}
         </button>
       ) : update.status.kind === "downloading" ? (

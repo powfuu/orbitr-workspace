@@ -1,7 +1,8 @@
-import { ArrowRight, FileCode2, Sparkles, Keyboard, Search, FolderGit2, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, Palette, FileCode2, Sparkles, Keyboard, Search, FolderGit2, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useLayout } from "../../stores/layoutStore";
 import { useSettings } from "../../stores/settingsStore";
+import { THEMES } from "../theme/themes";
 import { getActiveTabs, useTabs } from "../../stores/tabStore";
 import { useWorkspaces } from "../../stores/workspaceStore";
 import { useSessions } from "../../stores/sessionStore";
@@ -56,6 +57,13 @@ export function useCommands(): Command[] {
       { id: "vim-quick", title: "Open file in Vim…", group: "Vim", icon: FileCode2, shortcut: `${modKey}P`, run: () => useQuickOpen.getState().open() } as Command,
       ...wsProjects.map<Command>((p) => ({ id: `vim-${p.id}`, title: `Open Vim in ${p.name}`, group: "Vim", icon: FileCode2, shortcut: undefined, run: () => void openInEditor({ projectId: p.id }) })),
     ];
+    const themes: Command[] = [...THEMES, { id: "system", name: "Match system" }].map((t) => ({
+      id: `theme-${t.id}`,
+      title: `Theme: ${t.name}`,
+      group: "Appearance",
+      icon: Palette,
+      run: () => useSettings.getState().set("theme", t.id),
+    }));
     const startIsolated = wsProjects.flatMap((p) =>
       agentList.map<Command>((a) => ({
         id: `start-wt-${a.kind}-${p.id}`,
@@ -102,6 +110,6 @@ export function useCommands(): Command[] {
       run: () => { setActiveWorkspace(w.id); tabs.open({ type: "workspace", id: w.id }); },
     }));
     const pj = wsProjects.map<Command>((p) => ({ id: `pj-${p.id}`, title: p.name, group: "Project", icon: Folder, run: () => tabs.open({ type: "project", id: p.id }) }));
-    return [...sessions, ...vim, ...start, ...startIsolated, ...base, ...pj, ...ws];
+    return [...sessions, ...vim, ...start, ...startIsolated, ...base, ...themes, ...pj, ...ws];
   }, [workspaces, projects, activeWorkspaceId, setActiveWorkspace, agents]);
 }

@@ -31,7 +31,7 @@ function ProjectStep() {
     <div>
       <h2 className="text-[18px] font-semibold text-fg">Add your first project</h2>
       <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted">A project is a folder on disk. Agents and terminals start there, and Orbitr shows its git status, conversations and usage.</p>
-      <button onClick={() => void addProjectFromDialog()} className="mt-5 flex h-9 items-center gap-2 rounded-lg bg-white px-3.5 text-[12.5px] font-medium text-black hover:bg-white/85">
+      <button onClick={() => void addProjectFromDialog()} className="mt-5 flex h-9 items-center gap-2 rounded-lg bg-fg px-3.5 text-[12.5px] font-medium text-bg hover:bg-fg/85">
         <FolderPlus size={14} /> Choose a folder…
       </button>
       {projects.length > 0 && (
@@ -159,7 +159,7 @@ export function WelcomeTour() {
             <div className="flex items-center gap-3 border-t border-line px-5 py-3">
               <div className="flex gap-1.5" aria-label={`Step ${step + 1} of ${STEPS.length}`}>
                 {STEPS.map((s, i) => (
-                  <button key={s.key} aria-label={`Step ${i + 1}`} onClick={() => setStep(i)} className={cn("h-1.5 rounded-full transition-all", i === step ? "w-5 bg-white" : "w-1.5 bg-line hover:bg-faint")} />
+                  <button key={s.key} aria-label={`Step ${i + 1}`} onClick={() => setStep(i)} className={cn("h-1.5 rounded-full transition-all", i === step ? "w-5 bg-fg" : "w-1.5 bg-line hover:bg-faint")} />
                 ))}
               </div>
               <button onClick={finish} className="ml-auto h-8 px-2 text-[12px] text-muted hover:text-fg">Skip</button>
@@ -170,7 +170,7 @@ export function WelcomeTour() {
               )}
               <button
                 onClick={() => (last ? finish() : setStep(step + 1))}
-                className="flex h-8 items-center gap-1.5 rounded-lg bg-white px-3.5 text-[12.5px] font-medium text-black hover:bg-white/85"
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-fg px-3.5 text-[12.5px] font-medium text-bg hover:bg-fg/85"
               >
                 {last ? "Start using Orbitr" : step === 0 ? "Get started" : "Next"}
                 {!last && <ArrowRight size={13} />}

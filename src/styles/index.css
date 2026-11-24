@@ -22,9 +22,11 @@
   --color-success: #3ddc84;
   --color-warning: #e0b04a;
   --color-error: #ff4d4d;
+  /* Terminal/editor background; themes override every --color-* at runtime (features/theme). */
+  --color-term: #000000;
 
   --text-2xs: 0.6875rem;
-  --shadow-pop: 0 0 0 1px #2a2a2a, 0 12px 32px -8px #000c, 0 2px 6px #0008;
+  --shadow-pop: 0 0 0 1px var(--color-line), 0 12px 32px -8px rgb(0 0 0 / 0.55), 0 2px 6px rgb(0 0 0 / 0.35);
 }
 
 html, body, #root { height: 100%; }
@@ -41,19 +43,19 @@ body {
   cursor: default;
   overflow: hidden;
 }
-::selection { background: #ffffff33; }
+::selection { background: color-mix(in srgb, var(--color-fg) 22%, transparent); }
 @layer base {
   :focus-visible { outline: 1.5px solid var(--color-accent); outline-offset: 1px; border-radius: 6px; }
 }
 
-* { scrollbar-width: thin; scrollbar-color: #252b37 transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--color-line) transparent; }
 
 /* Text selection only where it means something: terminals, fields, paths, code. */
 .xterm, input, textarea, code, .selectable { -webkit-user-select: text; user-select: text; }
 
 /* Faint dot grid used behind empty states */
 .bg-grid {
-  background-image: radial-gradient(circle at 1px 1px, #ffffff0a 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--color-fg) 5%, transparent) 1px, transparent 0);
   background-size: 22px 22px;
 }
 
@@ -64,3 +66,6 @@ body {
 /* xterm: blend into panel, slim scrollbar */
 .xterm { height: 100%; }
 .xterm .xterm-viewport { background-color: transparent !important; scrollbar-width: thin; }
+
+/* Monochrome brand icons are black SVGs: invert them on dark themes only. */
+:root.dark .mono-icon { filter: invert(1); }

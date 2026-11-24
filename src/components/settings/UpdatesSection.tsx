@@ -31,7 +31,7 @@ export function UpdatesSection() {
           <div className="mt-0.5 text-[11.5px] text-muted">{line}</div>
         </div>
         {status.kind === "available" ? (
-          <button onClick={() => void install()} className="flex h-7 items-center gap-1.5 rounded-md bg-white px-3 text-[12px] font-medium text-black hover:bg-white/85">
+          <button onClick={() => void install()} className="flex h-7 items-center gap-1.5 rounded-md bg-fg px-3 text-[12px] font-medium text-bg hover:bg-fg/85">
             <Download size={12} /> Install & restart
           </button>
         ) : (
@@ -49,7 +49,7 @@ export function UpdatesSection() {
       )}
       {status.kind === "downloading" && status.total ? (
         <div className="mt-3 h-1 overflow-hidden rounded-full bg-bg">
-          <div className="h-full bg-white transition-[width]" style={{ width: `${(status.done / status.total) * 100}%` }} />
+          <div className="h-full bg-fg transition-[width]" style={{ width: `${(status.done / status.total) * 100}%` }} />
         </div>
       ) : null}
     </div>

@@ -152,7 +152,7 @@ export function GitPanel({ path }: { path: string }) {
           onClick={() => void act("push", () => gitService.push(path), "Pushed")}
           className={cn(
             "flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] disabled:opacity-50",
-            status.ahead > 0 || !status.upstream ? "bg-white text-black hover:bg-white/85" : "text-fg-2 ring-1 ring-line hover:bg-surface",
+            status.ahead > 0 || !status.upstream ? "bg-fg text-bg hover:bg-fg/85" : "text-fg-2 ring-1 ring-line hover:bg-surface",
           )}
         >
           {busy === "push" ? <Loader2 size={12} className="animate-spin" /> : <ArrowUp size={12} />} Push
@@ -186,12 +186,12 @@ export function GitPanel({ path }: { path: string }) {
               }}
               placeholder="Commit message"
               rows={2}
-              className="w-full resize-none rounded-md bg-bg px-2.5 py-2 text-[12.5px] text-fg outline-none ring-1 ring-line-soft placeholder:text-faint focus:ring-white/30"
+              className="w-full resize-none rounded-md bg-bg px-2.5 py-2 text-[12.5px] text-fg outline-none ring-1 ring-line-soft placeholder:text-faint focus:ring-fg/30"
             />
             <button
               disabled={!message.trim() || status.files.length === 0 || !!busy}
               onClick={commit}
-              className="mt-2 flex h-8 w-full items-center justify-center gap-2 rounded-lg bg-white text-[12.5px] font-medium text-black hover:bg-white/85 disabled:bg-surface disabled:text-faint"
+              className="mt-2 flex h-8 w-full items-center justify-center gap-2 rounded-lg bg-fg text-[12.5px] font-medium text-bg hover:bg-fg/85 disabled:bg-surface disabled:text-faint"
             >
               {busy === "commit" ? <Loader2 size={13} className="animate-spin" /> : <GitCommitHorizontal size={14} />}
               {staged.length ? `Commit ${staged.length} staged` : `Stage all & commit (${changes.length})`}
@@ -205,15 +205,15 @@ export function GitPanel({ path }: { path: string }) {
           <AnimatePresence mode="wait">
             {selected && diff !== null ? (
               <motion.div key={selected.path + selected.staged} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
-                <div className="flex h-8 items-center gap-2 border-b border-line-soft px-4 font-mono text-[11px] text-muted">
-                  <span className="truncate">{selected.path}</span>
-                  <span className="text-faint">{selected.staged ? "staged" : selected.untracked ? "new file" : "working tree"}</span>
-                  <span className="ml-auto flex gap-1.5">
-                    <button onClick={() => void openInEditor({ projectId: projectIdForPath(path), file: selected.path })} className="flex h-6 items-center gap-1 rounded px-2 font-sans text-[11px] text-fg ring-1 ring-line hover:bg-surface">
+                <div className="flex min-h-9 min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-line-soft px-4 py-1.5 font-mono text-[11px] text-muted">
+                  <span className="min-w-[8rem] flex-1 truncate" title={selected.path}>{selected.path}</span>
+                  <span className="shrink-0 whitespace-nowrap text-faint">{selected.staged ? "staged" : selected.untracked ? "new file" : "working tree"}</span>
+                  <span className="ml-auto flex shrink-0 gap-1.5">
+                    <button onClick={() => void openInEditor({ projectId: projectIdForPath(path), file: selected.path })} className="flex h-6 shrink-0 items-center gap-1 whitespace-nowrap rounded px-2 font-sans text-[11px] text-fg ring-1 ring-line hover:bg-surface">
                       <FileCode2 size={11} /> Open in Vim
                     </button>
                     {!selected.untracked && (
-                      <button onClick={() => { const id = projectIdForPath(path); if (id) void openVimDiff(id, selected.path, selected.staged); }} className="flex h-6 items-center gap-1 rounded px-2 font-sans text-[11px] text-fg ring-1 ring-line hover:bg-surface">
+                      <button onClick={() => { const id = projectIdForPath(path); if (id) void openVimDiff(id, selected.path, selected.staged); }} className="flex h-6 shrink-0 items-center gap-1 whitespace-nowrap rounded px-2 font-sans text-[11px] text-fg ring-1 ring-line hover:bg-surface">
                         <Columns2 size={11} /> vimdiff
                       </button>
                     )}

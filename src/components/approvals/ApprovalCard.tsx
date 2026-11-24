@@ -11,7 +11,7 @@ import { useLayout } from "../../stores/layoutStore";
 import { terminalRegistry } from "../../features/terminals/terminalRegistry";
 
 const style: Record<PromptOption["kind"], string> = {
-  approve: "bg-white text-black hover:bg-white/85",
+  approve: "bg-fg text-bg hover:bg-fg/85",
   always: "text-fg ring-1 ring-line hover:bg-surface-2",
   deny: "text-error ring-1 ring-error/40 hover:bg-error/10",
   other: "text-fg-2 ring-1 ring-line hover:bg-surface-2",
@@ -56,7 +56,7 @@ export function ApprovalCard({ id, name, prompt, compact }: { id: ID; name: stri
       </div>
       <div className="flex flex-wrap items-center gap-1.5 border-t border-line px-3 py-2">
         {prompt.options.length === 0 && (
-          <button onClick={() => focusSession(id)} className="flex h-7 items-center gap-1.5 rounded-md bg-white px-2.5 text-[12px] text-black hover:bg-white/85">
+          <button onClick={() => focusSession(id)} className="flex h-7 items-center gap-1.5 rounded-md bg-fg px-2.5 text-[12px] text-bg hover:bg-fg/85">
             <CornerDownLeft size={12} /> Reply
           </button>
         )}

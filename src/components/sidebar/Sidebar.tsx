@@ -157,6 +157,8 @@ export function Sidebar() {
                     trailing={<span className="flex items-center gap-1.5"><PromptChip id={a.id} /><ActivityIconFor id={a.id} status={a.status} /></span>}
                     active={activeTarget?.type === "agent" && activeTarget.id === a.id}
                     onClick={() => open({ type: "agent", id: a.id })}
+                    onClose={() => void removeAgent(a.id)}
+                    closeLabel={isEditor(a.kind) ? "Close editor" : "End session"}
                   />
                 </ContextMenu>
               );
@@ -185,6 +187,8 @@ export function Sidebar() {
                   label={a.name}
                   active={activeTarget?.type === "agent" && activeTarget.id === a.id}
                   onClick={() => open({ type: "agent", id: a.id })}
+                    onClose={() => void removeAgent(a.id)}
+                    closeLabel={isEditor(a.kind) ? "Close editor" : "End session"}
                 />
               </ContextMenu>
             ))
@@ -210,6 +214,8 @@ export function Sidebar() {
                   trailing={<span className="flex items-center gap-1.5"><PromptChip id={t.id} /><StatusDot status={t.status} /></span>}
                   active={t.id === activeTerminalId}
                   onClick={() => { setActiveTerminal(t.id); openTerminalPanel(); }}
+                  onClose={() => void closeTerminal(t.id)}
+                  closeLabel="Close terminal"
                 />
               </ContextMenu>
             ))

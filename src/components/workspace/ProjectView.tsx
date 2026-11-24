@@ -78,7 +78,7 @@ export function ProjectView({ id }: { id: ID }) {
             aria-checked={isolated}
             onClick={() => setIsolated((v) => !v)}
             title="Each agent gets its own branch and folder (git worktree) so parallel agents never edit the same files."
-            className={cn("ml-auto flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[11px] ring-1 transition-colors", isolated ? "bg-white text-black ring-white" : "text-muted ring-line hover:text-fg")}
+            className={cn("ml-auto flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[11px] ring-1 transition-colors", isolated ? "bg-fg text-bg ring-fg" : "text-muted ring-line hover:text-fg")}
           >
             <FolderGit2 size={11} /> Isolated worktree
           </button>

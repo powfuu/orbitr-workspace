@@ -14,7 +14,7 @@ export function AgentGlyph({ agent, size = 18, status }: { agent?: AgentDefiniti
       style={{ width: size, height: size }}
     >
       {agent ? (
-        <img src={agent.icon} alt="" draggable={false} className={cn(agent.mono && "invert")} style={{ width: size * 0.62, height: size * 0.62 }} />
+        <img src={agent.icon} alt="" draggable={false} className={cn(agent.mono && "mono-icon")} style={{ width: size * 0.62, height: size * 0.62 }} />
       ) : (
         <span className="font-mono text-faint" style={{ fontSize: size * 0.5 }}>?</span>
       )}

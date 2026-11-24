@@ -78,7 +78,7 @@ export function AgentView({ id }: { id: ID }) {
         )}
       </AnimatePresence>
       <div className="flex min-h-0 flex-1">
-        <div className="relative min-w-0 flex-1 bg-black py-2 pl-4 pr-1">
+        <div className="relative min-w-0 flex-1 bg-term py-2 pl-4 pr-1">
           <TerminalView id={id} focused={paneFocused} />
         </div>
         <AnimatePresence initial={false}>

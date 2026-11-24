@@ -31,7 +31,7 @@ export function SplitDivider({ splitId, dir }: { splitId: ID; dir: "row" | "colu
       <span className={cn("absolute", dir === "row" ? "inset-y-0 -left-1 -right-1" : "inset-x-0 -top-1 -bottom-1")} />
       <span
         className={cn(
-          "absolute bg-white opacity-0 transition-opacity delay-75 group-hover:opacity-60 group-active:opacity-100",
+          "absolute bg-fg opacity-0 transition-opacity delay-75 group-hover:opacity-60 group-active:opacity-100",
           dir === "row" ? "inset-y-0 left-0 w-px" : "inset-x-0 top-0 h-px",
         )}
       />

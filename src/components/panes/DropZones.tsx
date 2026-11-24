@@ -56,7 +56,7 @@ export function DropZones({ paneId }: { paneId: ID }) {
         <motion.div
           layout
           transition={{ type: "spring", stiffness: 600, damping: 40 }}
-          className={`pointer-events-none absolute rounded-xl border-2 border-white/60 bg-white/[0.06] ${rects[zone]}`}
+          className={`pointer-events-none absolute rounded-xl border-2 border-fg/60 bg-fg/[0.06] ${rects[zone]}`}
         />
       )}
     </div>

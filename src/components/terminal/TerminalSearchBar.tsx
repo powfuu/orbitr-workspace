@@ -4,17 +4,22 @@ import { useEffect, useRef, useState } from "react";
 import type { ISearchOptions } from "@xterm/addon-search";
 import { terminalRegistry } from "../../features/terminals/terminalRegistry";
 import { useTerminalSearch } from "../../features/search/searchStore";
+import { currentTheme } from "../../features/theme/applyTheme";
 import { cn } from "../../lib/cn";
 import type { ID } from "../../types";
 
-const decorations: ISearchOptions["decorations"] = {
-  matchBackground: "#ffffff33",
-  matchBorder: "#ffffff00",
-  matchOverviewRuler: "#ffffff88",
-  activeMatchBackground: "#f0b95b",
-  activeMatchBorder: "#f0b95b",
-  activeMatchColorOverviewRuler: "#f0b95b",
-};
+/** Match highlights follow the theme (white-on-white would vanish in a light theme). */
+function decorations(): ISearchOptions["decorations"] {
+  const { fg, warning } = currentTheme().colors;
+  return {
+    matchBackground: `${fg}33`,
+    matchBorder: `${fg}00`,
+    matchOverviewRuler: `${fg}88`,
+    activeMatchBackground: warning,
+    activeMatchBorder: warning,
+    activeMatchColorOverviewRuler: warning,
+  };
+}
 
 /** Find-in-terminal over scrollback: live highlights, n/total, case/word/regex toggles. */
 export function TerminalSearchBar({ id }: { id: ID }) {
@@ -26,7 +31,7 @@ export function TerminalSearchBar({ id }: { id: ID }) {
   const [invalid, setInvalid] = useState(false);
 
   const addon = terminalRegistry.search(id);
-  const opts = (incremental = false): ISearchOptions => ({ ...flags, incremental, decorations });
+  const opts = (incremental = false): ISearchOptions => ({ ...flags, incremental, decorations: decorations() });
 
   useEffect(() => {
     input.current?.focus();
@@ -72,7 +77,7 @@ export function TerminalSearchBar({ id }: { id: ID }) {
       aria-pressed={flags[k]}
       title={label}
       onClick={() => setFlags((f) => ({ ...f, [k]: !f[k] }))}
-      className={cn("grid h-6 w-6 place-items-center rounded", flags[k] ? "bg-white text-black" : "text-muted hover:bg-surface-2 hover:text-fg")}
+      className={cn("grid h-6 w-6 place-items-center rounded", flags[k] ? "bg-fg text-bg" : "text-muted hover:bg-surface-2 hover:text-fg")}
     >
       <Icon size={14} />
     </button>

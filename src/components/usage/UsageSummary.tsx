@@ -74,7 +74,7 @@ export function UsageSummary({ report, days }: { report: UsageReport; days: numb
                 initial={{ height: 0 }}
                 animate={{ height: `${Math.max(b ? (b.cost / max) * 100 : 0, b ? 4 : 1.5)}%` }}
                 transition={{ delay: i * 0.015, duration: 0.3, ease: [0.2, 0, 0, 1] }}
-                className={cn("w-full rounded-sm", b ? "bg-white/70 group-hover:bg-white" : "bg-line")}
+                className={cn("w-full rounded-sm", b ? "bg-fg/70 group-hover:bg-fg" : "bg-line")}
               />
             </div>
           ))}
@@ -87,7 +87,7 @@ export function UsageSummary({ report, days }: { report: UsageReport; days: numb
             <div key={m.key} className="flex items-center gap-3 text-[12px]">
               <span className="w-44 shrink-0 truncate font-mono text-[11px] text-fg-2">{m.key}</span>
               <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-bg">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${t.cost ? (m.cost / t.cost) * 100 : 0}%` }} className="h-full rounded-full bg-white/70" />
+                <motion.div initial={{ width: 0 }} animate={{ width: `${t.cost ? (m.cost / t.cost) * 100 : 0}%` }} className="h-full rounded-full bg-fg/70" />
               </div>
               <span className="w-16 text-right font-mono text-[11px] text-fg">{money(m.cost)}</span>
               <span className="w-14 text-right font-mono text-[10.5px] text-faint">{compact(m.messages)} msg</span>

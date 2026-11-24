@@ -39,7 +39,7 @@ export function TerminalPanel() {
 
       {terminals.length > 0 && <TerminalTabs />}
 
-      <div className="relative min-h-0 flex-1 bg-[#000000]">
+      <div className="relative min-h-0 flex-1 bg-term">
         {active ? (
           // One mounted view at a time; inactive xterm instances stay alive in the registry.
           <div key={active.id} className="absolute inset-0 py-2 pl-3 pr-1">

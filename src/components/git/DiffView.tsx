@@ -13,7 +13,7 @@ export function DiffView({ diff }: { diff: string }) {
         const tone = l.startsWith("+++") || l.startsWith("---") || l.startsWith("diff ") || l.startsWith("index ")
           ? "text-faint"
           : l.startsWith("@@")
-            ? "bg-white/[0.04] text-muted"
+            ? "bg-fg/[0.04] text-muted"
             : l.startsWith("+")
               ? "bg-success/10 text-success"
               : l.startsWith("-")

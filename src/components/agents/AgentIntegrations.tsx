@@ -61,7 +61,7 @@ export function AgentIntegrations() {
                   {cmd ? (
                     <button
                       onClick={() => void installAgent(a)}
-                      className="inline-flex h-7 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[12px] font-medium text-black hover:bg-white/85"
+                      className="inline-flex h-7 items-center gap-1.5 rounded-lg bg-fg px-2.5 text-[12px] font-medium text-bg hover:bg-fg/85"
                     >
                       <Download size={12} /> Install
                     </button>

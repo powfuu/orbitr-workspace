@@ -5,7 +5,7 @@ import { SearchAddon } from "@xterm/addon-search";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { terminalTheme } from "./theme";
+import { currentTheme, onThemeChange } from "../theme/applyTheme";
 import { ensureTerminalFont, terminalFontFamily, useFonts } from "./fonts";
 import { useSettings, type Settings } from "../../stores/settingsStore";
 import { isTauri } from "../../lib/platform";
@@ -29,6 +29,7 @@ const entries = new Map<ID, Entry>();
 const fontsReady = document.fonts.load('13px "JetBrains Mono"').catch(() => undefined);
 
 const optionsFrom = (s: Settings) => ({
+  theme: currentTheme().terminal,
   fontFamily: terminalFontFamily(s.terminalFont),
   fontSize: s.terminalFontSize,
   cursorStyle: s.cursorStyle,
@@ -52,6 +53,7 @@ useSettings.subscribe((s, prev) => {
   if (s.terminalFont !== prev.terminalFont) void ensureTerminalFont(s.terminalFont).then(refreshAll);
   else refreshAll();
 });
+onThemeChange(() => refreshAll());
 // Fonts arrive asynchronously at startup (read from disk): redraw once they're registered.
 useFonts.subscribe((s, prev) => {
   if (s.loaded !== prev.loaded || s.ready !== prev.ready) refreshAll();
@@ -74,7 +76,6 @@ export const terminalRegistry = {
       lineHeight: 1.25,
       macOptionIsMeta: true,
       allowProposedApi: true,
-      theme: terminalTheme,
       ...optionsFrom(useSettings.getState()),
     });
     const fit = new FitAddon();

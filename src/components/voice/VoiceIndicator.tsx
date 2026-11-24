@@ -66,7 +66,7 @@ export function VoiceIndicator() {
               <div className="flex h-4 items-center gap-[3px]" aria-hidden>
                 {Array.from({ length: BARS }, (_, i) => {
                   const h = phase === "speaking" ? Math.max(0.2, Math.min(1, level * 14 * (1 - Math.abs(i - 2) * 0.22))) : 0.2;
-                  return <motion.span key={i} className="w-[3px] rounded-full bg-white" animate={{ height: `${h * 16}px` }} transition={{ duration: 0.08 }} />;
+                  return <motion.span key={i} className="w-[3px] rounded-full bg-fg" animate={{ height: `${h * 16}px` }} transition={{ duration: 0.08 }} />;
                 })}
               </div>
               <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-fg">

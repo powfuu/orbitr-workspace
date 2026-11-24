@@ -86,7 +86,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                 transition={{ type: "spring", stiffness: 560, damping: 42, mass: 0.6 }}
                 className="relative mb-[-1px] flex shrink-0"
               >
-                {dropIndex === i && <span className="absolute -left-[2px] bottom-1 top-1 z-10 w-[2px] rounded-full bg-white" />}
+                {dropIndex === i && <span className="absolute -left-[2px] bottom-1 top-1 z-10 w-[2px] rounded-full bg-fg" />}
                 <ContextMenu
                   items={[
                     { label: "Split right", icon: Columns2, onSelect: () => split(paneId, "right", tab.id) },

@@ -37,7 +37,7 @@ export function WorkspaceView({ id }: { id: ID }) {
         title={<InlineEdit value={workspace.name} label="workspace" onCommit={(v) => rename(id, v)} className="-mx-1.5 px-1.5" />}
       >
         {canDelete && <IconButton icon={Trash2} label="Delete workspace" onClick={() => void deleteWorkspace(id)} />}
-        <button onClick={addProjectFromDialog} className="flex h-8 items-center gap-2 rounded-lg bg-white px-3 text-[12.5px] font-medium text-black hover:bg-white/85">
+        <button onClick={addProjectFromDialog} className="flex h-8 items-center gap-2 rounded-lg bg-fg px-3 text-[12.5px] font-medium text-bg hover:bg-fg/85">
           <FolderPlus size={14} /> Add project
         </button>
       </ViewHeader>

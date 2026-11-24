@@ -3,6 +3,8 @@ import { persist } from "zustand/middleware";
 import { persistOptions } from "./persist";
 
 export interface Settings {
+  /** Theme id (see features/theme/themes.ts) or "system". */
+  theme: string;
   terminalFontSize: number;
   /** "auto" (first installed Nerd Font) or a font family name. */
   terminalFont: string;
@@ -26,6 +28,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+  theme: "midnight",
   terminalFontSize: 12.5,
   terminalFont: "auto",
   cursorStyle: "bar",

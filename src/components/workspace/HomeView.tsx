@@ -21,7 +21,7 @@ export function HomeView() {
     <div className="relative mx-auto flex min-h-full max-w-3xl flex-col justify-center px-5 py-10 @lg:px-10 @lg:py-14">
       <motion.div {...fade(0)} className="mb-10">
         <div className="relative mb-6 inline-grid h-14 w-14 place-items-center rounded-2xl bg-surface ring-1 ring-line">
-          <div className="absolute inset-0 rounded-2xl bg-white/10 blur-xl" />
+          <div className="absolute inset-0 rounded-2xl bg-fg/10 blur-xl" />
           <LogoMark size={30} />
         </div>
         <h1 className="text-[20px] @md:text-[26px] @xl:text-[30px] font-semibold uppercase leading-[1.15] tracking-[0.06em] text-fg">

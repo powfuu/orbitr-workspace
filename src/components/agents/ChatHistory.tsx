@@ -39,7 +39,7 @@ export function ChatHistory({ project }: { project: Project }) {
   const shown = rows.filter((r) => r.title.toLowerCase().includes(q.trim().toLowerCase()));
   return (
     <div>
-      <label className="mb-2 flex h-7 items-center gap-2 rounded-md bg-bg px-2 ring-1 ring-line-soft focus-within:ring-white/30">
+      <label className="mb-2 flex h-7 items-center gap-2 rounded-md bg-bg px-2 ring-1 ring-line-soft focus-within:ring-fg/30">
         <Search size={12} className="text-faint" />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${rows.length} conversations`} className="flex-1 bg-transparent text-[12px] outline-none placeholder:text-faint" />
       </label>

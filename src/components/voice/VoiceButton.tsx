@@ -21,12 +21,12 @@ export function VoiceButton() {
         onClick={() => void toggle()}
         className={cn(
           "relative grid h-7 w-7 place-items-center rounded-full transition-colors",
-          on ? "bg-white text-black" : "text-muted hover:bg-surface hover:text-fg",
+          on ? "bg-fg text-bg" : "text-muted hover:bg-surface hover:text-fg",
         )}
       >
         {on && (
           <motion.span
-            className="absolute inset-0 rounded-full ring-2 ring-white/60"
+            className="absolute inset-0 rounded-full ring-2 ring-fg/60"
             animate={{ scale: 1 + ring * 0.6, opacity: phase === "speaking" ? 0.9 : 0.35 }}
             transition={{ duration: 0.08 }}
           />
