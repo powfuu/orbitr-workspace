@@ -15,6 +15,8 @@ interface LayoutState {
   collapsedSections: Record<string, boolean>;
   paletteOpen: boolean;
   timelineOpen: boolean;
+  helpOpen: boolean;
+  setHelpOpen: (open: boolean) => void;
   toggleTimeline: () => void;
   paletteQuery: string;
   setSidebarWidth: (w: number) => void;
@@ -38,6 +40,8 @@ export const useLayout = create<LayoutState>()(
       collapsedSections: {},
       paletteOpen: false,
       timelineOpen: false,
+      helpOpen: false,
+      setHelpOpen: (helpOpen) => set({ helpOpen }),
       toggleTimeline: () => set((s) => ({ timelineOpen: !s.timelineOpen })),
       paletteQuery: "",
       setSidebarWidth: (w) => set({ sidebarWidth: clamp(w, SIDEBAR_MIN, SIDEBAR_MAX) }),
@@ -52,7 +56,7 @@ export const useLayout = create<LayoutState>()(
     {
       ...persistOptions,
       name: "orbitr.layout",
-      partialize: ({ paletteOpen: _p, paletteQuery: _q, ...rest }) => rest,
+      partialize: ({ paletteOpen: _p, paletteQuery: _q, helpOpen: _h, ...rest }) => rest,
     },
   ),
 );

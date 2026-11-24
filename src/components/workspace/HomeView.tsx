@@ -34,7 +34,7 @@ export function HomeView() {
       <motion.div {...fade(1)} className="grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-3">
         <ActionCard icon={FolderPlus} title="Add project" description="Anchor sessions to a folder on disk." onClick={addProjectFromDialog} />
         <ActionCard icon={Command} title="Command palette" description="Jump anywhere, run any action." shortcut={`${modKey}K`} onClick={() => setPaletteOpen(true)} />
-        <ActionCard icon={Bot} title="Start an agent" description="Launch Claude Code or Codex in a real PTY." onClick={() => setPaletteOpen(true, "Start ")} />
+        <ActionCard icon={Bot} title="Start an agent" description="Claude Code, Codex, Gemini and more, in a real terminal." onClick={() => setPaletteOpen(true, "Start ")} />
         <ActionCard icon={SquareTerminal} title="New terminal" description="Spawn your default shell in the side panel." shortcut={`${modKey}T`} onClick={() => void newDefaultTerminal()} />
       </motion.div>
 

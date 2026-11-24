@@ -1,6 +1,7 @@
-import { ArrowRight, Search, FolderGit2, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, Sparkles, Keyboard, Search, FolderGit2, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useLayout } from "../../stores/layoutStore";
+import { useSettings } from "../../stores/settingsStore";
 import { getActiveTabs, useTabs } from "../../stores/tabStore";
 import { useWorkspaces } from "../../stores/workspaceStore";
 import { useSessions } from "../../stores/sessionStore";
@@ -76,6 +77,8 @@ export function useCommands(): Command[] {
           if (id) useTerminalSearch.getState().open(id);
         },
       },
+      { id: "tour", title: "Welcome tour", group: "Help", icon: Sparkles, run: () => useSettings.getState().set("onboarded", false) },
+      { id: "shortcuts", title: "Keyboard shortcuts", group: "Help", icon: Keyboard, shortcut: "?", run: () => useLayout.getState().setHelpOpen(true) },
       { id: "settings", title: "Open settings", group: "App", icon: Settings, shortcut: `${modKey},`, run: () => tabs.open({ type: "settings" }) },
       { id: "split-right", title: "Split pane right", group: "View", icon: Columns2, shortcut: `${modKey}\\`, run: () => splitFocused("right") },
       { id: "split-down", title: "Split pane down", group: "View", icon: Rows2, shortcut: `${modKey}⇧\\`, run: () => splitFocused("bottom") },

@@ -35,10 +35,10 @@ export function useDescribedActivity(id: ID, status: ProcessStatus): Described {
 export function ActivityBadge({ id, status }: { id: ID; status: ProcessStatus }) {
   const d = useDescribedActivity(id, status);
   return (
-    <span className={cn("inline-flex h-6 items-center gap-1.5 rounded-full border border-line px-2.5 font-mono text-[10.5px] uppercase tracking-[0.08em]", d.tone)}>
+    <span className={cn("inline-flex h-6 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line px-2 font-mono text-[10.5px] uppercase tracking-[0.08em] @xl:px-2.5", d.tone)}>
       <ActivityIcon d={d} size={11} />
       <AnimatePresence mode="wait" initial={false}>
-        <motion.span key={d.label} initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -3 }} transition={{ duration: 0.12 }}>
+        <motion.span className="hidden @xl:inline" key={d.label} initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -3 }} transition={{ duration: 0.12 }}>
           {d.label}
         </motion.span>
       </AnimatePresence>

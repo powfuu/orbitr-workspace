@@ -126,7 +126,7 @@ export function Sidebar() {
               <div className="mb-1.5 flex gap-1.5">
                 {agentList.slice(0, 5).map((a) => <AgentGlyph key={a.kind} agent={a} size={16} />)}
               </div>
-              {q ? "No matching sessions." : "Claude Code and Codex run here as real PTY processes."}
+              {q ? "No matching sessions." : "Your coding agents run here as real terminal processes."}
             </SidebarHint>
           ) : (
             agents.map((a) => {

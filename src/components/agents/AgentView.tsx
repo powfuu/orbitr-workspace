@@ -39,7 +39,7 @@ export function AgentView({ id }: { id: ID }) {
   const alive = agent.status === "running" || agent.status === "starting";
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="@container flex h-full flex-col">
       <div {...windowDragProps} className="flex h-12 shrink-0 items-center gap-3 border-b border-line-soft bg-bg px-4">
         <AgentGlyph agent={def} size={26} status={agent.status} />
         <div className="min-w-0 flex-1">

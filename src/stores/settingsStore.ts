@@ -15,6 +15,8 @@ export interface Settings {
   voiceLanguage: string;
   /** Press Enter automatically after each spoken phrase. */
   voiceAutoSubmit: boolean;
+  /** Welcome tour finished or skipped. */
+  onboarded: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -27,6 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
   notifications: true,
   voiceLanguage: "auto",
   voiceAutoSubmit: true,
+  onboarded: false,
 };
 
 interface SettingsState extends Settings {

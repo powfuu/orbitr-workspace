@@ -23,6 +23,16 @@ function cycleTab(step: 1 | -1) {
 export function useGlobalShortcuts() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const typing = (e.target as HTMLElement | null)?.closest?.("input, textarea, [contenteditable], .xterm");
+      if ((e.key === "?" || (e.shiftKey && e.code === "Slash")) && !typing && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        return useLayout.getState().setHelpOpen(true);
+      }
+      if (hasMod(e) && e.key === "/") {
+        e.preventDefault();
+        e.stopPropagation();
+        return useLayout.getState().setHelpOpen(!useLayout.getState().helpOpen);
+      }
       // Ctrl+Tab cycles tabs on every platform, as in browsers/editors.
       if (e.ctrlKey && e.key === "Tab") {
         e.preventDefault();
