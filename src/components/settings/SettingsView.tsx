@@ -24,7 +24,7 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
-function Toggle({ k }: { k: "cursorBlink" | "restoreOnLaunch" | "notifications" | "voiceAutoSubmit" | "closeEditorOnQuit" }) {
+function Toggle({ k }: { k: "cursorBlink" | "restoreOnLaunch" | "notifications" | "voiceAutoSubmit" | "closeEditorOnQuit" | "limitAlerts" }) {
   const value = useSettings((s) => s[k]);
   const set = useSettings((s) => s.set);
   return (
@@ -128,6 +128,12 @@ export function SettingsView() {
       <Section title="Sessions">
         <Row label="Restore sessions on launch" hint="Relaunch shells and agents (continuing their last chat) when Orbitr opens.">
           <Toggle k="restoreOnLaunch" />
+        </Row>
+        <Row label="Plan limit alerts" hint="Warn as the 5-hour and weekly Claude limits fill up, and tell you when they reset.">
+          <div className="flex items-center gap-3">
+            <Segmented k="limitThresholds" options={[{ value: "70,90", label: "70·90%" }, { value: "80,95", label: "80·95%" }, { value: "90", label: "90%" }]} />
+            <Toggle k="limitAlerts" />
+          </div>
         </Row>
         <Row label="Desktop notifications" hint="When an agent finishes or needs you while Orbitr is in the background.">
           <Toggle k="notifications" />

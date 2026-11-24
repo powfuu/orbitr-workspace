@@ -23,6 +23,10 @@ export interface Settings {
   editor: "auto" | "nvim" | "vim" | "vi";
   /** Close an editor tab when the editor quits cleanly (:q). */
   closeEditorOnQuit: boolean;
+  /** Warn as Claude plan limits fill up (and when they reset). */
+  limitAlerts: boolean;
+  /** Percentages that trigger a limit alert. */
+  limitThresholds: string;
   /** Welcome tour finished or skipped. */
   onboarded: boolean;
 }
@@ -41,6 +45,8 @@ export const DEFAULT_SETTINGS: Settings = {
   voiceAutoSubmit: true,
   editor: "auto",
   closeEditorOnQuit: true,
+  limitAlerts: true,
+  limitThresholds: "80,95",
   onboarded: false,
 };
 

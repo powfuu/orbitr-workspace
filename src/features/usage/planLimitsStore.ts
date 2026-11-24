@@ -6,6 +6,35 @@ import { useAvailability } from "../agents/availabilityStore";
 import { shellCommand } from "../agents/launch";
 import { isTauri } from "../../lib/platform";
 import { parseLimits, type PlanLimit } from "./parseLimits";
+import { evaluateAlerts, type AlertMemory } from "./limitAlerts";
+import { useSettings } from "../../stores/settingsStore";
+import { toast } from "../../stores/toastStore";
+import { notify } from "../../services/notify";
+
+const MEMORY_KEY = "orbitr.limitAlerts";
+
+/** Toasts (and a native notification when in the background) as limits cross thresholds or reset. */
+function announce(limits: PlanLimit[]) {
+  const { limitAlerts, limitThresholds } = useSettings.getState();
+  let memory: AlertMemory = {};
+  try {
+    memory = JSON.parse(localStorage.getItem(MEMORY_KEY) ?? "{}") as AlertMemory;
+  } catch {
+    /* start fresh */
+  }
+  const thresholds = limitThresholds.split(",").map(Number).filter((n) => n > 0 && n < 100);
+  const { alerts, memory: next } = evaluateAlerts(limits, memory, thresholds);
+  try {
+    localStorage.setItem(MEMORY_KEY, JSON.stringify(next));
+  } catch {
+    /* non-fatal */
+  }
+  if (!limitAlerts) return;
+  for (const a of alerts) {
+    toast({ kind: a.level === "reset" ? "success" : a.level === "warn" ? "info" : "error", title: a.title, detail: a.body });
+    void notify(a.title, a.body);
+  }
+}
 
 /**
  * Plan limits (5-hour session, weekly) are computed server-side; Claude Code shows them
@@ -92,6 +121,7 @@ export const usePlanLimits = create<LimitsState>()((set, get) => ({
     try {
       const limits = await readUsageScreen(cwd);
       set({ limits, at: Date.now(), error: null, loading: false });
+      announce(limits);
     } catch (e) {
       set({ error: e instanceof Error ? e.message : String(e), loading: false });
     }
