@@ -114,8 +114,13 @@ async function send(target: { id: ID; name: string }, text: string) {
   if (!ok) toast({ kind: "error", title: `${target.name} is not running`, detail: `“${text}” was not sent.` });
 }
 
+/** Dictated text is always lowercase with no periods (Whisper capitalises and punctuates; shells and agents don't want that). */
+export const normalizeDictation = (text: string) => text.toLowerCase().replace(/\./g, "").replace(/\s+/g, " ").trim();
+
 /** One phrase per activation: send it, then close the mic. */
 async function deliver(text: string) {
+  text = normalizeDictation(text);
+  if (!text) return void useVoice.setState({ phase: "off" });
   await releaseMic();
   const target = resolveVoiceTarget();
   if (!target) {
