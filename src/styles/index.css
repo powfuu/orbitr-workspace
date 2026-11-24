@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-bg: #000000;
+  --color-bg-2: #050505;
+  --color-surface: #111111;
+  --color-surface-2: #1a1a1a;
+  --color-line: #2a2a2a;
+  --color-line-soft: #181818;
+  --color-fg: #ffffff;
+  --color-fg-2: #c8c8c8;
+  --color-muted: #8a8a8a;
+  --color-faint: #555555;
+  --color-accent: #ffffff;
+  --color-accent-soft: #ffffff14;
+  --color-success: #3ddc84;
+  --color-warning: #e0b04a;
+  --color-error: #ff4d4d;
+
+  --text-2xs: 0.6875rem;
+  --shadow-pop: 0 0 0 1px #2a2a2a, 0 12px 32px -8px #000c, 0 2px 6px #0008;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-feature-settings: "cv11", "ss01", "ss03";
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+  overflow: hidden;
+}
+::selection { background: #ffffff33; }
+@layer base {
+  :focus-visible { outline: 1.5px solid var(--color-accent); outline-offset: 1px; border-radius: 6px; }
+}
+
+* { scrollbar-width: thin; scrollbar-color: #252b37 transparent; }
+
+/* Text selection only where it means something: terminals, fields, paths, code. */
+.xterm, input, textarea, code, .selectable { -webkit-user-select: text; user-select: text; }
+
+/* Faint dot grid used behind empty states */
+.bg-grid {
+  background-image: radial-gradient(circle at 1px 1px, #ffffff0a 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* xterm: blend into panel, slim scrollbar */
+.xterm { height: 100%; }
+.xterm .xterm-viewport { background-color: transparent !important; scrollbar-width: thin; }

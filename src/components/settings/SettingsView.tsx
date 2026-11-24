@@ -1,0 +1,115 @@
+import type { ReactNode } from "react";
+import { RotateCcw } from "lucide-react";
+import { useSettings, type Settings } from "../../stores/settingsStore";
+import { useShells } from "../../hooks/useShells";
+import { useAvailability } from "../../features/agents/availabilityStore";
+import { cn } from "../../lib/cn";
+import { ViewHeader } from "../workspace/primitives";
+
+function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-6 px-4 py-3">
+      <div className="flex-1">
+        <div className="text-[13px] text-fg">{label}</div>
+        {hint && <div className="mt-0.5 text-[11.5px] text-muted">{hint}</div>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Toggle({ k }: { k: "cursorBlink" | "restoreOnLaunch" | "notifications" }) {
+  const value = useSettings((s) => s[k]);
+  const set = useSettings((s) => s.set);
+  return (
+    <button
+      role="switch"
+      aria-checked={value}
+      onClick={() => set(k, !value)}
+      className={cn("relative h-5 w-9 rounded-full transition-colors", value ? "bg-white" : "bg-surface-2 ring-1 ring-line")}
+    >
+      <span className={cn("absolute top-0.5 h-4 w-4 rounded-full transition-all", value ? "left-[18px] bg-black" : "left-0.5 bg-muted")} />
+    </button>
+  );
+}
+
+function Segmented<K extends keyof Settings>({ k, options }: { k: K; options: { value: Settings[K]; label: string }[] }) {
+  const value = useSettings((s) => s[k]);
+  const set = useSettings((s) => s.set);
+  return (
+    <div className="flex rounded-lg bg-bg p-0.5 ring-1 ring-line">
+      {options.map((o) => (
+        <button
+          key={String(o.value)}
+          onClick={() => set(k, o.value)}
+          className={cn("h-6 rounded-md px-2.5 text-[12px]", value === o.value ? "bg-surface-2 text-fg" : "text-muted hover:text-fg")}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const Section = ({ title, children }: { title: string; children: ReactNode }) => (
+  <section className="mb-6">
+    <div className="mb-2 font-mono text-2xs uppercase tracking-[0.14em] text-faint">{title}</div>
+    <div className="divide-y divide-line-soft rounded-xl border border-line-soft bg-bg-2">{children}</div>
+  </section>
+);
+
+export function SettingsView() {
+  const s = useSettings();
+  const shells = useShells();
+  const refresh = useAvailability((a) => a.refresh);
+  return (
+    <div className="mx-auto max-w-3xl px-10 py-12">
+      <ViewHeader eyebrow="Preferences" title="Settings">
+        <button onClick={s.reset} className="flex h-8 items-center gap-2 rounded-lg px-3 text-[12.5px] text-muted ring-1 ring-line hover:text-fg">
+          <RotateCcw size={13} /> Reset
+        </button>
+      </ViewHeader>
+
+      <Section title="Terminal">
+        <Row label="Font size" hint="Applies to all terminals and agents immediately.">
+          <div className="flex items-center gap-3">
+            <input type="range" min={10} max={18} step={0.5} value={s.terminalFontSize} onChange={(e) => s.set("terminalFontSize", Number(e.target.value))} className="w-32 accent-white" />
+            <span className="w-10 text-right font-mono text-[12px] text-fg-2">{s.terminalFontSize}</span>
+          </div>
+        </Row>
+        <Row label="Cursor">
+          <Segmented k="cursorStyle" options={[{ value: "bar", label: "Bar" }, { value: "block", label: "Block" }, { value: "underline", label: "Line" }]} />
+        </Row>
+        <Row label="Blinking cursor"><Toggle k="cursorBlink" /></Row>
+        <Row label="Scrollback" hint="Lines kept per terminal.">
+          <Segmented k="scrollback" options={[{ value: 5000, label: "5k" }, { value: 10000, label: "10k" }, { value: 50000, label: "50k" }]} />
+        </Row>
+        <Row label="Default shell" hint="Used for new terminals and to launch agents.">
+          <select
+            value={s.defaultShell}
+            onChange={(e) => s.set("defaultShell", e.target.value)}
+            className="h-7 rounded-md bg-bg px-2 font-mono text-[12px] text-fg ring-1 ring-line outline-none"
+          >
+            <option value="">System default</option>
+            {shells.map((sh) => <option key={sh.path} value={sh.path}>{sh.path}</option>)}
+          </select>
+        </Row>
+      </Section>
+
+      <Section title="Sessions">
+        <Row label="Restore sessions on launch" hint="Relaunch shells and agents (continuing their last chat) when Orbitr opens.">
+          <Toggle k="restoreOnLaunch" />
+        </Row>
+        <Row label="Desktop notifications" hint="When an agent finishes or needs you while Orbitr is in the background.">
+          <Toggle k="notifications" />
+        </Row>
+      </Section>
+
+      <Section title="Agents">
+        <Row label="Re-check installed agents" hint="Scans your login shell PATH again.">
+          <button onClick={() => void refresh()} className="h-7 rounded-md px-3 text-[12px] text-fg ring-1 ring-line hover:bg-surface">Re-check</button>
+        </Row>
+      </Section>
+    </div>
+  );
+}

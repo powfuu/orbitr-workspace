@@ -1,0 +1,193 @@
+import { Reorder } from "framer-motion";
+import { windowDragProps } from "../../hooks/useWindowDrag";
+import { removeProject, revealProject } from "../../features/workspaces/manageActions";
+import { Folder, FolderOpen, FolderSearch, PanelLeftClose, RotateCw, Search, Settings, Square, SquareTerminal, Trash2, Command } from "lucide-react";
+import { closeTerminal, restartTerminal } from "../../features/terminals/terminalActions";
+import { newDefaultTerminal } from "../../features/terminals/newDefaultTerminal";
+import { removeAgent, restartAgent, stopAgent } from "../../features/agents/agentActions";
+import { useMemo, useState } from "react";
+import { useActiveWorkspace, useWorkspaces } from "../../stores/workspaceStore";
+import { useSessions } from "../../stores/sessionStore";
+import { useActiveTabs, useTabs } from "../../stores/tabStore";
+import { useLayout } from "../../stores/layoutStore";
+import { addProjectFromDialog } from "../../features/projects/addProject";
+import { AGENTS, agentList } from "../../features/agents/registry";
+import { isMac, modKey } from "../../lib/platform";
+import { cn } from "../../lib/cn";
+import { Wordmark } from "../ui/Logo";
+import { IconButton } from "../ui/IconButton";
+import { Kbd } from "../ui/Kbd";
+import { AgentGlyph } from "../ui/AgentGlyph";
+import { StatusDot } from "../ui/StatusDot";
+import { ContextMenu } from "../ui/ContextMenu";
+import { ActivityIconFor } from "../agents/ActivityBadge";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import { SidebarHint, SidebarSection } from "./SidebarSection";
+import { SidebarItem } from "./SidebarItem";
+
+export function Sidebar() {
+  const workspace = useActiveWorkspace();
+  const allProjects = useWorkspaces((s) => s.projects);
+  const reorderProjects = useWorkspaces((s) => s.reorderProjects);
+  const allAgents = useSessions((s) => s.agents);
+  const { terminals, activeTerminalId, setActiveTerminal } = useSessions();
+  const openTerminalPanel = useLayout((s) => s.openTerminalPanel);
+  const { tabs, activeTabId } = useActiveTabs();
+  const { open } = useTabs.getState();
+  const toggleSidebar = useLayout((s) => s.toggleSidebar);
+  const setPaletteOpen = useLayout((s) => s.setPaletteOpen);
+  const [query, setQuery] = useState("");
+
+  const activeTarget = tabs.find((t) => t.id === activeTabId)?.target;
+  const q = query.trim().toLowerCase();
+  const agents = allAgents.filter((a) => a.workspaceId === workspace.id && a.name.toLowerCase().includes(q));
+  const projects = useMemo(
+    () => workspace.projectIds.map((id) => allProjects[id]).filter((p) => p && p.name.toLowerCase().includes(q)),
+    [workspace.projectIds, allProjects, q],
+  ) as NonNullable<(typeof allProjects)[string]>[];
+
+  return (
+    <aside className="flex h-full flex-col bg-bg-2">
+      <div {...windowDragProps} className={cn("flex h-11 shrink-0 items-center justify-between pr-2", isMac ? "pl-[84px]" : "pl-4")}>
+        <Wordmark />
+        <IconButton icon={PanelLeftClose} label="Hide sidebar" shortcut={`${modKey}B`} onClick={toggleSidebar} size="sm" />
+      </div>
+
+      <WorkspaceSwitcher />
+
+      <div className="px-3 pt-2">
+        <label className="flex h-7 items-center gap-2 rounded-md bg-bg px-2 ring-1 ring-line-soft transition focus-within:ring-accent/50">
+          <Search size={13} className="text-faint" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search sessions"
+            className="min-w-0 flex-1 bg-transparent text-[12px] text-fg outline-none placeholder:text-faint"
+          />
+        </label>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto pb-3">
+        <SidebarSection id="projects" title="Projects" count={projects.length} onAdd={addProjectFromDialog} addLabel="Add project">
+          {projects.length === 0 ? (
+            <SidebarHint
+              action={
+                !q && (
+                  <button onClick={addProjectFromDialog} className="text-accent hover:underline">
+                    Add a project folder →
+                  </button>
+                )
+              }
+            >
+              {q ? "No matching projects." : "Projects anchor agents and terminals to a folder."}
+            </SidebarHint>
+          ) : (
+            <Reorder.Group as="div" axis="y" values={workspace.projectIds} onReorder={(ids) => !q && reorderProjects(workspace.id, ids)}>
+            {projects.map((p) => {
+              const isActive = activeTarget?.type === "project" && activeTarget.id === p.id;
+              return (
+                <Reorder.Item as="div" key={p.id} value={p.id} dragListener={!q} whileDrag={{ scale: 1.02, zIndex: 10 }}>
+                <ContextMenu
+                  items={[
+                    { label: "Open overview", icon: FolderOpen, onSelect: () => open({ type: "project", id: p.id }) },
+                    { label: "Open terminal here", icon: SquareTerminal, onSelect: () => void newDefaultTerminal(p.path, p.name) },
+                    { label: isMac ? "Reveal in Finder" : "Show in Explorer", icon: FolderSearch, onSelect: () => void revealProject(p.path) },
+                    { label: "Remove from workspace", icon: Trash2, danger: true, onSelect: () => void removeProject(p.id) },
+                  ]}
+                >
+                  <SidebarItem
+                    active={isActive}
+                    onClick={() => open({ type: "project", id: p.id })}
+                    icon={isActive ? <FolderOpen size={14} className="text-accent" /> : <Folder size={14} className="text-muted" />}
+                    label={p.name}
+                  />
+                </ContextMenu>
+                </Reorder.Item>
+              );
+            })}
+            </Reorder.Group>
+          )}
+        </SidebarSection>
+
+        <SidebarSection id="agents" title="Agents" count={agents.length} addLabel="Start agent" onAdd={() => setPaletteOpen(true, "Start ")}>
+          {agents.length === 0 ? (
+            <SidebarHint
+              action={
+                !q && (
+                  <button onClick={() => setPaletteOpen(true, "Start ")} className="text-accent hover:underline">
+                    Start an agent →
+                  </button>
+                )
+              }
+            >
+              <div className="mb-1.5 flex gap-1.5">
+                {agentList.slice(0, 5).map((a) => <AgentGlyph key={a.kind} agent={a} size={16} />)}
+              </div>
+              {q ? "No matching sessions." : "Claude Code and Codex run here as real PTY processes."}
+            </SidebarHint>
+          ) : (
+            agents.map((a) => {
+              const alive = a.status === "running" || a.status === "starting";
+              return (
+                <ContextMenu
+                  key={a.id}
+                  items={[
+                    alive
+                      ? { label: "Stop", icon: Square, onSelect: () => void stopAgent(a.id) }
+                      : { label: "Restart", icon: RotateCw, onSelect: () => void restartAgent(a.id) },
+                    { label: "End session", icon: Trash2, danger: true, onSelect: () => void removeAgent(a.id) },
+                  ]}
+                >
+                  <SidebarItem
+                    icon={<AgentGlyph agent={AGENTS[a.kind]} size={16} status={a.status} />}
+                    label={a.name}
+                    trailing={<ActivityIconFor id={a.id} status={a.status} />}
+                    active={activeTarget?.type === "agent" && activeTarget.id === a.id}
+                    onClick={() => open({ type: "agent", id: a.id })}
+                  />
+                </ContextMenu>
+              );
+            })
+          )}
+        </SidebarSection>
+
+        <SidebarSection id="terminals" title="Terminals" count={terminals.length} onAdd={() => void newDefaultTerminal()} addLabel="New terminal">
+          {terminals.length === 0 ? (
+            <SidebarHint>Shell sessions from the right panel are listed here.</SidebarHint>
+          ) : (
+            terminals.filter((t) => t.name.toLowerCase().includes(q)).map((t) => (
+              <ContextMenu
+                key={t.id}
+                items={[
+                  { label: "Restart", icon: RotateCw, onSelect: () => void restartTerminal(t.id) },
+                  { label: "Kill & close", icon: Trash2, danger: true, onSelect: () => void closeTerminal(t.id) },
+                ]}
+              >
+                <SidebarItem
+                  icon={<SquareTerminal size={14} className="text-muted" />}
+                  label={t.name}
+                  meta={t.pid ? String(t.pid) : undefined}
+                  trailing={<StatusDot status={t.status} />}
+                  active={t.id === activeTerminalId}
+                  onClick={() => { setActiveTerminal(t.id); openTerminalPanel(); }}
+                />
+              </ContextMenu>
+            ))
+          )}
+        </SidebarSection>
+      </div>
+
+      <div className="flex h-10 shrink-0 items-center justify-between border-t border-line-soft px-2">
+        <button
+          onClick={() => setPaletteOpen(true)}
+          className="flex h-7 items-center gap-2 rounded-md px-2 text-[12px] text-muted hover:bg-surface hover:text-fg"
+        >
+          <Command size={13} />
+          Commands
+          <Kbd>{modKey}K</Kbd>
+        </button>
+        <IconButton icon={Settings} label="Settings" shortcut={`${modKey},`} size="sm" side="top" onClick={() => open({ type: "settings" })} />
+      </div>
+    </aside>
+  );
+}

@@ -1,0 +1,23 @@
+import { Cpu, GitBranch } from "lucide-react";
+import { useActiveWorkspace } from "../../stores/workspaceStore";
+import { useSessions } from "../../stores/sessionStore";
+import { usePlatformInfo } from "../../hooks/usePlatformInfo";
+import { isTauri } from "../../lib/platform";
+
+export function StatusBar() {
+  const workspace = useActiveWorkspace();
+  const running = useSessions((s) => s.agents.filter((a) => a.status === "running").length + s.terminals.length);
+  const platform = usePlatformInfo();
+  return (
+    <footer className="flex h-6 shrink-0 items-center gap-4 border-t border-line-soft bg-bg px-3 font-mono text-[10.5px] text-faint">
+      <span className="flex items-center gap-1.5">
+        <span className={`h-1.5 w-1.5 rounded-full ${isTauri ? "bg-success" : "bg-warning"}`} />
+        {isTauri ? "native runtime" : "browser preview"}
+      </span>
+      <span className="flex items-center gap-1.5"><GitBranch size={11} />{workspace.name}</span>
+      <span className="flex items-center gap-1.5"><Cpu size={11} />{running} process{running === 1 ? "" : "es"}</span>
+      <span className="ml-auto">{platform ? `${platform.os} · ${platform.defaultShell}` : ""}</span>
+      <span>v0.1.0</span>
+    </footer>
+  );
+}

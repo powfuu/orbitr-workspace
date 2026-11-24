@@ -1,0 +1,122 @@
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import { SerializeAddon } from "@xterm/addon-serialize";
+import { WebglAddon } from "@xterm/addon-webgl";
+import { WebLinksAddon } from "@xterm/addon-web-links";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { terminalTheme } from "./theme";
+import { useSettings, type Settings } from "../../stores/settingsStore";
+import { isTauri } from "../../lib/platform";
+import type { ID } from "../../types";
+
+/**
+ * Owns xterm.js instances outside React. Each terminal lives in its own DOM node
+ * that is moved between containers, so switching tabs or collapsing the panel
+ * never loses scrollback or interrupts output.
+ */
+interface Entry {
+  term: Terminal;
+  fit: FitAddon;
+  serializer: SerializeAddon;
+  host: HTMLDivElement;
+  opened: boolean;
+}
+
+const entries = new Map<ID, Entry>();
+const fontsReady = document.fonts.load('13px "JetBrains Mono"').catch(() => undefined);
+
+const optionsFrom = (s: Settings) => ({
+  fontSize: s.terminalFontSize,
+  cursorStyle: s.cursorStyle,
+  cursorBlink: s.cursorBlink,
+  scrollback: s.scrollback,
+});
+
+// Settings changes apply live to every open terminal.
+useSettings.subscribe((s) => {
+  for (const [id, e] of entries) {
+    Object.assign(e.term.options, optionsFrom(s));
+    terminalRegistry.fit(id);
+  }
+});
+
+/** GPU renderer; falls back to the DOM renderer if WebGL is unavailable or the context is lost. */
+function loadWebgl(term: Terminal) {
+  try {
+    const webgl = new WebglAddon();
+    webgl.onContextLoss(() => webgl.dispose());
+    term.loadAddon(webgl);
+  } catch {
+    /* DOM renderer */
+  }
+}
+
+export const terminalRegistry = {
+  create(id: ID): Terminal {
+    const term = new Terminal({
+      fontFamily: '"JetBrains Mono", ui-monospace, Menlo, monospace',
+      lineHeight: 1.25,
+      macOptionIsMeta: true,
+      allowProposedApi: true,
+      theme: terminalTheme,
+      ...optionsFrom(useSettings.getState()),
+    });
+    const fit = new FitAddon();
+    const serializer = new SerializeAddon();
+    term.loadAddon(fit);
+    term.loadAddon(serializer);
+    // Cmd/Ctrl+click opens http(s) links in the system browser.
+    term.loadAddon(
+      new WebLinksAddon((e, uri) => {
+        if ((e.metaKey || e.ctrlKey) && /^https?:\/\//i.test(uri) && isTauri) void openUrl(uri);
+      }),
+    );
+    const host = document.createElement("div");
+    host.className = "h-full w-full";
+    entries.set(id, { term, fit, serializer, host, opened: false });
+    return term;
+  },
+
+  get: (id: ID) => entries.get(id)?.term,
+
+  async attach(id: ID, container: HTMLElement) {
+    const e = entries.get(id);
+    if (!e) return;
+    container.appendChild(e.host);
+    if (!e.opened) {
+      await fontsReady;
+      e.term.open(e.host);
+      loadWebgl(e.term);
+      e.opened = true;
+    }
+    this.fit(id);
+    e.term.refresh(0, e.term.rows - 1);
+  },
+
+  detach(id: ID) {
+    entries.get(id)?.host.remove();
+  },
+
+  fit(id: ID) {
+    const e = entries.get(id);
+    if (!e?.opened || !e.host.isConnected || e.host.clientWidth === 0) return;
+    try {
+      e.fit.fit();
+    } catch {
+      /* renderer not ready yet */
+    }
+  },
+
+  /** Screen + scrollback as ANSI, for restoring after restart. */
+  serialize: (id: ID, lines = 1000) => entries.get(id)?.serializer.serialize({ scrollback: lines }),
+
+  focus: (id: ID) => entries.get(id)?.term.focus(),
+
+  dispose(id: ID) {
+    const e = entries.get(id);
+    if (!e) return;
+    e.term.dispose();
+    e.host.remove();
+    entries.delete(id);
+  },
+};
