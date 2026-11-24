@@ -72,7 +72,8 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
         </div>
       )}
       <div role="tablist" className="flex min-w-0 flex-1 items-end gap-0.5 overflow-x-auto [scrollbar-width:none]">
-        <AnimatePresence initial={false}>
+        {/* popLayout: a closing tab leaves the layout immediately so neighbours slide in with no gap. */}
+        <AnimatePresence initial={false} mode="popLayout">
           {group.tabs.map((tab, i) => {
             const { title, icon: Icon } = describeTab(tab.target, { workspaces, projects, agents });
             const active = tab.id === group.activeTabId;
@@ -83,8 +84,8 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                 layout="position"
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.12, ease: [0.4, 0, 1, 1] } }}
-                transition={{ type: "spring", stiffness: 560, damping: 42, mass: 0.6 }}
+                exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.08, ease: [0.4, 0, 1, 1] } }}
+                transition={{ type: "spring", stiffness: 700, damping: 45, mass: 0.5 }}
                 className="relative mb-[-1px] flex shrink-0"
               >
                 {dropIndex === i && <span className="absolute -left-[2px] bottom-1 top-1 z-10 w-[2px] rounded-full bg-fg" />}
