@@ -3,6 +3,7 @@ import { InlineEdit } from "../ui/InlineEdit";
 import { IconButton } from "../ui/IconButton";
 import { RecentSessions } from "./RecentSessions";
 import { ChatHistory } from "../agents/ChatHistory";
+import { GitPanel } from "../git/GitPanel";
 import { removeProject, revealProject } from "../../features/workspaces/manageActions";
 import { useWorkspaces } from "../../stores/workspaceStore";
 import { useSessions } from "../../stores/sessionStore";
@@ -109,6 +110,9 @@ export function ProjectView({ id }: { id: ID }) {
               ))}
             </div>
           )}
+        </Panel>
+        <Panel title="Git" className="col-span-full">
+          <GitPanel path={project.path} />
         </Panel>
         <Panel title="Conversations" className="col-span-full">
           <ChatHistory project={project} />

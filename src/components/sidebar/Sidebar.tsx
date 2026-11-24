@@ -20,6 +20,7 @@ import { Kbd } from "../ui/Kbd";
 import { AgentGlyph } from "../ui/AgentGlyph";
 import { StatusDot } from "../ui/StatusDot";
 import { ContextMenu } from "../ui/ContextMenu";
+import { GitBadge } from "../git/GitBadge";
 import { ActivityIconFor } from "../agents/ActivityBadge";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { SidebarHint, SidebarSection } from "./SidebarSection";
@@ -100,6 +101,7 @@ export function Sidebar() {
                     onClick={() => open({ type: "project", id: p.id })}
                     icon={isActive ? <FolderOpen size={14} className="text-accent" /> : <Folder size={14} className="text-muted" />}
                     label={p.name}
+                    trailing={<GitBadge path={p.path} />}
                   />
                 </ContextMenu>
                 </Reorder.Item>

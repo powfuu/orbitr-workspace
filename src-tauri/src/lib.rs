@@ -1,5 +1,6 @@
 mod agents;
 mod commands;
+mod git;
 mod persistence;
 mod terminal;
 mod voice;
@@ -30,6 +31,14 @@ pub fn run() {
             commands::voice::voice_download_model,
             commands::voice::voice_start,
             commands::voice::voice_stop,
+            commands::git::git_status,
+            commands::git::git_log,
+            commands::git::git_diff,
+            commands::git::git_stage,
+            commands::git::git_unstage,
+            commands::git::git_commit,
+            commands::git::git_push,
+            commands::git::git_pull,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Orbitr")
