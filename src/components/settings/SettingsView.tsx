@@ -5,6 +5,7 @@ import { useShells } from "../../hooks/useShells";
 import { useAvailability } from "../../features/agents/availabilityStore";
 import { cn } from "../../lib/cn";
 import { ViewHeader } from "../workspace/primitives";
+import { UpdatesSection } from "./UpdatesSection";
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
@@ -112,6 +113,10 @@ export function SettingsView() {
         <Row label="Send automatically" hint="Press Enter when you stop speaking. Off = text is typed and left as a draft.">
           <Toggle k="voiceAutoSubmit" />
         </Row>
+      </Section>
+
+      <Section title="Updates">
+        <UpdatesSection />
       </Section>
 
       <Section title="Agents">

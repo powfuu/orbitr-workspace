@@ -66,3 +66,7 @@ src-tauri/src/
 Session/process state (`stores/sessionStore.ts`) is deliberately not persisted — OS processes don't survive restarts; agent tabs are dropped on restore.
 
 Rust tests: `cd src-tauri && cargo test`
+
+## Releases
+
+Signed macOS/Windows builds and in-app auto-update via GitHub Releases. See [RELEASING.md](RELEASING.md).
