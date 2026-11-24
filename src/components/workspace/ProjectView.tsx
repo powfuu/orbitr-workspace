@@ -143,13 +143,14 @@ export function ProjectView({ id }: { id: ID }) {
         <Panel title="Conversations" className="col-span-full">
           <ChatHistory project={project} />
         </Panel>
-        <ProjectUsage path={project.path} />
         <Panel title="Git" id={`git-${project.id}`} className="col-span-full">
           <GitPanel path={project.path} />
         </Panel>
         <Panel title="Orbitr session log" className="col-span-full">
           <RecentSessions filter={{ projectId: project.id }} />
         </Panel>
+        {/* Last, so it never pushes content around when it loads in. */}
+        <ProjectUsage path={project.path} />
       </div>
     </div>
   );
