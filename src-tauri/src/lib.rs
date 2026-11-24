@@ -37,6 +37,7 @@ pub fn run() {
             // Child processes must not outlive the app.
             if let tauri::RunEvent::Exit = event {
                 app.state::<PtyManager>().kill_all();
+                app.state::<commands::voice::VoiceState>().shutdown();
             }
         });
 }

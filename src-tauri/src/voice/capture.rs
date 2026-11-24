@@ -19,6 +19,7 @@ pub enum VoiceEvent {
 /// A running microphone session. Dropping it (or calling `stop`) releases the mic.
 pub struct VoiceSession {
     stop_tx: mpsc::Sender<()>,
+    handle: thread::JoinHandle<()>,
 }
 
 impl VoiceSession {
@@ -27,7 +28,7 @@ impl VoiceSession {
         let (ready_tx, ready_rx) = mpsc::channel::<Result<(), String>>();
 
         // cpal streams are !Send on some platforms: own the stream on its own thread.
-        thread::spawn(move || {
+        let handle = thread::spawn(move || {
             let host = cpal::default_host();
             let Some(device) = host.default_input_device() else {
                 let _ = ready_tx.send(Err("No microphone found".into()));
@@ -87,7 +88,7 @@ impl VoiceSession {
             // happens on a worker so listening never pauses.
             let (utt_tx, utt_rx) = mpsc::channel::<Vec<f32>>();
             let worker_app = app.clone();
-            thread::spawn(move || {
+            let worker = thread::spawn(move || {
                 for audio in utt_rx {
                     let _ = worker_app.emit("voice://event", VoiceEvent::Transcribing);
                     let event = match transcriber.transcribe(&audio, language.as_deref()) {
@@ -129,13 +130,17 @@ impl VoiceSession {
                 });
             }
             drop(stream); // releases the microphone
+            drop(utt_tx);
+            let _ = worker.join(); // the worker holds the model; finish before reporting stopped
         });
 
         ready_rx.recv().map_err(|_| "voice thread exited".to_string())??;
-        Ok(Self { stop_tx })
+        Ok(Self { stop_tx, handle })
     }
 
+    /// Releases the mic and waits for any in-flight transcription to finish.
     pub fn stop(self) {
         let _ = self.stop_tx.send(());
+        let _ = self.handle.join();
     }
 }

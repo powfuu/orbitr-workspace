@@ -49,8 +49,22 @@ pub async fn voice_start(app: AppHandle, state: State<'_, VoiceState>, language:
 }
 
 #[tauri::command]
-pub fn voice_stop(state: State<'_, VoiceState>) {
-    if let Some(s) = state.session.lock().unwrap().take() {
-        s.stop();
+pub async fn voice_stop(state: State<'_, VoiceState>) -> Result<(), String> {
+    let session = state.session.lock().unwrap().take();
+    if let Some(s) = session {
+        // Joining threads may wait for a transcription: keep it off the main thread.
+        tauri::async_runtime::spawn_blocking(move || s.stop()).await.map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+impl VoiceState {
+    /// Stops the mic and frees the Whisper/Metal context. Must run before process exit:
+    /// ggml's Metal backend aborts if its static teardown finds a live context.
+    pub fn shutdown(&self) {
+        if let Some(s) = self.session.lock().unwrap().take() {
+            s.stop();
+        }
+        self.transcriber.lock().unwrap().take();
     }
 }
