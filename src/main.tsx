@@ -7,13 +7,14 @@ import { useTabs } from "./stores/tabStore";
 import { useHistory } from "./stores/historyStore";
 import { useSessions } from "./stores/sessionStore";
 import { useSettings } from "./stores/settingsStore";
+import { useEventLog } from "./features/timeline/eventLog";
 import { restoreSessions } from "./features/sessions/restore";
 import { flushPendingWrites } from "./services/persistence";
 import "@xterm/xterm/css/xterm.css";
 import "./styles/index.css";
 
 // Load persisted state before the first render so the UI never flashes defaults.
-await Promise.all([useLayout, useWorkspaces, useTabs, useHistory, useSessions, useSettings].map((s) => s.persist.rehydrate()));
+await Promise.all([useLayout, useWorkspaces, useTabs, useHistory, useSessions, useSettings, useEventLog].map((s) => s.persist.rehydrate()));
 window.addEventListener("beforeunload", () => void flushPendingWrites());
 void restoreSessions();
 

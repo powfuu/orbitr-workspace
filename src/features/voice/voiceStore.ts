@@ -7,6 +7,7 @@ import { getActiveTabs } from "../../stores/tabStore";
 import { toast } from "../../stores/toastStore";
 import { isTauri } from "../../lib/platform";
 import { sendText } from "../sessions/ptySession";
+import { logEvent } from "../timeline/eventLog";
 import { useActivity } from "../sessions/activityStore";
 import { answerPrompt, optionFromSpeech } from "../approvals/answer";
 import type { ID } from "../../types";
@@ -113,6 +114,7 @@ async function releaseMic() {
 }
 
 async function send(target: { id: ID; name: string }, text: string) {
+  logEvent(target.id, "voice", text);
   useVoice.setState({ lastText: text, lastTarget: target.name });
   const ok = await sendText(target.id, text, useSettings.getState().voiceAutoSubmit);
   if (!ok) toast({ kind: "error", title: `${target.name} is not running`, detail: `“${text}” was not sent.` });

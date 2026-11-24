@@ -14,6 +14,8 @@ interface LayoutState {
   terminalOpen: boolean;
   collapsedSections: Record<string, boolean>;
   paletteOpen: boolean;
+  timelineOpen: boolean;
+  toggleTimeline: () => void;
   paletteQuery: string;
   setSidebarWidth: (w: number) => void;
   setTerminalWidth: (w: number) => void;
@@ -35,6 +37,8 @@ export const useLayout = create<LayoutState>()(
       terminalOpen: true,
       collapsedSections: {},
       paletteOpen: false,
+      timelineOpen: false,
+      toggleTimeline: () => set((s) => ({ timelineOpen: !s.timelineOpen })),
       paletteQuery: "",
       setSidebarWidth: (w) => set({ sidebarWidth: clamp(w, SIDEBAR_MIN, SIDEBAR_MAX) }),
       setTerminalWidth: (w) => set({ terminalWidth: clamp(w, TERMINAL_MIN, TERMINAL_MAX) }),

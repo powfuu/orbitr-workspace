@@ -1,4 +1,7 @@
-import { GitBranch, RotateCw, Square, Trash2 } from "lucide-react";
+import { GitBranch, History, RotateCw, Square, Trash2 } from "lucide-react";
+import { useLayout } from "../../stores/layoutStore";
+import { modKey, tildify } from "../../lib/platform";
+import { TimelinePanel } from "../timeline/TimelinePanel";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { AnimatePresence } from "framer-motion";
 import { useActivity } from "../../features/sessions/activityStore";
@@ -9,7 +12,6 @@ import { useWorkspaces } from "../../stores/workspaceStore";
 import { usePlatformInfo } from "../../hooks/usePlatformInfo";
 import { AGENTS } from "../../features/agents/registry";
 import { removeAgent, restartAgent, stopAgent } from "../../features/agents/agentActions";
-import { tildify } from "../../lib/platform";
 import type { ID } from "../../types";
 import { AgentGlyph } from "../ui/AgentGlyph";
 import { IconButton } from "../ui/IconButton";
@@ -26,7 +28,11 @@ export function AgentView({ id }: { id: ID }) {
   const task = useActivitySubtitle(id);
   const paneFocused = usePaneFocused();
   const prompt = useActivity((s) => s.byId[id]?.prompt);
-  useEffect(() => markSeen(id), [id]);
+  const timelineOpen = useLayout((s) => s.timelineOpen);
+  const toggleTimeline = useLayout((s) => s.toggleTimeline);
+  useEffect(() => {
+    markSeen(id);
+  }, [id]);
   if (!agent) return <MissingView />;
 
   const def = AGENTS[agent.kind];
@@ -58,6 +64,7 @@ export function AgentView({ id }: { id: ID }) {
           ) : (
             <IconButton icon={RotateCw} label="Restart agent" onClick={() => void restartAgent(id)} disabled={!project} />
           )}
+          <IconButton icon={History} label={timelineOpen ? "Hide timeline" : "Timeline"} shortcut={`${modKey}⇧L`} active={timelineOpen} onClick={toggleTimeline} />
           <IconButton icon={Trash2} label="End session" onClick={() => void removeAgent(id)} />
         </div>
       </div>
@@ -68,8 +75,13 @@ export function AgentView({ id }: { id: ID }) {
           </div>
         )}
       </AnimatePresence>
-      <div className="relative min-h-0 flex-1 bg-black py-2 pl-4 pr-1">
-        <TerminalView id={id} focused={paneFocused} />
+      <div className="flex min-h-0 flex-1">
+        <div className="relative min-w-0 flex-1 bg-black py-2 pl-4 pr-1">
+          <TerminalView id={id} focused={paneFocused} />
+        </div>
+        <AnimatePresence initial={false}>
+          {timelineOpen && <TimelinePanel agent={agent} cwd={agent.cwd ?? project?.path} onClose={toggleTimeline} />}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -22,7 +22,9 @@ export function CommandPalette() {
   useEffect(() => {
     if (open) { setQuery(initialQuery); setIndex(0); }
   }, [open, initialQuery]);
-  useEffect(() => setIndex(0), [query]);
+  useEffect(() => {
+    setIndex(0);
+  }, [query]);
 
   const run = (i: number) => {
     const cmd = results[i];

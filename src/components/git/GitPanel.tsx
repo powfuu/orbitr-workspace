@@ -29,7 +29,9 @@ export function GitPanel({ path }: { path: string }) {
   const [busy, setBusy] = useState<null | "commit" | "push" | "pull">(null);
   const [log, setLog] = useState<Commit[]>([]);
 
-  useEffect(() => void refresh(path), [path, refresh]);
+  useEffect(() => {
+    void refresh(path);
+  }, [path, refresh]);
   const head = status?.lastCommit?.hash;
   useEffect(() => {
     if (status) void gitService.log(path, 8).then(setLog).catch(() => setLog([]));

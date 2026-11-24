@@ -38,6 +38,11 @@ export function useGlobalShortcuts() {
           return useTerminalSearch.getState().open(id);
         }
       }
+      if (e.shiftKey && e.key.toLowerCase() === "l") {
+        e.preventDefault();
+        e.stopPropagation();
+        return useLayout.getState().toggleTimeline();
+      }
       // Voice toggle works everywhere, including inside a focused terminal.
       if (e.shiftKey && e.key.toLowerCase() === "v") {
         e.preventDefault();

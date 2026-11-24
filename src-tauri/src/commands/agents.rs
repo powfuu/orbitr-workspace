@@ -26,3 +26,15 @@ pub async fn usage_project(cwd: String, since: String) -> crate::agents::usage::
 pub async fn usage_overview(since: String) -> crate::agents::usage::UsageReport {
     tauri::async_runtime::spawn_blocking(move || crate::agents::usage::overview(&since)).await.unwrap_or_default()
 }
+
+/// Events of one Claude Code session (prompts, tool calls, replies).
+#[tauri::command]
+pub async fn agent_timeline(cwd: String, session_id: String) -> Result<Vec<crate::agents::timeline::TimelineEvent>, String> {
+    tauri::async_runtime::spawn_blocking(move || crate::agents::timeline::timeline(&cwd, &session_id)).await.map_err(|e| e.to_string())?
+}
+
+/// Claude Code sessions started in `cwd` at or after `since` (RFC3339).
+#[tauri::command]
+pub async fn claude_sessions_since(cwd: String, since: String) -> Vec<crate::agents::timeline::SessionStart> {
+    tauri::async_runtime::spawn_blocking(move || crate::agents::timeline::sessions_since(&cwd, &since)).await.unwrap_or_default()
+}

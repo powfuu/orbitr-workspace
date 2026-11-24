@@ -1,5 +1,6 @@
 import type { Terminal, IDisposable } from "@xterm/xterm";
 import { useActivity } from "./activityStore";
+import { logEvent } from "../timeline/eventLog";
 import { detectPrompt } from "../approvals/detectPrompt";
 import { notify } from "../../services/notify";
 import { useSessions } from "../../stores/sessionStore";
@@ -37,6 +38,7 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean) 
     const prompt = found?.kind === "question" && workingSince ? null : found;
     patch(id, { prompt: prompt ?? undefined });
     if (prompt && prompt.signature !== lastSignature) {
+      logEvent(id, "waiting", `${{ approval: "Asked for approval", choice: "Asked you to choose", question: "Asked you" }[prompt.kind]}: ${prompt.question}`);
       if (!isFocused()) patch(id, { attention: true });
       const what = { approval: "needs approval", choice: "asks you to choose", question: "is waiting for your answer" }[prompt.kind];
       void notify(`${nameOf(id)} ${what}`, prompt.context[0] && prompt.kind === "approval" ? `${prompt.question} — ${prompt.context[0]}` : prompt.question);

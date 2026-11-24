@@ -4,6 +4,8 @@ import { useTabs } from "../../stores/tabStore";
 import { useHistory } from "../../stores/historyStore";
 import { uid } from "../../lib/id";
 import { toast } from "../../stores/toastStore";
+import { logEvent, useEventLog } from "../timeline/eventLog";
+import { bindClaudeSession } from "../timeline/bindSession";
 import { branchService } from "../../services/git";
 import { isTauri } from "../../lib/platform";
 import { disposePty, killPty, resetScreen, spawnPty } from "../sessions/ptySession";
@@ -22,6 +24,12 @@ export async function launchAgent(a: AgentSession, resume: boolean | string = fa
   record({ id: runId, sessionId: a.id, kind: a.kind, name: a.name, projectId: a.projectId, workspaceId: a.workspaceId, startedAt: Date.now() });
   await spawnPty(a.id, opts, (u) => {
     useSessions.getState().updateAgent(a.id, u);
+    if (u.status === "running") {
+      logEvent(a.id, "started", resume === true ? "Restored (continued last conversation)" : typeof resume === "string" ? "Resumed conversation" : `Started ${def.displayName}`);
+      bindClaudeSession({ ...a, startedAt: Date.now() }, a.cwd ?? project.path);
+    }
+    if (u.status === "exited") logEvent(a.id, "exited", `Process exited${u.exitCode != null ? ` (code ${u.exitCode})` : ""}`);
+    if (u.status === "failed") logEvent(a.id, "crashed", `Crashed${u.exitCode != null ? ` with code ${u.exitCode}` : ""}`);
     if (u.status === "exited" || u.status === "failed") finish(runId, u.exitCode);
     if (u.status === "failed" && u.exitCode != null)
       toast({ kind: "error", title: `${a.name} exited with code ${u.exitCode}`, detail: u.exitCode === 127 ? `${def.executable} was not found on PATH.` : undefined });
@@ -80,6 +88,7 @@ export async function startAgent(kind: string, projectId: ID, { chat, worktree }
 
 /** Stops the process; the session and its output stay visible. */
 export async function stopAgent(id: ID) {
+  logEvent(id, "stopped", "Stopped from Orbitr");
   await killPty(id);
   useSessions.getState().updateAgent(id, { status: "exited", exitCode: null });
   finishOpenRuns(id);
@@ -100,4 +109,5 @@ export async function removeAgent(id: ID) {
   await disposePty(id);
   useSessions.getState().removeAgent(id);
   finishOpenRuns(id);
+  useEventLog.getState().forget(id);
 }
