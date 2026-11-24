@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { BellRing, ShieldQuestion, CircleCheck, Hourglass, Loader2, PencilLine, Power, TriangleAlert } from "lucide-react";
+import { BellRing, MessageCircleQuestion, ShieldQuestion, CircleCheck, Hourglass, Loader2, PencilLine, Power, TriangleAlert } from "lucide-react";
 import { useActivity } from "../../features/sessions/activityStore";
+import { PROMPT_LABEL } from "../approvals/PromptChip";
 import type { ID, ProcessStatus } from "../../types";
 import { cn } from "../../lib/cn";
 
@@ -19,7 +20,10 @@ export function useDescribedActivity(id: ID, status: ProcessStatus): Described {
   if (status === "starting") return { key: "starting", label: "Starting", icon: Loader2, tone: "text-warning", spin: true };
   if (status === "failed") return { key: "failed", label: "Crashed", icon: TriangleAlert, tone: "text-error" };
   if (status === "exited") return { key: "exited", label: "Stopped", icon: Power, tone: "text-faint" };
-  if (a?.prompt) return { key: "approval", label: "Needs approval", icon: ShieldQuestion, tone: "text-warning", pulse: true };
+  if (a?.prompt) {
+    const k = a.prompt.kind;
+    return { key: k, label: PROMPT_LABEL[k].long, icon: k === "approval" ? ShieldQuestion : MessageCircleQuestion, tone: "text-warning", pulse: true };
+  }
   if (a?.attention) return { key: "attention", label: "Needs you", icon: BellRing, tone: "text-warning", pulse: true };
   if (a?.phase === "working") return { key: "working", label: "Working", icon: Loader2, tone: "text-fg", spin: true };
   if (a?.draft) return { key: "draft", label: `Draft · ${a.draft}`, icon: PencilLine, tone: "text-fg-2" };

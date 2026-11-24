@@ -32,11 +32,14 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean) 
     const buf = term.buffer.active;
     const rows: string[] = [];
     for (let y = buf.baseY; y < buf.baseY + term.rows; y++) rows.push(buf.getLine(y)?.translateToString(true) ?? "");
-    const prompt = detectPrompt(rows);
+    const found = detectPrompt(rows);
+    // A trailing "?" only means "waiting for you" once the agent has stopped writing.
+    const prompt = found?.kind === "question" && workingSince ? null : found;
     patch(id, { prompt: prompt ?? undefined });
     if (prompt && prompt.signature !== lastSignature) {
       if (!isFocused()) patch(id, { attention: true });
-      void notify(`${nameOf(id)} needs approval`, prompt.context[0] ? `${prompt.question} — ${prompt.context[0]}` : prompt.question);
+      const what = { approval: "needs approval", choice: "asks you to choose", question: "is waiting for your answer" }[prompt.kind];
+      void notify(`${nameOf(id)} ${what}`, prompt.context[0] && prompt.kind === "approval" ? `${prompt.question} — ${prompt.context[0]}` : prompt.question);
     }
     lastSignature = prompt?.signature ?? "";
   };
@@ -45,6 +48,7 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean) 
     const finishedWork = workingSince && Date.now() - workingSince > 2000;
     workingSince = 0;
     patch(id, { phase: "idle", since: Date.now(), ...(finishedWork && !isFocused() ? { unread: true } : {}) });
+    scan();
     if (finishedWork && !isFocused()) void notify(nameOf(id), "Finished — waiting for your input");
   };
 

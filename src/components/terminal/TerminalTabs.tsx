@@ -5,6 +5,7 @@ import { useSessions } from "../../stores/sessionStore";
 import { closeTerminal } from "../../features/terminals/terminalActions";
 import { cn } from "../../lib/cn";
 import { StatusDot } from "../ui/StatusDot";
+import { PromptChip } from "../approvals/PromptChip";
 
 export function TerminalTabs() {
   const { terminals, activeTerminalId, setActiveTerminal, updateTerminal } = useSessions();
@@ -53,6 +54,7 @@ export function TerminalTabs() {
               ) : (
                 <span className={cn("relative truncate", t.status === "exited" && "text-faint line-through decoration-faint/50")}>{t.name}</span>
               )}
+              <span className="relative"><PromptChip id={t.id} /></span>
               <button
                 aria-label={`Close ${t.name}`}
                 onClick={(e) => { e.stopPropagation(); void closeTerminal(t.id); }}

@@ -15,6 +15,8 @@ import { IconButton } from "../ui/IconButton";
 import { ContextMenu } from "../ui/ContextMenu";
 import { VoiceButton } from "../voice/VoiceButton";
 import { ActivityIconFor } from "../agents/ActivityBadge";
+import { PromptChip } from "../approvals/PromptChip";
+import { useActivity } from "../../features/sessions/activityStore";
 
 interface Props {
   paneId: ID;
@@ -35,6 +37,8 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
   const { sidebarOpen, terminalOpen, toggleSidebar, toggleTerminal } = useLayout();
   const setDrag = useTabDrag((s) => s.set);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const byId = useActivity((s) => s.byId);
+  const waiting = new Set(Object.keys(byId).filter((k) => byId[k]?.prompt));
 
   const onDrop = (e: React.DragEvent, index?: number) => {
     const tabId = e.dataTransfer.getData(TAB_MIME);
@@ -110,6 +114,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                     className={cn(
                       "group relative flex h-8 min-w-0 max-w-52 cursor-default items-center gap-2 rounded-t-lg pl-3 pr-1.5 text-[12.5px]",
                       active ? "bg-bg-2 text-fg" : "text-muted hover:bg-bg-2/50 hover:text-fg-2",
+                      agent && waiting.has(agent.id) && "bg-warning/10 text-fg ring-1 ring-inset ring-warning/40",
                     )}
                   >
                     {active && (
@@ -122,6 +127,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                       <Icon size={13} strokeWidth={1.75} className={active && focused ? "text-accent" : ""} />
                     )}
                     <span className="truncate">{title}</span>
+                    {agent && <PromptChip id={agent.id} />}
                     <button
                       aria-label={`Close ${title}`}
                       onClick={(e) => {

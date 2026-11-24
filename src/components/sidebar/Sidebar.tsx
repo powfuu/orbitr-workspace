@@ -20,6 +20,7 @@ import { Kbd } from "../ui/Kbd";
 import { AgentGlyph } from "../ui/AgentGlyph";
 import { StatusDot } from "../ui/StatusDot";
 import { ContextMenu } from "../ui/ContextMenu";
+import { PromptChip } from "../approvals/PromptChip";
 import { GitBadge } from "../git/GitBadge";
 import { ActivityIconFor } from "../agents/ActivityBadge";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -143,7 +144,7 @@ export function Sidebar() {
                   <SidebarItem
                     icon={<AgentGlyph agent={AGENTS[a.kind]} size={16} status={a.status} />}
                     label={a.name}
-                    trailing={<ActivityIconFor id={a.id} status={a.status} />}
+                    trailing={<span className="flex items-center gap-1.5"><PromptChip id={a.id} /><ActivityIconFor id={a.id} status={a.status} /></span>}
                     active={activeTarget?.type === "agent" && activeTarget.id === a.id}
                     onClick={() => open({ type: "agent", id: a.id })}
                   />
@@ -169,7 +170,7 @@ export function Sidebar() {
                   icon={<SquareTerminal size={14} className="text-muted" />}
                   label={t.name}
                   meta={t.pid ? String(t.pid) : undefined}
-                  trailing={<StatusDot status={t.status} />}
+                  trailing={<span className="flex items-center gap-1.5"><PromptChip id={t.id} /><StatusDot status={t.status} /></span>}
                   active={t.id === activeTerminalId}
                   onClick={() => { setActiveTerminal(t.id); openTerminalPanel(); }}
                 />

@@ -1,0 +1,40 @@
+
+╭─── Claude Code v2.1.162 ─────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting started                                        │
+│                Welcome back User!                │ Ask Claude to create a new app or clone a repository            │
+│                                                    │ ─────────────────────────────────────────────────────────────── │
+│                       ▐▛███▜▌                      │ What's new                                                      │
+│                      ▝▜█████▛▘                     │ `claude agents --json` now includes `waitingFor` showing what … │
+│                        ▘▘ ▝▝                       │ `--tools`: explicitly listing Grep/Glob now provides the dedic… │
+│   Opus 4.8 (1M context) with lo… · Claude Team ·   │ `/effort` now confirms when your chosen level will persist as … │
+│   Profile                                          │ /release-notes for more                                         │
+│             ~/project             │                                                                 │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+ ▎ Opus 4.8 is here! Now defaults to high effort · /effort xhigh for your hardest tasks
+
+❯ Usa la herramienta AskUserQuestion para preguntarme si prefiero azul o verde, con esas dos opciones. Nada más.        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ ☐ Color 
+
+¿Prefieres azul o verde?
+
+❯ 1. Azul
+     Color azul.
+  2. Verde
+     Color verde.
+  3. Type something.
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  4. Chat about this
+
+Enter to select · ↑/↓ to navigate · Esc to cancel
+
+
+
+
+
+
+
+
+
+
