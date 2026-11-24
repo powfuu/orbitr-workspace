@@ -1,4 +1,5 @@
 pub mod chats;
+pub mod usage;
 
 use std::process::Command;
 

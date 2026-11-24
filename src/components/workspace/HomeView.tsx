@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Bot, Command, FolderPlus, SquareTerminal } from "lucide-react";
+import { UsageOverview } from "../usage/UsageOverview";
 import { AgentIntegrations } from "../agents/AgentIntegrations";
 import { addProjectFromDialog } from "../../features/projects/addProject";
 import { newDefaultTerminal } from "../../features/terminals/newDefaultTerminal";
@@ -35,6 +36,10 @@ export function HomeView() {
         <ActionCard icon={Command} title="Command palette" description="Jump anywhere, run any action." shortcut={`${modKey}K`} onClick={() => setPaletteOpen(true)} />
         <ActionCard icon={Bot} title="Start an agent" description="Launch Claude Code or Codex in a real PTY." onClick={() => setPaletteOpen(true, "Start ")} />
         <ActionCard icon={SquareTerminal} title="New terminal" description="Spawn your default shell in the side panel." shortcut={`${modKey}T`} onClick={() => void newDefaultTerminal()} />
+      </motion.div>
+
+      <motion.div {...fade(2)} className="mt-10">
+        <UsageOverview />
       </motion.div>
 
       <motion.div {...fade(2)} className="mt-10">

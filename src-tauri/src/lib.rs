@@ -24,6 +24,8 @@ pub fn run() {
             commands::terminal::list_shells,
             commands::agents::resolve_executable,
             commands::agents::list_agent_chats,
+            commands::agents::usage_project,
+            commands::agents::usage_overview,
             commands::state::state_load,
             commands::state::state_save,
             commands::state::state_remove,

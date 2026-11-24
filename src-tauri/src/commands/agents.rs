@@ -14,3 +14,15 @@ pub async fn list_agent_chats(kind: String, cwd: String) -> Vec<crate::agents::c
         .await
         .unwrap_or_default()
 }
+
+/// Claude Code usage for one project folder since `since` (YYYY-MM-DD).
+#[tauri::command]
+pub async fn usage_project(cwd: String, since: String) -> crate::agents::usage::UsageReport {
+    tauri::async_runtime::spawn_blocking(move || crate::agents::usage::project_usage(&cwd, &since)).await.unwrap_or_default()
+}
+
+/// Claude Code usage across all projects since `since` (YYYY-MM-DD).
+#[tauri::command]
+pub async fn usage_overview(since: String) -> crate::agents::usage::UsageReport {
+    tauri::async_runtime::spawn_blocking(move || crate::agents::usage::overview(&since)).await.unwrap_or_default()
+}

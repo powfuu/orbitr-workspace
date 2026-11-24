@@ -7,6 +7,7 @@ import { IconButton } from "../ui/IconButton";
 import { RecentSessions } from "./RecentSessions";
 import { ChatHistory } from "../agents/ChatHistory";
 import { GitPanel } from "../git/GitPanel";
+import { ProjectUsage } from "../usage/ProjectUsage";
 import { removeProject, revealProject } from "../../features/workspaces/manageActions";
 import { useWorkspaces } from "../../stores/workspaceStore";
 import { useSessions } from "../../stores/sessionStore";
@@ -131,6 +132,9 @@ export function ProjectView({ id }: { id: ID }) {
         </Panel>
         <Panel title="Git" className="col-span-full">
           <GitPanel path={project.path} />
+        </Panel>
+        <Panel title="Claude Code usage" className="col-span-full">
+          <ProjectUsage path={project.path} />
         </Panel>
         <Panel title="Conversations" className="col-span-full">
           <ChatHistory project={project} />

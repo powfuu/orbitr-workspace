@@ -40,7 +40,7 @@ fn clean_title(s: &str) -> Option<String> {
 }
 
 /// Claude Code: ~/.claude/projects/<cwd with non-alphanumerics as '-'>/<session-id>.jsonl
-fn claude_dir(cwd: &str) -> Option<PathBuf> {
+pub fn claude_dir(cwd: &str) -> Option<PathBuf> {
     let encoded: String = cwd.chars().map(|c| if c.is_ascii_alphanumeric() { c } else { '-' }).collect();
     Some(home()?.join(".claude").join("projects").join(encoded))
 }
