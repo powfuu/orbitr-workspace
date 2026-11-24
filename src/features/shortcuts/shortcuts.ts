@@ -29,6 +29,7 @@ export const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
       { keys: [m, "E"], label: "Open Vim in this project" },
       { keys: [m, "P"], label: "Open file in Vim (fuzzy)" },
       { keys: [m, "N"], label: "Start an agent" },
+      { keys: [m, ";"], label: "Send a snippet" },
       { keys: [m, "T"], label: "New terminal" },
       { keys: isMac ? [m, "F"] : [ctrl, shift, "F"], label: "Find in output" },
       { keys: [m, shift, "L"], label: "Agent timeline" },

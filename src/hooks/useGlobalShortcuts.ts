@@ -8,6 +8,7 @@ import { terminalRegistry } from "../features/terminals/terminalRegistry";
 import { newDefaultTerminal } from "../features/terminals/newDefaultTerminal";
 import { openInEditor } from "../features/editors/openInEditor";
 import { useQuickOpen } from "../components/editors/QuickOpen";
+import { useSnippetPicker } from "../components/snippets/SnippetPicker";
 import { useVoice } from "../features/voice/voiceStore";
 import { useTerminalSearch } from "../features/search/searchStore";
 import { searchTarget } from "../features/search/searchTarget";
@@ -109,6 +110,7 @@ export function useGlobalShortcuts() {
             ",": () => useTabs.getState().open({ type: "settings" }),
             e: () => void openInEditor(),
             p: () => useQuickOpen.getState().open(),
+            ";": () => useSnippetPicker.getState().set(true),
           };
       const action = actions[key];
       if (action) {

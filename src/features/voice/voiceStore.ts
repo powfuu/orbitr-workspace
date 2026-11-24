@@ -10,6 +10,10 @@ import { sendText } from "../sessions/ptySession";
 import { logEvent } from "../timeline/eventLog";
 import { useActivity } from "../sessions/activityStore";
 import { answerPrompt, optionFromSpeech } from "../approvals/answer";
+import { useSnippets } from "../snippets/snippetStore";
+import { matchSpoken, variablesOf } from "../snippets/template";
+import { sendSnippet } from "../snippets/sendSnippet";
+import { useSnippetPicker } from "../../components/snippets/SnippetPicker";
 import type { ID } from "../../types";
 
 export type VoicePhase = "off" | "downloading" | "loading" | "listening" | "speaking" | "transcribing" | "needsTarget";
@@ -132,6 +136,14 @@ async function deliver(text: string) {
   if (!target) {
     // Keep the words; the indicator asks where to send them.
     useVoice.setState({ phase: "needsTarget", pending: text });
+    return;
+  }
+  // "snippet <name>" / "usa <name>" / a snippet's exact name sends that saved prompt.
+  const snippet = matchSpoken(text, useSnippets.getState().snippets);
+  if (snippet) {
+    useVoice.setState({ phase: "off" });
+    if (variablesOf(snippet.text).length) useSnippetPicker.getState().set(true);
+    else await sendSnippet(snippet);
     return;
   }
   const prompt = useActivity.getState().byId[target.id]?.prompt;

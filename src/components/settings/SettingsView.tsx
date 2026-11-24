@@ -9,6 +9,7 @@ import { terminalFontFamily, useFonts } from "../../features/terminals/fonts";
 import { ViewHeader } from "../workspace/primitives";
 import { UpdatesSection } from "./UpdatesSection";
 import { ThemePicker } from "./ThemePicker";
+import { SnippetsSection } from "./SnippetsSection";
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
@@ -78,6 +79,10 @@ export function SettingsView() {
 
       <Section title="Appearance">
         <ThemePicker />
+      </Section>
+
+      <Section title="Snippets">
+        <SnippetsSection />
       </Section>
 
       <Section title="Terminal">

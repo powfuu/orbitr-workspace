@@ -1,8 +1,12 @@
-import { ArrowRight, Palette, FileCode2, Sparkles, Keyboard, Search, FolderGit2, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, TextQuote, Palette, FileCode2, Sparkles, Keyboard, Search, FolderGit2, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useLayout } from "../../stores/layoutStore";
 import { useSettings } from "../../stores/settingsStore";
 import { THEMES } from "../theme/themes";
+import { useSnippets } from "../snippets/snippetStore";
+import { variablesOf } from "../snippets/template";
+import { sendSnippet } from "../snippets/sendSnippet";
+import { useSnippetPicker } from "../../components/snippets/SnippetPicker";
 import { getActiveTabs, useTabs } from "../../stores/tabStore";
 import { useWorkspaces } from "../../stores/workspaceStore";
 import { useSessions } from "../../stores/sessionStore";
@@ -39,6 +43,7 @@ function cycleHint(step: 1 | -1) {
 export function useCommands(): Command[] {
   const { workspaces, projects, activeWorkspaceId, setActiveWorkspace } = useWorkspaces();
   const agents = useSessions((s) => s.agents);
+  const snippets = useSnippets((s) => s.snippets);
   return useMemo(() => {
     const layout = useLayout.getState();
     const tabs = useTabs.getState();
@@ -56,6 +61,16 @@ export function useCommands(): Command[] {
     const vim = [
       { id: "vim-quick", title: "Open file in Vim…", group: "Vim", icon: FileCode2, shortcut: `${modKey}P`, run: () => useQuickOpen.getState().open() } as Command,
       ...wsProjects.map<Command>((p) => ({ id: `vim-${p.id}`, title: `Open Vim in ${p.name}`, group: "Vim", icon: FileCode2, shortcut: undefined, run: () => void openInEditor({ projectId: p.id }) })),
+    ];
+    const snippetCmds: Command[] = [
+      { id: "snippets", title: "Send a snippet…", group: "Snippets", icon: TextQuote, shortcut: `${modKey};`, run: () => useSnippetPicker.getState().set(true) },
+      ...snippets.map<Command>((sn) => ({
+        id: `snippet-${sn.id}`,
+        title: `Snippet: ${sn.name}`,
+        group: "Snippets",
+        icon: TextQuote,
+        run: () => (variablesOf(sn.text).length ? useSnippetPicker.getState().set(true) : void sendSnippet(sn)),
+      })),
     ];
     const themes: Command[] = [...THEMES, { id: "system", name: "Match system" }].map((t) => ({
       id: `theme-${t.id}`,
@@ -110,6 +125,6 @@ export function useCommands(): Command[] {
       run: () => { setActiveWorkspace(w.id); tabs.open({ type: "workspace", id: w.id }); },
     }));
     const pj = wsProjects.map<Command>((p) => ({ id: `pj-${p.id}`, title: p.name, group: "Project", icon: Folder, run: () => tabs.open({ type: "project", id: p.id }) }));
-    return [...sessions, ...vim, ...start, ...startIsolated, ...base, ...themes, ...pj, ...ws];
-  }, [workspaces, projects, activeWorkspaceId, setActiveWorkspace, agents]);
+    return [...sessions, ...snippetCmds, ...vim, ...start, ...startIsolated, ...base, ...themes, ...pj, ...ws];
+  }, [workspaces, projects, activeWorkspaceId, setActiveWorkspace, agents, snippets]);
 }
