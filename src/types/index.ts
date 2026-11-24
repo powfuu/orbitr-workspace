@@ -33,6 +33,10 @@ export interface AgentSession {
   startedAt: number;
   /** Past conversation this session resumed, when started from history. */
   chatId?: string;
+  /** Working directory when it differs from the project (an isolated git worktree). */
+  cwd?: string;
+  /** Branch of that worktree. */
+  branch?: string;
 }
 
 export interface TerminalSession {

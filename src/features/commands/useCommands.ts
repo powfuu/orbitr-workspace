@@ -1,4 +1,4 @@
-import { ArrowRight, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, FolderGit2, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useLayout } from "../../stores/layoutStore";
 import { getActiveTabs, useTabs } from "../../stores/tabStore";
@@ -47,6 +47,15 @@ export function useCommands(): Command[] {
         run: () => void startAgent(a.kind, p.id),
       })),
     );
+    const startIsolated = wsProjects.flatMap((p) =>
+      agentList.map<Command>((a) => ({
+        id: `start-wt-${a.kind}-${p.id}`,
+        title: `Start ${a.displayName} in new worktree of ${p.name}`,
+        group: "Agent",
+        icon: FolderGit2,
+        run: () => void startAgent(a.kind, p.id, { worktree: true }),
+      })),
+    );
     const sessions = agents
       .filter((a) => a.workspaceId === activeWorkspaceId)
       .map<Command>((a) => ({ id: `go-${a.id}`, title: `Go to ${a.name}`, group: "Session", icon: Bot, run: () => tabs.open({ type: "agent", id: a.id }) }));
@@ -71,6 +80,6 @@ export function useCommands(): Command[] {
       run: () => { setActiveWorkspace(w.id); tabs.open({ type: "workspace", id: w.id }); },
     }));
     const pj = wsProjects.map<Command>((p) => ({ id: `pj-${p.id}`, title: p.name, group: "Project", icon: Folder, run: () => tabs.open({ type: "project", id: p.id }) }));
-    return [...sessions, ...start, ...base, ...pj, ...ws];
+    return [...sessions, ...start, ...startIsolated, ...base, ...pj, ...ws];
   }, [workspaces, projects, activeWorkspaceId, setActiveWorkspace, agents]);
 }

@@ -10,6 +10,8 @@ import { cn } from "../../lib/cn";
 import { IconButton } from "../ui/IconButton";
 import { Kbd } from "../ui/Kbd";
 import { DiffView } from "./DiffView";
+import { BranchMenu } from "./BranchMenu";
+import { WorktreesSection } from "./WorktreesSection";
 import { EmptyLine } from "../workspace/primitives";
 
 type Selected = { path: string; staged: boolean; untracked: boolean };
@@ -119,8 +121,7 @@ export function GitPanel({ path }: { path: string }) {
     <div className="-m-4 flex flex-col">
       {/* Branch bar */}
       <div className="flex items-center gap-2 border-b border-line-soft px-4 py-2.5">
-        <GitBranch size={14} className="text-muted" />
-        <span className="selectable font-mono text-[12.5px] text-fg">{status.branch ?? "detached HEAD"}</span>
+        <BranchMenu repo={path} current={status.branch} />
         {status.upstream && <span className="truncate font-mono text-[11px] text-faint">→ {status.upstream}</span>}
         {status.ahead > 0 && <span className="flex items-center gap-0.5 font-mono text-[11px] text-fg-2"><ArrowUp size={11} />{status.ahead}</span>}
         {status.behind > 0 && <span className="flex items-center gap-0.5 font-mono text-[11px] text-warning"><ArrowDown size={11} />{status.behind}</span>}
@@ -215,6 +216,7 @@ export function GitPanel({ path }: { path: string }) {
           </AnimatePresence>
         </div>
       </div>
+      <WorktreesSection repo={path} />
     </div>
   );
 }

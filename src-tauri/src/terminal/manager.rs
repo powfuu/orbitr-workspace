@@ -66,7 +66,11 @@ impl PtyManager {
 
         let mut cmd = CommandBuilder::new(&opts.program);
         cmd.args(&opts.args);
-        if let Some(cwd) = opts.cwd.filter(|c| std::path::Path::new(c).is_dir()) {
+        if let Some(cwd) = opts.cwd {
+            // Never silently fall back to another folder: an agent must run where it was asked to.
+            if !std::path::Path::new(&cwd).is_dir() {
+                return Err(PtyError::Pty(format!("folder no longer exists: {cwd}")));
+            }
             cmd.cwd(cwd);
         } else if let Some(home) = std::env::var_os(if cfg!(windows) { "USERPROFILE" } else { "HOME" }) {
             cmd.cwd(home);

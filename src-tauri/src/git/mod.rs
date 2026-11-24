@@ -1,6 +1,9 @@
 //! Thin, safe wrapper over the system `git` CLI. No shell is involved: arguments are
 //! passed directly and user-supplied paths always follow `--`.
+mod branches;
 mod parse;
+
+pub use branches::{add_worktree, branches, create as create_branch, remove_worktree, switch as switch_branch, worktrees, Branch, Worktree};
 
 use parse::{parse_log, parse_status};
 pub use parse::{Commit, GitStatus};
@@ -9,7 +12,7 @@ use std::process::Command;
 
 const MAX_DIFF: usize = 256 * 1024;
 
-fn git(repo: &str, args: &[&str]) -> Result<String, String> {
+pub(crate) fn git(repo: &str, args: &[&str]) -> Result<String, String> {
     if !Path::new(repo).is_dir() {
         return Err(format!("not a folder: {repo}"));
     }

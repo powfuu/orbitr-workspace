@@ -44,3 +44,33 @@ pub async fn git_push(repo: String) -> Result<String, String> {
 pub async fn git_pull(repo: String) -> Result<String, String> {
     run(move || git::pull(&repo)).await
 }
+
+#[tauri::command]
+pub async fn git_branches(repo: String) -> Result<Vec<git::Branch>, String> {
+    run(move || git::branches(&repo)).await
+}
+
+#[tauri::command]
+pub async fn git_switch(repo: String, branch: String) -> Result<(), String> {
+    run(move || git::switch_branch(&repo, &branch)).await
+}
+
+#[tauri::command]
+pub async fn git_create_branch(repo: String, branch: String) -> Result<(), String> {
+    run(move || git::create_branch(&repo, &branch)).await
+}
+
+#[tauri::command]
+pub async fn git_worktrees(repo: String) -> Result<Vec<git::Worktree>, String> {
+    run(move || git::worktrees(&repo)).await
+}
+
+#[tauri::command]
+pub async fn git_add_worktree(repo: String, branch: String, create: bool) -> Result<String, String> {
+    run(move || git::add_worktree(&repo, &branch, create)).await
+}
+
+#[tauri::command]
+pub async fn git_remove_worktree(repo: String, path: String, force: bool) -> Result<(), String> {
+    run(move || git::remove_worktree(&repo, &path, force)).await
+}

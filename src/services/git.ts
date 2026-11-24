@@ -39,3 +39,27 @@ export const gitService = {
   push: (repo: string) => invoke<string>("git_push", { repo }),
   pull: (repo: string) => invoke<string>("git_pull", { repo }),
 };
+
+export interface Branch {
+  name: string;
+  current: boolean;
+  upstream: string | null;
+  updatedAt: number;
+}
+
+export interface Worktree {
+  path: string;
+  branch: string | null;
+  head: string;
+  main: boolean;
+  locked: boolean;
+}
+
+export const branchService = {
+  list: (repo: string) => invoke<Branch[]>("git_branches", { repo }),
+  switch: (repo: string, branch: string) => invoke<void>("git_switch", { repo, branch }),
+  create: (repo: string, branch: string) => invoke<void>("git_create_branch", { repo, branch }),
+  worktrees: (repo: string) => invoke<Worktree[]>("git_worktrees", { repo }),
+  addWorktree: (repo: string, branch: string, create: boolean) => invoke<string>("git_add_worktree", { repo, branch, create }),
+  removeWorktree: (repo: string, path: string, force: boolean) => invoke<void>("git_remove_worktree", { repo, path, force }),
+};

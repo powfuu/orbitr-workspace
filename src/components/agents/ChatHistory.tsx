@@ -55,7 +55,7 @@ export function ChatHistory({ project }: { project: Project }) {
               <span className="w-20 text-right font-mono text-[10.5px] text-faint">{timeAgo(r.updatedAt)}</span>
               <button
                 disabled={!installed}
-                onClick={() => void startAgent(r.kind, project.id, { id: r.id, title: r.title })}
+                onClick={() => void startAgent(r.kind, project.id, { chat: { id: r.id, title: r.title } })}
                 className="inline-flex h-6 items-center gap-1 rounded-md px-2 text-[11.5px] text-fg opacity-0 ring-1 ring-line transition-opacity hover:bg-surface-2 group-hover:opacity-100 disabled:hidden"
               >
                 <Play size={11} /> Resume

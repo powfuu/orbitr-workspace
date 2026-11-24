@@ -39,6 +39,12 @@ pub fn run() {
             commands::git::git_commit,
             commands::git::git_push,
             commands::git::git_pull,
+            commands::git::git_branches,
+            commands::git::git_switch,
+            commands::git::git_create_branch,
+            commands::git::git_worktrees,
+            commands::git::git_add_worktree,
+            commands::git::git_remove_worktree,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Orbitr")

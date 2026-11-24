@@ -1,4 +1,4 @@
-import { RotateCw, Square, Trash2 } from "lucide-react";
+import { GitBranch, RotateCw, Square, Trash2 } from "lucide-react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { AnimatePresence } from "framer-motion";
 import { useActivity } from "../../features/sessions/activityStore";
@@ -40,9 +40,14 @@ export function AgentView({ id }: { id: ID }) {
           <div className="flex min-w-0 items-baseline gap-2">
             <span className="truncate text-[13px] font-medium text-fg">{agent.name}</span>
             {task && <span className="truncate text-[12px] text-muted">— {task}</span>}
+            {agent.branch && (
+              <span className="flex shrink-0 items-center gap-1 rounded-full border border-line px-1.5 py-px font-mono text-[10px] text-fg-2" title={agent.cwd}>
+                <GitBranch size={10} /> {agent.branch}
+              </span>
+            )}
           </div>
           <div className="selectable truncate font-mono text-[10.5px] text-faint">
-            {project ? tildify(project.path, platform?.homeDir ?? undefined) : "project removed"}
+            {project ? tildify(agent.cwd ?? project.path, platform?.homeDir ?? undefined) : "project removed"}
             {agent.pid && alive ? ` · pid ${agent.pid}` : ""}
           </div>
         </div>

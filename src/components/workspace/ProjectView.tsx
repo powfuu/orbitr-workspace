@@ -1,4 +1,7 @@
-import { Bot, Copy, FolderSearch, FolderX, SquareTerminal, Trash2 } from "lucide-react";
+import { Bot, Copy, FolderGit2, FolderSearch, FolderX, SquareTerminal, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { useGit } from "../../features/git/gitStore";
+import { cn } from "../../lib/cn";
 import { InlineEdit } from "../ui/InlineEdit";
 import { IconButton } from "../ui/IconButton";
 import { RecentSessions } from "./RecentSessions";
@@ -25,6 +28,8 @@ export function ProjectView({ id }: { id: ID }) {
   const agents = useSessions((s) => s.agents).filter((a) => a.projectId === id);
   const platform = usePlatformInfo();
   const renameProject = useWorkspaces((s) => s.renameProject);
+  const [isolated, setIsolated] = useState(false);
+  const isRepo = useGit((g) => !!g.byPath[project?.path ?? ""]);
   const availability = useAgentAvailability();
   const openTab = useTabs((s) => s.open);
   const allTerminals = useSessions((s) => s.terminals);
@@ -54,7 +59,20 @@ export function ProjectView({ id }: { id: ID }) {
         <IconButton icon={Trash2} label="Remove project" onClick={() => void removeProject(project.id)} />
       </ViewHeader>
 
-      <div className="mb-3 font-mono text-2xs uppercase tracking-[0.14em] text-faint">Launch here</div>
+      <div className="mb-3 flex items-center gap-3">
+        <span className="font-mono text-2xs uppercase tracking-[0.14em] text-faint">Launch here</span>
+        {isRepo && (
+          <button
+            role="switch"
+            aria-checked={isolated}
+            onClick={() => setIsolated((v) => !v)}
+            title="Each agent gets its own branch and folder (git worktree) so parallel agents never edit the same files."
+            className={cn("ml-auto flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[11px] ring-1 transition-colors", isolated ? "bg-white text-black ring-white" : "text-muted ring-line hover:text-fg")}
+          >
+            <FolderGit2 size={11} /> Isolated worktree
+          </button>
+        )}
+      </div>
       <div className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(min(180px,100%),1fr))] gap-3">
         {agentList.filter((a) => !availability || availability[a.kind]).map((a) => {
           const path = availability?.[a.kind];
@@ -63,7 +81,7 @@ export function ProjectView({ id }: { id: ID }) {
             <button
               key={a.kind}
               disabled={missing}
-              onClick={() => void startAgent(a.kind, project.id)}
+              onClick={() => void startAgent(a.kind, project.id, { worktree: isolated })}
               title={missing ? `${a.executable} not found on PATH` : path ?? undefined}
               className="flex items-center gap-3 rounded-xl border border-line-soft bg-bg-2 p-3 text-left transition-colors hover:border-line hover:bg-surface/70 disabled:cursor-not-allowed disabled:opacity-50"
             >
