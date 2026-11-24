@@ -1,4 +1,4 @@
-import { ArrowRight, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useLayout } from "../../stores/layoutStore";
 import { getActiveTabs, useTabs } from "../../stores/tabStore";
@@ -8,6 +8,7 @@ import { addProjectFromDialog } from "../projects/addProject";
 import { newDefaultTerminal } from "../terminals/newDefaultTerminal";
 import { agentList } from "../agents/registry";
 import { startAgent } from "../agents/agentActions";
+import { useVoice } from "../voice/voiceStore";
 import { modKey } from "../../lib/platform";
 
 export interface Command {
@@ -50,6 +51,7 @@ export function useCommands(): Command[] {
     const base: Command[] = [
       { id: "home", title: "Go to Home", group: "Navigate", icon: Home, run: () => tabs.open({ type: "home" }) },
       { id: "new-terminal", title: "New terminal", group: "Terminal", icon: SquareTerminal, shortcut: `${modKey}T`, run: () => void newDefaultTerminal() },
+      { id: "voice", title: "Toggle voice input", group: "Voice", icon: Mic, shortcut: `${modKey}⇧V`, run: () => void useVoice.getState().toggle() },
       { id: "settings", title: "Open settings", group: "App", icon: Settings, shortcut: `${modKey},`, run: () => tabs.open({ type: "settings" }) },
       { id: "next-tab", title: "Next tab", group: "View", icon: ArrowRight, shortcut: "⌃Tab", run: () => cycleHint(1) },
       { id: "add-project", title: "Add project…", group: "Project", icon: FolderPlus, run: addProjectFromDialog },

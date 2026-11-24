@@ -80,8 +80,10 @@ export const terminalRegistry = {
   get: (id: ID) => entries.get(id)?.term,
 
   async attach(id: ID, container: HTMLElement) {
-    const e = entries.get(id);
-    if (!e) return;
+    // The view can mount before the PTY spawn creates the instance: create it here so the
+    // spawn (which reuses existing entries) writes into the terminal that is on screen.
+    if (!entries.has(id)) this.create(id);
+    const e = entries.get(id)!;
     container.appendChild(e.host);
     if (!e.opened) {
       await fontsReady;

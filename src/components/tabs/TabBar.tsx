@@ -9,6 +9,7 @@ import { describeTab } from "../../features/tabs/describeTab";
 import { isMac, modKey } from "../../lib/platform";
 import { cn } from "../../lib/cn";
 import { IconButton } from "../ui/IconButton";
+import { VoiceButton } from "../voice/VoiceButton";
 import { ActivityIconFor } from "../agents/ActivityBadge";
 
 export function TabBar() {
@@ -88,6 +89,7 @@ export function TabBar() {
           })}
         </AnimatePresence>
       </div>
+      <div className="mb-2 mr-1"><VoiceButton /></div>
       {!terminalOpen && (
         <div className="mb-2">
           <IconButton icon={PanelRightOpen} label="Show terminal panel" shortcut={`${modKey}J`} onClick={toggleTerminal} size="sm" />

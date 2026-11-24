@@ -4,6 +4,7 @@ import { useLayout } from "../stores/layoutStore";
 import { getActiveTabs, useTabs } from "../stores/tabStore";
 import { useWorkspaces } from "../stores/workspaceStore";
 import { newDefaultTerminal } from "../features/terminals/newDefaultTerminal";
+import { useVoice } from "../features/voice/voiceStore";
 
 function cycleTab(step: 1 | -1) {
   const { tabs, activeTabId } = getActiveTabs();
@@ -26,6 +27,12 @@ export function useGlobalShortcuts() {
         return cycleTab(e.shiftKey ? -1 : 1);
       }
       if (!hasMod(e) || e.altKey) return;
+      // Voice toggle works everywhere, including inside a focused terminal.
+      if (e.shiftKey && e.key.toLowerCase() === "v") {
+        e.preventDefault();
+        e.stopPropagation();
+        return void useVoice.getState().toggle();
+      }
       // On Windows/Linux Ctrl+letter belongs to the shell (Ctrl+W, Ctrl+K…) while a terminal has focus.
       if (!isMac && (e.target as HTMLElement | null)?.closest?.(".xterm")) return;
       const layout = useLayout.getState();

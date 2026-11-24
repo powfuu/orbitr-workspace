@@ -11,6 +11,10 @@ export interface Settings {
   defaultShell: string;
   restoreOnLaunch: boolean;
   notifications: boolean;
+  /** Whisper language: "auto", "es", "en"… */
+  voiceLanguage: string;
+  /** Press Enter automatically after each spoken phrase. */
+  voiceAutoSubmit: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -21,6 +25,8 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultShell: "",
   restoreOnLaunch: true,
   notifications: true,
+  voiceLanguage: "auto",
+  voiceAutoSubmit: true,
 };
 
 interface SettingsState extends Settings {

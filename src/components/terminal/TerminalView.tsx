@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { terminalRegistry } from "../../features/terminals/terminalRegistry";
 import type { ID } from "../../types";
 import { markSeen } from "../../features/sessions/activityStore";
+import { useFocusedSession } from "../../stores/focusStore";
 
 /** Mounts a registry-owned xterm instance and keeps it fitted to its container. */
 export function TerminalView({ id, focused }: { id: ID; focused: boolean }) {
@@ -29,5 +30,5 @@ export function TerminalView({ id, focused }: { id: ID; focused: boolean }) {
     if (focused) terminalRegistry.focus(id);
   }, [focused, id]);
 
-  return <div ref={ref} data-session={id} className="h-full w-full" onFocusCapture={() => markSeen(id)} />;
+  return <div ref={ref} data-session={id} className="h-full w-full" onFocusCapture={() => { markSeen(id); useFocusedSession.getState().set(id); }} />;
 }

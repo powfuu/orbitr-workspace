@@ -7,6 +7,7 @@ import { CommandPalette } from "../palette/CommandPalette";
 import { ResizeHandle } from "./ResizeHandle";
 import { StatusBar } from "./StatusBar";
 import { Toaster } from "../ui/Toaster";
+import { VoiceIndicator } from "../voice/VoiceIndicator";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
 
 const slide = { type: "spring", stiffness: 420, damping: 42 } as const;
@@ -39,6 +40,7 @@ export function AppShell() {
       <StatusBar />
       <CommandPalette />
       <Toaster />
+      <VoiceIndicator />
     </div>
   );
 }

@@ -90,3 +90,16 @@ export async function disposePty(id: ID) {
 export function resetScreen(id: ID) {
   terminalRegistry.get(id)?.reset();
 }
+
+/** Types text into a running session as if from the keyboard, optionally pressing Enter. */
+export async function sendText(id: ID, text: string, submit: boolean): Promise<boolean> {
+  const ptyId = live.get(id)?.ptyId;
+  if (ptyId == null) return false;
+  await pty.write(ptyId, text);
+  // TUIs (Claude Code, Codex…) treat text+CR in one write as a paste; send Enter separately.
+  if (submit) {
+    await new Promise((r) => setTimeout(r, 60));
+    await pty.write(ptyId, "\r");
+  }
+  return true;
+}

@@ -18,7 +18,7 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
-function Toggle({ k }: { k: "cursorBlink" | "restoreOnLaunch" | "notifications" }) {
+function Toggle({ k }: { k: "cursorBlink" | "restoreOnLaunch" | "notifications" | "voiceAutoSubmit" }) {
   const value = useSettings((s) => s[k]);
   const set = useSettings((s) => s.set);
   return (
@@ -102,6 +102,15 @@ export function SettingsView() {
         </Row>
         <Row label="Desktop notifications" hint="When an agent finishes or needs you while Orbitr is in the background.">
           <Toggle k="notifications" />
+        </Row>
+      </Section>
+
+      <Section title="Voice">
+        <Row label="Language" hint="Speech is transcribed on this device with Whisper. Auto-detect handles mixed Spanish/English.">
+          <Segmented k="voiceLanguage" options={[{ value: "auto", label: "Auto" }, { value: "es", label: "Español" }, { value: "en", label: "English" }]} />
+        </Row>
+        <Row label="Send automatically" hint="Press Enter when you stop speaking. Off = text is typed and left as a draft.">
+          <Toggle k="voiceAutoSubmit" />
         </Row>
       </Section>
 
