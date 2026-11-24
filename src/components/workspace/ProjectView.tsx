@@ -140,14 +140,14 @@ export function ProjectView({ id }: { id: ID }) {
             </div>
           )}
         </Panel>
-        <Panel title="Git" className="col-span-full">
-          <GitPanel path={project.path} />
+        <Panel title="Conversations" className="col-span-full">
+          <ChatHistory project={project} />
         </Panel>
         <Panel title="Claude Code usage" className="col-span-full">
           <ProjectUsage path={project.path} />
         </Panel>
-        <Panel title="Conversations" className="col-span-full">
-          <ChatHistory project={project} />
+        <Panel title="Git" id={`git-${project.id}`} className="col-span-full">
+          <GitPanel path={project.path} />
         </Panel>
         <Panel title="Orbitr session log" className="col-span-full">
           <RecentSessions filter={{ projectId: project.id }} />

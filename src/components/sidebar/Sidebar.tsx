@@ -23,6 +23,8 @@ import { StatusDot } from "../ui/StatusDot";
 import { ContextMenu } from "../ui/ContextMenu";
 import { PromptChip } from "../approvals/PromptChip";
 import { GitBadge } from "../git/GitBadge";
+import { GitOverview } from "../git/GitOverview";
+import { useGit } from "../../features/git/gitStore";
 import { ActivityIconFor } from "../agents/ActivityBadge";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { SidebarHint, SidebarSection } from "./SidebarSection";
@@ -33,6 +35,7 @@ export function Sidebar() {
   const allProjects = useWorkspaces((s) => s.projects);
   const reorderProjects = useWorkspaces((s) => s.reorderProjects);
   const allAgents = useSessions((s) => s.agents);
+  const gitByPath = useGit((g) => g.byPath);
   const { terminals, activeTerminalId, setActiveTerminal } = useSessions();
   const openTerminalPanel = useLayout((s) => s.openTerminalPanel);
   const { tabs, activeTabId } = useActiveTabs();
@@ -50,6 +53,8 @@ export function Sidebar() {
     () => workspace.projectIds.map((id) => allProjects[id]).filter((p) => p && p.name.toLowerCase().includes(q)),
     [workspace.projectIds, allProjects, q],
   ) as NonNullable<(typeof allProjects)[string]>[];
+  // Projects that are git repos (unknown yet counts as maybe, so the section shows while loading).
+  const gitProjects = projects.filter((p) => gitByPath[p.path] !== null);
 
   return (
     <aside className="flex h-full flex-col bg-bg-2">
@@ -119,6 +124,14 @@ export function Sidebar() {
               );
             })}
             </Reorder.Group>
+          )}
+        </SidebarSection>
+
+        <SidebarSection id="git" title="Git" count={gitProjects.length}>
+          {gitProjects.length === 0 ? (
+            <SidebarHint>{q ? "No matching projects." : "Git status of each project appears here."}</SidebarHint>
+          ) : (
+            <GitOverview projects={gitProjects} />
           )}
         </SidebarSection>
 

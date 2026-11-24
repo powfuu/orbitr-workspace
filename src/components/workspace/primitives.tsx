@@ -51,9 +51,9 @@ export function ActionCard({ icon: Icon, title, description, shortcut, onClick, 
   );
 }
 
-export function Panel({ title, count, children, className }: { title: string; count?: number; children: ReactNode; className?: string }) {
+export function Panel({ title, count, children, className, id }: { title: string; count?: number; children: ReactNode; className?: string; id?: string }) {
   return (
-    <section className={cn("rounded-xl border border-line-soft bg-bg-2", className)}>
+    <section id={id} className={cn("scroll-mt-4 rounded-xl border border-line-soft bg-bg-2", className)}>
       <div className="flex h-10 items-center gap-2 border-b border-line-soft px-4 text-[12px] font-medium text-fg-2">
         {title}
         {count !== undefined && <span className="font-mono text-2xs text-faint">{count}</span>}
