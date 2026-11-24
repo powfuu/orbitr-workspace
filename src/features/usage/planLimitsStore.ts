@@ -83,6 +83,8 @@ export const usePlanLimits = create<LimitsState>()((set, get) => ({
   error: null,
   async refresh() {
     if (!isTauri || get().loading) return;
+    // Agent detection may not have run yet at startup: wait for it instead of skipping.
+    if (!("claude-code" in useAvailability.getState().paths)) await useAvailability.getState().refresh();
     if (!useAvailability.getState().paths["claude-code"]) return;
     const cwd = pickFolder();
     if (!cwd) return;
@@ -96,7 +98,16 @@ export const usePlanLimits = create<LimitsState>()((set, get) => ({
   },
 }));
 
+const STALE_MS = 2 * 60_000;
+
+/** Refresh unless a fresh reading exists (used on mount, focus and a timer). */
+export function refreshIfStale() {
+  const { at, loading } = usePlanLimits.getState();
+  if (!loading && (!at || Date.now() - at > STALE_MS)) void usePlanLimits.getState().refresh();
+}
+
 if (isTauri) {
-  window.setTimeout(() => void usePlanLimits.getState().refresh(), 15_000);
-  window.setInterval(() => void usePlanLimits.getState().refresh(), 5 * 60_000);
+  window.setTimeout(refreshIfStale, 3_000);
+  window.setInterval(refreshIfStale, 3 * 60_000);
+  window.addEventListener("focus", refreshIfStale);
 }

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Gauge, RefreshCw } from "lucide-react";
-import { usePlanLimits } from "../../features/usage/planLimitsStore";
+import { useEffect } from "react";
+import { refreshIfStale, usePlanLimits } from "../../features/usage/planLimitsStore";
 import { shortLabel } from "../../features/usage/parseLimits";
 import { timeAgo } from "../../lib/time";
 import { cn } from "../../lib/cn";
@@ -12,6 +13,10 @@ const text = (p: number) => (p >= 90 ? "text-error" : p >= 70 ? "text-warning" :
 /** Claude plan limits: 5-hour session and weekly windows, with reset times. */
 export function PlanLimits() {
   const { limits, at, loading, error, refresh } = usePlanLimits();
+  // Read as soon as the card is shown (no manual refresh needed).
+  useEffect(() => {
+    refreshIfStale();
+  }, []);
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
@@ -23,7 +28,7 @@ export function PlanLimits() {
         </span>
       </div>
       {limits.length === 0 ? (
-        <div className="text-[11.5px] text-muted">{error ?? (loading ? "Reading Claude Code /usage…" : "Limits appear after the first check.")}</div>
+        <div className="text-[11.5px] text-muted">{error ?? (loading ? "Reading your plan limits…" : "Checking shortly…")}</div>
       ) : (
         limits.map((l) => (
           <div key={l.label}>
