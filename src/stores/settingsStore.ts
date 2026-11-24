@@ -4,6 +4,8 @@ import { persistOptions } from "./persist";
 
 export interface Settings {
   terminalFontSize: number;
+  /** "auto" (first installed Nerd Font) or a font family name. */
+  terminalFont: string;
   cursorStyle: "bar" | "block" | "underline";
   cursorBlink: boolean;
   scrollback: number;
@@ -25,6 +27,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   terminalFontSize: 12.5,
+  terminalFont: "auto",
   cursorStyle: "bar",
   cursorBlink: true,
   scrollback: 10_000,

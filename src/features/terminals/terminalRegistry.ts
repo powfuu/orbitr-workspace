@@ -6,6 +6,7 @@ import { WebglAddon } from "@xterm/addon-webgl";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { terminalTheme } from "./theme";
+import { terminalFontFamily } from "./fonts";
 import { useSettings, type Settings } from "../../stores/settingsStore";
 import { isTauri } from "../../lib/platform";
 import type { ID } from "../../types";
@@ -28,6 +29,7 @@ const entries = new Map<ID, Entry>();
 const fontsReady = document.fonts.load('13px "JetBrains Mono"').catch(() => undefined);
 
 const optionsFrom = (s: Settings) => ({
+  fontFamily: terminalFontFamily(s.terminalFont),
   fontSize: s.terminalFontSize,
   cursorStyle: s.cursorStyle,
   cursorBlink: s.cursorBlink,
@@ -56,7 +58,6 @@ function loadWebgl(term: Terminal) {
 export const terminalRegistry = {
   create(id: ID): Terminal {
     const term = new Terminal({
-      fontFamily: '"JetBrains Mono", ui-monospace, Menlo, monospace',
       lineHeight: 1.25,
       macOptionIsMeta: true,
       allowProposedApi: true,

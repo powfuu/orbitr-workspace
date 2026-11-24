@@ -5,13 +5,14 @@ import { useShells } from "../../hooks/useShells";
 import { useAvailability } from "../../features/agents/availabilityStore";
 import { cn } from "../../lib/cn";
 import { modKey } from "../../lib/platform";
+import { installedNerdFonts, terminalFontFamily } from "../../features/terminals/fonts";
 import { ViewHeader } from "../workspace/primitives";
 import { UpdatesSection } from "./UpdatesSection";
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-6 px-4 py-3">
-      <div className="flex-1">
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
+      <div className="min-w-[12rem] flex-1">
         <div className="text-[13px] text-fg">{label}</div>
         {hint && <div className="mt-0.5 text-[11.5px] text-muted">{hint}</div>}
       </div>
@@ -65,6 +66,7 @@ export function SettingsView() {
   const shells = useShells();
   const refresh = useAvailability((a) => a.refresh);
   const editorPaths = useAvailability((a) => a.paths);
+  const nerdFonts = installedNerdFonts();
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 @lg:px-10 @lg:py-12">
       <ViewHeader eyebrow="Preferences" title="Settings">
@@ -78,6 +80,22 @@ export function SettingsView() {
           <div className="flex items-center gap-3">
             <input type="range" min={10} max={18} step={0.5} value={s.terminalFontSize} onChange={(e) => s.set("terminalFontSize", Number(e.target.value))} className="w-32 accent-white" />
             <span className="w-10 text-right font-mono text-[12px] text-fg-2">{s.terminalFontSize}</span>
+          </div>
+        </Row>
+        <Row label="Font" hint="Nerd Fonts include the icons used by Neovim plugins and shell prompts. Auto picks the first one installed.">
+          <div className="flex flex-col items-end gap-1.5">
+            <select
+              value={s.terminalFont}
+              onChange={(e) => s.set("terminalFont", e.target.value)}
+              className="h-7 max-w-64 rounded-md bg-bg px-2 text-[12px] text-fg ring-1 ring-line outline-none"
+            >
+              <option value="auto">Auto{nerdFonts[0] ? ` — ${nerdFonts[0]}` : " — no Nerd Font found"}</option>
+              {nerdFonts.map((f) => <option key={f} value={f}>{f}</option>)}
+              <option value="JetBrains Mono">JetBrains Mono (no icons)</option>
+            </select>
+            <span className="rounded bg-black px-2 py-1 text-[13px] text-fg-2" style={{ fontFamily: terminalFontFamily(s.terminalFont) }} title="Preview">
+              {"\uf07b \ue718 \ue7a8 \uf418 \uf113 \ue0b0 \uf489 \u{f0219} \uf00c "}main.ts
+            </span>
           </div>
         </Row>
         <Row label="Cursor">
