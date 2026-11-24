@@ -39,6 +39,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
   const { sidebarOpen, terminalOpen, toggleSidebar, toggleTerminal } = useLayout();
   const setDrag = useTabDrag((s) => s.set);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const closable = (t: { target: { type: string } }) => t.target.type !== "home" || multi;
   const byId = useActivity((s) => s.byId);
   const waiting = new Set(Object.keys(byId).filter((k) => byId[k]?.prompt));
 
@@ -91,7 +92,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                   items={[
                     { label: "Split right", icon: Columns2, onSelect: () => split(paneId, "right", tab.id) },
                     { label: "Split down", icon: Rows2, onSelect: () => split(paneId, "bottom", tab.id) },
-                    { label: "Close tab", icon: X, onSelect: () => close(tab.id) },
+                    ...(closable(tab) ? [{ label: "Close tab", icon: X, onSelect: () => close(tab.id) }] : []),
                   ]}
                 >
                   <div
@@ -111,7 +112,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                     }}
                     onDrop={(e) => onDrop(e, i)}
                     onClick={() => activate(tab.id)}
-                    onAuxClick={(e) => e.button === 1 && close(tab.id)}
+                    onAuxClick={(e) => e.button === 1 && closable(tab) && close(tab.id)}
                     onKeyDown={(e) => e.key === "Enter" && activate(tab.id)}
                     className={cn(
                       "group relative flex h-8 min-w-0 max-w-52 cursor-default items-center gap-2 rounded-t-[10px] pl-3 pr-1.5 text-[12.5px] transition-colors duration-150",
@@ -144,7 +145,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                     <span className="truncate">{title}</span>
                     {agent && <ActivityIconFor id={agent.id} status={agent.status} size={10} />}
                     {agent && <PromptChip id={agent.id} />}
-                    <button
+                    {closable(tab) && <button
                       aria-label={`Close ${title}`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -156,7 +157,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                       )}
                     >
                       <X size={12} />
-                    </button>
+                    </button>}
                     </span>
                   </div>
                 </ContextMenu>

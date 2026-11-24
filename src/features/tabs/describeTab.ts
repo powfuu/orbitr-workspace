@@ -1,4 +1,4 @@
-import { Bot, Folder, GitBranch, Home, LayoutGrid, Settings, type LucideIcon } from "lucide-react";
+import { Bot, Folder, GitBranch, LayoutDashboard, LayoutGrid, Settings, type LucideIcon } from "lucide-react";
 import type { AgentSession, ID, Project, TabTarget, Workspace } from "../../types";
 
 export interface TabInfo {
@@ -16,7 +16,7 @@ interface Lookup {
 export function describeTab(target: TabTarget, { workspaces, projects, agents }: Lookup): TabInfo {
   switch (target.type) {
     case "home":
-      return { title: "Home", icon: Home };
+      return { title: "Dashboard", icon: LayoutDashboard };
     case "workspace":
       return { title: workspaces.find((w) => w.id === target.id)?.name ?? "Workspace", icon: LayoutGrid };
     case "project":

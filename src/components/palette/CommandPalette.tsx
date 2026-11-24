@@ -14,9 +14,14 @@ export function CommandPalette() {
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
 
+  // Every word must match somewhere (title, group or keywords), in any order.
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return q ? commands.filter((c) => `${c.group} ${c.title}`.toLowerCase().includes(q)) : commands;
+    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) return commands;
+    return commands.filter((c) => {
+      const hay = `${c.title} ${c.group} ${c.keywords ?? ""}`.toLowerCase();
+      return words.every((w) => hay.includes(w));
+    });
   }, [commands, query]);
 
   useEffect(() => {

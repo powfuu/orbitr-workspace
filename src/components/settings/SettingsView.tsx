@@ -9,6 +9,7 @@ import { terminalFontFamily, useFonts } from "../../features/terminals/fonts";
 import { ViewHeader } from "../workspace/primitives";
 import { UpdatesSection } from "./UpdatesSection";
 import { ThemePicker } from "./ThemePicker";
+import { Select } from "../ui/Select";
 import { SnippetsSection } from "./SnippetsSection";
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
@@ -57,7 +58,7 @@ function Segmented<K extends keyof Settings>({ k, options }: { k: K; options: { 
 }
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
-  <section className="mb-6">
+  <section id={`settings-${title.toLowerCase()}`} className="mb-6 scroll-mt-6">
     <div className="mb-2 font-mono text-2xs uppercase tracking-[0.14em] text-faint">{title}</div>
     <div className="divide-y divide-line-soft rounded-xl border border-line-soft bg-bg-2">{children}</div>
   </section>
@@ -81,10 +82,6 @@ export function SettingsView() {
         <ThemePicker />
       </Section>
 
-      <Section title="Snippets">
-        <SnippetsSection />
-      </Section>
-
       <Section title="Terminal">
         <Row label="Font size" hint="Applies to all terminals and agents immediately.">
           <div className="flex items-center gap-3">
@@ -94,15 +91,17 @@ export function SettingsView() {
         </Row>
         <Row label="Font" hint="Nerd Fonts include the icons used by Neovim plugins and shell prompts. Auto picks the first one installed.">
           <div className="flex flex-col items-end gap-1.5">
-            <select
+            <Select
+              ariaLabel="Terminal font"
+              className="w-64"
               value={s.terminalFont}
-              onChange={(e) => s.set("terminalFont", e.target.value)}
-              className="h-7 max-w-64 rounded-md bg-bg px-2 text-[12px] text-fg ring-1 ring-line outline-none"
-            >
-              <option value="auto">Auto{nerdFonts[0] ? ` — ${nerdFonts[0]}` : " — no Nerd Font found"}</option>
-              {nerdFonts.map((f) => <option key={f} value={f}>{f}</option>)}
-              <option value="JetBrains Mono">JetBrains Mono (no icons)</option>
-            </select>
+              onChange={(v) => s.set("terminalFont", v)}
+              options={[
+                { value: "auto", label: `Auto — ${nerdFonts.find((f) => f.endsWith("Mono")) ?? nerdFonts[0] ?? "no Nerd Font found"}` },
+                ...nerdFonts.map((f) => ({ value: f, label: f, group: f.endsWith("Mono") ? "Monospace (recommended)" : "Other Nerd Fonts" })),
+                { value: "JetBrains Mono", label: "JetBrains Mono", hint: "no icons", group: "Built in" },
+              ]}
+            />
             <span className="rounded bg-term px-2 py-1 text-[13px] text-fg-2" style={{ fontFamily: terminalFontFamily(s.terminalFont) }} title="Preview">
               {"\uf07b \ue718 \ue7a8 \uf418 \uf113 \ue0b0 \uf489 \u{f0219} \uf00c "}main.ts
             </span>
@@ -116,14 +115,13 @@ export function SettingsView() {
           <Segmented k="scrollback" options={[{ value: 5000, label: "5k" }, { value: 10000, label: "10k" }, { value: 50000, label: "50k" }]} />
         </Row>
         <Row label="Default shell" hint="Used for new terminals and to launch agents.">
-          <select
+          <Select
+            ariaLabel="Default shell"
+            className="w-56 font-mono"
             value={s.defaultShell}
-            onChange={(e) => s.set("defaultShell", e.target.value)}
-            className="h-7 rounded-md bg-bg px-2 font-mono text-[12px] text-fg ring-1 ring-line outline-none"
-          >
-            <option value="">System default</option>
-            {shells.map((sh) => <option key={sh.path} value={sh.path}>{sh.path}</option>)}
-          </select>
+            onChange={(v) => s.set("defaultShell", v)}
+            options={[{ value: "", label: "System default" }, ...shells.map((sh) => ({ value: sh.path, label: sh.name, hint: sh.path }))]}
+          />
         </Row>
       </Section>
 
@@ -143,6 +141,10 @@ export function SettingsView() {
         <Row label="Send automatically" hint="Press Enter when you stop speaking. Off = text is typed and left as a draft.">
           <Toggle k="voiceAutoSubmit" />
         </Row>
+      </Section>
+
+      <Section title="Snippets">
+        <SnippetsSection />
       </Section>
 
       <Section title="Editor">

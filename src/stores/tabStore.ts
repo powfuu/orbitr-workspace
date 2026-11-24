@@ -105,7 +105,14 @@ export const useTabs = create<TabState>()(
             const pane = paneOf(l, tabId);
             return pane ? { ...l, focusedPane: pane, panes: { ...l.panes, [pane]: { ...l.panes[pane]!, activeTabId: tabId } } } : l;
           }),
-        close: (tabId) => update(activeWs(), (l) => detach(l, tabId).l),
+        // The Dashboard can't be closed, except to dismiss an extra split pane that only holds it.
+        close: (tabId) =>
+          update(activeWs(), (l) => {
+            const pane = paneOf(l, tabId);
+            const isHome = pane && l.panes[pane]!.tabs.find((t) => t.id === tabId)?.target.type === "home";
+            if (isHome && Object.keys(l.panes).length === 1) return l;
+            return detach(l, tabId).l;
+          }),
         closeWhere: (pred) =>
           set((s) => ({
             byWorkspace: Object.fromEntries(

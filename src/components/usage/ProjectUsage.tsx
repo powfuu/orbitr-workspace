@@ -3,6 +3,9 @@ import { useUsage } from "../../features/usage/useUsage";
 import { compact, money } from "../../lib/format";
 import { timeAgo } from "../../lib/time";
 import { EmptyLine, Panel } from "../workspace/primitives";
+import { PlanLimits } from "./PlanLimits";
+import { AgentGlyph } from "../ui/AgentGlyph";
+import { AGENTS } from "../../features/agents/registry";
 import { PeriodPicker, UsageSummary, usePeriod } from "./UsageSummary";
 
 /** Claude Code usage for one project, with the most expensive sessions. */
@@ -14,7 +17,10 @@ export function ProjectUsage({ path }: { path: string }) {
   if (!recent || recent.total.messages === 0) return null;
 
   return (
-    <Panel title="Claude Code usage" className="col-span-full">
+    <Panel title="Claude Code usage" icon={<AgentGlyph agent={AGENTS["claude-code"]} size={16} />} className="col-span-full">
+      <div className="-mx-4 -mt-4 mb-4 border-b border-line-soft px-4 py-3">
+        <PlanLimits />
+      </div>
       <div className="mb-4 flex justify-end">
         <PeriodPicker days={days} onChange={setDays} />
       </div>
