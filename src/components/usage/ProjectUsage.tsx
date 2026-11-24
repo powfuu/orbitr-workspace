@@ -2,20 +2,19 @@ import { BarChart3 } from "lucide-react";
 import { useUsage } from "../../features/usage/useUsage";
 import { compact, money } from "../../lib/format";
 import { timeAgo } from "../../lib/time";
-import { EmptyLine } from "../workspace/primitives";
+import { EmptyLine, Panel } from "../workspace/primitives";
 import { PeriodPicker, UsageSummary, usePeriod } from "./UsageSummary";
-import { PlanLimits } from "./PlanLimits";
 
 /** Claude Code usage for one project, with the most expensive sessions. */
 export function ProjectUsage({ path }: { path: string }) {
   const [days, setDays] = usePeriod(7);
   const report = useUsage(path, days);
+  // Only shown when this folder has any Claude Code usage in the last 30 days.
+  const recent = useUsage(path, 30);
+  if (!recent || recent.total.messages === 0) return null;
 
   return (
-    <div>
-      <div className="mb-4 rounded-lg bg-bg p-3 ring-1 ring-line-soft">
-        <PlanLimits />
-      </div>
+    <Panel title="Claude Code usage" className="col-span-full">
       <div className="mb-4 flex justify-end">
         <PeriodPicker days={days} onChange={setDays} />
       </div>
@@ -39,6 +38,6 @@ export function ProjectUsage({ path }: { path: string }) {
           </div>
         </>
       )}
-    </div>
+    </Panel>
   );
 }

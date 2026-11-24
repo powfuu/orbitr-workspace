@@ -27,7 +27,6 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function readUsageScreen(cwd: string): Promise<PlanLimit[]> {
   const term = new Terminal({ cols: 120, rows: 60, allowProposedApi: true });
-  let raw = "";
   const screen = () => {
     const b = term.buffer.active;
     const rows: string[] = [];
@@ -38,21 +37,23 @@ async function readUsageScreen(cwd: string): Promise<PlanLimit[]> {
   let exited = false;
   const { id } = await pty.spawn({ ...opts, cols: 120, rows: 60 }, (e) => {
     if (e.event === "output") {
-      raw += e.data;
       term.write(e.data);
     } else exited = true;
   });
+  // Match against the rendered screen: raw PTY output encodes spaces as cursor moves,
+  // so "93% used" never appears literally in it.
+  const text = () => screen().join("\n");
   const waitFor = async (re: RegExp, ms: number) => {
     const end = Date.now() + ms;
     while (Date.now() < end && !exited) {
-      if (re.test(raw)) return true;
-      await sleep(150);
+      if (re.test(text())) return true;
+      await sleep(200);
     }
-    return re.test(raw);
+    return re.test(text());
   };
   try {
     if (!(await waitFor(new RegExp(`${READY.source}|${TRUST.source}`, "i"), 20_000))) throw new Error("Claude Code didn't start");
-    if (TRUST.test(raw)) throw new Error("Claude Code asks to trust this folder; open it once in a terminal first.");
+    if (TRUST.test(text())) throw new Error("Claude Code asks to trust this folder; open it once in a terminal first.");
     await sleep(600);
     for (const ch of "/usage") {
       await pty.write(id, ch);
