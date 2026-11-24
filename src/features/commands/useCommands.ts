@@ -1,4 +1,4 @@
-import { ArrowRight, FolderGit2, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, Search, FolderGit2, Columns2, Rows2, Mic, Settings, Bot, Folder, FolderPlus, Home, LayoutGrid, PanelLeft, PanelRight, SquareTerminal, X, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useLayout } from "../../stores/layoutStore";
 import { getActiveTabs, useTabs } from "../../stores/tabStore";
@@ -9,7 +9,9 @@ import { newDefaultTerminal } from "../terminals/newDefaultTerminal";
 import { agentList } from "../agents/registry";
 import { startAgent } from "../agents/agentActions";
 import { useVoice } from "../voice/voiceStore";
-import { modKey } from "../../lib/platform";
+import { isMac, modKey } from "../../lib/platform";
+import { useTerminalSearch } from "../search/searchStore";
+import { searchTarget } from "../search/searchTarget";
 
 export interface Command {
   id: string;
@@ -63,6 +65,17 @@ export function useCommands(): Command[] {
       { id: "home", title: "Go to Home", group: "Navigate", icon: Home, run: () => tabs.open({ type: "home" }) },
       { id: "new-terminal", title: "New terminal", group: "Terminal", icon: SquareTerminal, shortcut: `${modKey}T`, run: () => void newDefaultTerminal() },
       { id: "voice", title: "Toggle voice input", group: "Voice", icon: Mic, shortcut: `${modKey}⇧V`, run: () => void useVoice.getState().toggle() },
+      {
+        id: "find",
+        title: "Find in terminal",
+        group: "Terminal",
+        icon: Search,
+        shortcut: isMac ? `${modKey}F` : "Ctrl⇧F",
+        run: () => {
+          const id = searchTarget();
+          if (id) useTerminalSearch.getState().open(id);
+        },
+      },
       { id: "settings", title: "Open settings", group: "App", icon: Settings, shortcut: `${modKey},`, run: () => tabs.open({ type: "settings" }) },
       { id: "split-right", title: "Split pane right", group: "View", icon: Columns2, shortcut: `${modKey}\\`, run: () => splitFocused("right") },
       { id: "split-down", title: "Split pane down", group: "View", icon: Rows2, shortcut: `${modKey}⇧\\`, run: () => splitFocused("bottom") },

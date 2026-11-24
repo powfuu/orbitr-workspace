@@ -1,4 +1,7 @@
 import { useEffect, useRef } from "react";
+import { AnimatePresence } from "framer-motion";
+import { useTerminalSearch } from "../../features/search/searchStore";
+import { TerminalSearchBar } from "./TerminalSearchBar";
 import { terminalRegistry } from "../../features/terminals/terminalRegistry";
 import type { ID } from "../../types";
 import { markSeen } from "../../features/sessions/activityStore";
@@ -30,5 +33,11 @@ export function TerminalView({ id, focused }: { id: ID; focused: boolean }) {
     if (focused) terminalRegistry.focus(id);
   }, [focused, id]);
 
-  return <div ref={ref} data-session={id} className="h-full w-full" onFocusCapture={() => { markSeen(id); useFocusedSession.getState().set(id); }} />;
+  const searching = useTerminalSearch((s) => s.openFor === id);
+  return (
+    <div className="relative h-full w-full" data-session={id} onFocusCapture={() => { markSeen(id); useFocusedSession.getState().set(id); }}>
+      <div ref={ref} className="h-full w-full" />
+      <AnimatePresence>{searching && <TerminalSearchBar id={id} />}</AnimatePresence>
+    </div>
+  );
 }

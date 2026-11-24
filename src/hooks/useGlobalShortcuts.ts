@@ -5,6 +5,8 @@ import { getActiveTabs, useTabs } from "../stores/tabStore";
 import { useWorkspaces } from "../stores/workspaceStore";
 import { newDefaultTerminal } from "../features/terminals/newDefaultTerminal";
 import { useVoice } from "../features/voice/voiceStore";
+import { useTerminalSearch } from "../features/search/searchStore";
+import { searchTarget } from "../features/search/searchTarget";
 
 function cycleTab(step: 1 | -1) {
   const { tabs, activeTabId } = getActiveTabs();
@@ -27,6 +29,15 @@ export function useGlobalShortcuts() {
         return cycleTab(e.shiftKey ? -1 : 1);
       }
       if (!hasMod(e) || e.altKey) return;
+      // Find in terminal: Cmd+F on macOS; Ctrl+Shift+F elsewhere (Ctrl+F is a shell key there).
+      if (e.key.toLowerCase() === "f" && (isMac ? !e.shiftKey : e.shiftKey)) {
+        const id = searchTarget();
+        if (id) {
+          e.preventDefault();
+          e.stopPropagation();
+          return useTerminalSearch.getState().open(id);
+        }
+      }
       // Voice toggle works everywhere, including inside a focused terminal.
       if (e.shiftKey && e.key.toLowerCase() === "v") {
         e.preventDefault();

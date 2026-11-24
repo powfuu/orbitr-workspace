@@ -1,6 +1,7 @@
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { SerializeAddon } from "@xterm/addon-serialize";
+import { SearchAddon } from "@xterm/addon-search";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -18,6 +19,7 @@ interface Entry {
   term: Terminal;
   fit: FitAddon;
   serializer: SerializeAddon;
+  search: SearchAddon;
   host: HTMLDivElement;
   opened: boolean;
 }
@@ -65,6 +67,8 @@ export const terminalRegistry = {
     const serializer = new SerializeAddon();
     term.loadAddon(fit);
     term.loadAddon(serializer);
+    const search = new SearchAddon();
+    term.loadAddon(search);
     // Cmd/Ctrl+click opens http(s) links in the system browser.
     term.loadAddon(
       new WebLinksAddon((e, uri) => {
@@ -73,7 +77,7 @@ export const terminalRegistry = {
     );
     const host = document.createElement("div");
     host.className = "h-full w-full";
-    entries.set(id, { term, fit, serializer, host, opened: false });
+    entries.set(id, { term, fit, serializer, search, host, opened: false });
     return term;
   },
 
@@ -111,6 +115,9 @@ export const terminalRegistry = {
 
   /** Screen + scrollback as ANSI, for restoring after restart. */
   serialize: (id: ID, lines = 1000) => entries.get(id)?.serializer.serialize({ scrollback: lines }),
+
+  /** Search addon of a terminal (find next/previous, match decorations). */
+  search: (id: ID) => entries.get(id)?.search,
 
   focus: (id: ID) => entries.get(id)?.term.focus(),
 
