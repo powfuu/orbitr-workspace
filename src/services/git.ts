@@ -63,3 +63,5 @@ export const branchService = {
   addWorktree: (repo: string, branch: string, create: boolean) => invoke<string>("git_add_worktree", { repo, branch, create }),
   removeWorktree: (repo: string, path: string, force: boolean) => invoke<void>("git_remove_worktree", { repo, path, force }),
 };
+
+export const listFiles = (repo: string) => invoke<string[]>("list_files", { repo });

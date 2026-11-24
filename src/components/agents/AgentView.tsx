@@ -1,5 +1,6 @@
 import { GitBranch, History, RotateCw, Square, Trash2 } from "lucide-react";
 import { useLayout } from "../../stores/layoutStore";
+import { isEditor } from "../../features/agents/registry";
 import { modKey, tildify } from "../../lib/platform";
 import { TimelinePanel } from "../timeline/TimelinePanel";
 import { windowDragProps } from "../../hooks/useWindowDrag";
@@ -37,6 +38,7 @@ export function AgentView({ id }: { id: ID }) {
 
   const def = AGENTS[agent.kind];
   const alive = agent.status === "running" || agent.status === "starting";
+  const editing = isEditor(agent.kind);
 
   return (
     <div className="@container flex h-full flex-col">
@@ -57,14 +59,14 @@ export function AgentView({ id }: { id: ID }) {
             {agent.pid && alive ? ` · pid ${agent.pid}` : ""}
           </div>
         </div>
-        <ActivityBadge id={id} status={agent.status} />
+        {!editing && <ActivityBadge id={id} status={agent.status} />}
         <div className="ml-1 flex items-center gap-0.5">
           {alive ? (
-            <IconButton icon={Square} label="Stop agent" onClick={() => void stopAgent(id)} />
+            <IconButton icon={Square} label={editing ? "Kill editor" : "Stop agent"} onClick={() => void stopAgent(id)} />
           ) : (
             <IconButton icon={RotateCw} label="Restart agent" onClick={() => void restartAgent(id)} disabled={!project} />
           )}
-          <IconButton icon={History} label={timelineOpen ? "Hide timeline" : "Timeline"} shortcut={`${modKey}⇧L`} active={timelineOpen} onClick={toggleTimeline} />
+          {!editing && <IconButton icon={History} label={timelineOpen ? "Hide timeline" : "Timeline"} shortcut={`${modKey}⇧L`} active={timelineOpen} onClick={toggleTimeline} />}
           <IconButton icon={Trash2} label="End session" onClick={() => void removeAgent(id)} />
         </div>
       </div>
@@ -80,7 +82,7 @@ export function AgentView({ id }: { id: ID }) {
           <TerminalView id={id} focused={paneFocused} />
         </div>
         <AnimatePresence initial={false}>
-          {timelineOpen && <TimelinePanel agent={agent} cwd={agent.cwd ?? project?.path} onClose={toggleTimeline} />}
+          {timelineOpen && !editing && <TimelinePanel agent={agent} cwd={agent.cwd ?? project?.path} onClose={toggleTimeline} />}
         </AnimatePresence>
       </div>
     </div>

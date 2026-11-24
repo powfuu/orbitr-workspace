@@ -15,6 +15,10 @@ export interface Settings {
   voiceLanguage: string;
   /** Press Enter automatically after each spoken phrase. */
   voiceAutoSubmit: boolean;
+  /** Preferred terminal editor; "auto" = first installed of nvim, vim, vi. */
+  editor: "auto" | "nvim" | "vim" | "vi";
+  /** Close an editor tab when the editor quits cleanly (:q). */
+  closeEditorOnQuit: boolean;
   /** Welcome tour finished or skipped. */
   onboarded: boolean;
 }
@@ -29,6 +33,8 @@ export const DEFAULT_SETTINGS: Settings = {
   notifications: true,
   voiceLanguage: "auto",
   voiceAutoSubmit: true,
+  editor: "auto",
+  closeEditorOnQuit: true,
   onboarded: false,
 };
 

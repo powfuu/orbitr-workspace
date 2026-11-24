@@ -19,13 +19,13 @@ export async function shellCommand(command: string, cwd?: string, keepShell = fa
 }
 
 /** PTY launch for an agent. `resume`: true = continue the latest conversation, string = reopen that chat id. */
-export async function agentSpawnOptions(agent: AgentDefinition, cwd: string, resume: boolean | string = false) {
+export async function agentSpawnOptions(agent: AgentDefinition, cwd: string, resume: boolean | string = false, extraArgs: string[] = []) {
   const args =
     typeof resume === "string" && agent.resumeChatArgs
       ? agent.resumeChatArgs(resume)
       : resume && agent.resumeArgs
         ? agent.resumeArgs
         : agent.defaultArgs;
-  const opts = await shellCommand([agent.executable, ...args].map(quote).join(" "), cwd);
+  const opts = await shellCommand([agent.executable, ...args, ...extraArgs].map(quote).join(" "), cwd);
   return { ...opts, env: agent.env };
 }

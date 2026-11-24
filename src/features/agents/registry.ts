@@ -9,6 +9,8 @@ import ampIcon from "../../assets/agents/amp.svg";
 import qwenIcon from "../../assets/agents/qwen-color.svg";
 import gooseIcon from "../../assets/agents/goose.svg";
 import clineIcon from "../../assets/agents/cline.svg";
+import vimIcon from "../../assets/agents/vim.svg";
+import neovimIcon from "../../assets/agents/neovim.svg";
 
 /**
  * Declarative agent integrations. Launch, install and resume behaviour all come
@@ -29,6 +31,8 @@ export interface AgentDefinition {
   /** Monochrome (currentColor) icons are inverted to render white. */
   mono?: boolean;
   install: { unix?: string; windows?: string };
+  /** Editors (Vim family) share the session machinery but are listed and treated separately. */
+  category?: "agent" | "editor";
   docsUrl: string;
 }
 
@@ -48,5 +52,19 @@ export const agentList: AgentDefinition[] = [
   { kind: "cline", displayName: "Cline CLI", vendor: "Cline", executable: "cline", defaultArgs: [], env: {}, icon: clineIcon, mono: true, install: npm("cline"), docsUrl: "https://cline.bot" },
 ];
 
-export const AGENTS: Record<string, AgentDefinition> = Object.fromEntries(agentList.map((a) => [a.kind, a]));
+
+const editor = (kind: string, displayName: string, executable: string, icon: string, install: AgentDefinition["install"], docsUrl: string): AgentDefinition => ({
+  kind, displayName, vendor: "Editor", executable, defaultArgs: [], env: {}, icon, install, docsUrl, category: "editor",
+});
+
+/** Terminal editors, opened in center tabs. `diff` runs `git difftool` with the Vim diff tool. */
+export const editorList: AgentDefinition[] = [
+  editor("nvim", "Neovim", "nvim", neovimIcon, { unix: "brew install neovim", windows: "winget install Neovim.Neovim" }, "https://neovim.io"),
+  editor("vim", "Vim", "vim", vimIcon, { unix: "brew install vim", windows: "winget install vim.vim" }, "https://www.vim.org"),
+  editor("vi", "vi", "vi", vimIcon, {}, "https://www.vim.org"),
+  editor("diff", "vimdiff", "git", vimIcon, {}, "https://git-scm.com/docs/git-difftool"),
+];
+
+export const AGENTS: Record<string, AgentDefinition> = Object.fromEntries([...agentList, ...editorList].map((a) => [a.kind, a]));
+export const isEditor = (kind: string) => AGENTS[kind]?.category === "editor";
 export type KnownAgentKind = string;

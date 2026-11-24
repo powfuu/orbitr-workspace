@@ -74,3 +74,8 @@ pub async fn git_add_worktree(repo: String, branch: String, create: bool) -> Res
 pub async fn git_remove_worktree(repo: String, path: String, force: bool) -> Result<(), String> {
     run(move || git::remove_worktree(&repo, &path, force)).await
 }
+
+#[tauri::command]
+pub async fn list_files(repo: String) -> Result<Vec<String>, String> {
+    run(move || git::list_files(&repo)).await
+}

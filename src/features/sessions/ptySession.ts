@@ -30,10 +30,11 @@ export async function spawnPty(
   id: ID,
   opts: Omit<SpawnOptions, "cols" | "rows">,
   onStatus: (u: StatusUpdate) => void,
+  { quiet = false }: { quiet?: boolean } = {},
 ): Promise<void> {
   await killPty(id);
   const term = terminalRegistry.get(id) ?? terminalRegistry.create(id);
-  const tracker = trackActivity(id, term, hasFocus(id));
+  const tracker = trackActivity(id, term, hasFocus(id), quiet);
   const state: Live = { ptyId: null, listeners: [tracker] };
   live.set(id, state);
   onStatus({ status: "starting", exitCode: null });

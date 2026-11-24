@@ -38,6 +38,8 @@ npm run tauri build    # release bundle
 | Cmd+F (macOS) / Ctrl+Shift+F | Find in terminal or agent output |
 | Mod+Shift+L | Toggle agent timeline |
 | ? or Mod+/ | Keyboard shortcuts |
+| Mod+E | Open Vim/Neovim in the current project |
+| Mod+P | Fuzzy-find a file and open it in Vim (name:line jumps) |
 | Mod+W | Close tab |
 
 ## Layout

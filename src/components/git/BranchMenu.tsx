@@ -41,11 +41,15 @@ export function BranchMenu({ repo, current }: { repo: string; current: string | 
   const canCreate = name && !branches.some((b) => b.name === name);
 
   return (
-    <div ref={ref} className="relative">
-      <button onClick={() => setOpen((o) => !o)} className="flex h-7 items-center gap-1.5 rounded-md px-2 font-mono text-[12.5px] text-fg hover:bg-surface">
-        <GitBranch size={13} className="text-muted" />
-        {current ?? "detached HEAD"}
-        <ChevronDown size={12} className="text-faint" />
+    <div ref={ref} className="relative min-w-0">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        title={current ?? "detached HEAD"}
+        className="flex h-7 max-w-full items-center gap-1.5 rounded-md px-2 font-mono text-[12.5px] text-fg hover:bg-surface"
+      >
+        <GitBranch size={13} className="shrink-0 text-muted" />
+        <span className="min-w-0 truncate whitespace-nowrap">{current ?? "detached HEAD"}</span>
+        <ChevronDown size={12} className="shrink-0 text-faint" />
       </button>
       <AnimatePresence>
         {open && (

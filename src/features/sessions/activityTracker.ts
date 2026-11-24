@@ -19,7 +19,8 @@ const ECHO_WINDOW_MS = 250;
  * Watches one session's PTY traffic and keeps its activity record current.
  * Returns hooks for the PTY layer plus disposables for xterm listeners.
  */
-export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean) {
+/** `quiet`: no prompt detection, unread or notifications (editors show arbitrary text). */
+export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean, quiet = false) {
   const { patch } = useActivity.getState();
   let lastInput = 0;
   let idleTimer = 0;
@@ -30,6 +31,7 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean) 
 
   // Read the visible screen and look for an approval prompt (see detectPrompt).
   const scan = () => {
+    if (quiet) return;
     const buf = term.buffer.active;
     const rows: string[] = [];
     for (let y = buf.baseY; y < buf.baseY + term.rows; y++) rows.push(buf.getLine(y)?.translateToString(true) ?? "");
@@ -47,7 +49,7 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean) 
   };
 
   const goIdle = () => {
-    const finishedWork = workingSince && Date.now() - workingSince > 2000;
+    const finishedWork = !quiet && workingSince && Date.now() - workingSince > 2000;
     workingSince = 0;
     patch(id, { phase: "idle", since: Date.now(), ...(finishedWork && !isFocused() ? { unread: true } : {}) });
     scan();
@@ -55,7 +57,7 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean) 
   };
 
   const needsYou = (message?: string) => {
-    if (isFocused()) return false;
+    if (quiet || isFocused()) return false;
     patch(id, { attention: true });
     void notify(nameOf(id), message || "Needs your attention");
     return false;

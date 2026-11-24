@@ -146,3 +146,59 @@ mod tests {
         let _ = std::fs::remove_dir_all(dir);
     }
 }
+
+const MAX_FILES: usize = 50_000;
+const SKIP_DIRS: [&str; 9] = [".git", "node_modules", "target", "dist", "build", ".next", ".venv", "Pods", ".gradle"];
+
+/// Project files for quick-open: tracked + untracked-not-ignored in a git repo,
+/// otherwise a bounded walk that skips dependency/build folders. Paths are relative.
+pub fn list_files(repo: &str) -> Result<Vec<String>, String> {
+    if let Ok(raw) = git(repo, &["ls-files", "--cached", "--others", "--exclude-standard", "-z"]) {
+        let mut v: Vec<String> = raw.split('\0').filter(|s| !s.is_empty()).take(MAX_FILES).map(String::from).collect();
+        v.sort();
+        v.dedup();
+        return Ok(v);
+    }
+    let root = Path::new(repo);
+    if !root.is_dir() {
+        return Err(format!("not a folder: {repo}"));
+    }
+    let mut out = vec![];
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        for e in std::fs::read_dir(&dir).into_iter().flatten().flatten() {
+            let p = e.path();
+            let name = e.file_name().to_string_lossy().into_owned();
+            if p.is_dir() {
+                if !SKIP_DIRS.contains(&name.as_str()) && !name.starts_with('.') {
+                    stack.push(p);
+                }
+            } else if let Ok(rel) = p.strip_prefix(root) {
+                out.push(rel.to_string_lossy().replace('\\', "/"));
+                if out.len() >= MAX_FILES {
+                    return Ok(out);
+                }
+            }
+        }
+    }
+    out.sort();
+    Ok(out)
+}
+
+#[cfg(test)]
+mod list_files_tests {
+    use super::*;
+
+    #[test]
+    fn lists_without_git_and_skips_deps() {
+        let d = std::env::temp_dir().join(format!("orbitr-ls-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        std::fs::create_dir_all(d.join("src")).unwrap();
+        std::fs::create_dir_all(d.join("node_modules/x")).unwrap();
+        std::fs::write(d.join("src/a.ts"), "").unwrap();
+        std::fs::write(d.join("node_modules/x/i.js"), "").unwrap();
+        std::fs::write(d.join("README.md"), "").unwrap();
+        assert_eq!(list_files(d.to_str().unwrap()).unwrap(), vec!["README.md", "src/a.ts"]);
+        let _ = std::fs::remove_dir_all(d);
+    }
+}

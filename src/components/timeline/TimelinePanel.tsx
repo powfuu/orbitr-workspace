@@ -4,6 +4,7 @@ import {
   ShieldCheck, Skull, SquareTerminal, Wrench, X, type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { openInEditor } from "../../features/editors/openInEditor";
 import { useTimeline, type Entry } from "../../features/timeline/useTimeline";
 import { useUsage } from "../../features/usage/useUsage";
 import { duration } from "../../lib/time";
@@ -151,8 +152,9 @@ export function TimelinePanel({ agent, cwd, onClose }: { agent: AgentSession; cw
                 <div className="min-w-0 flex-1">
                   {gap && <div className="mb-1 text-[10px] text-faint">· {duration(x.at - prev.at)} later</div>}
                   <div
-                    title={path ?? d.title}
-                    className={cn("selectable break-words text-[12px] leading-snug", d.mono && "font-mono text-[11px]", err ? "text-error" : x.source === "agent" && x.e.kind === "prompt" ? "text-fg" : "text-fg-2")}
+                    title={path ? `Open ${path} in Vim` : d.title}
+                    onClick={path ? () => void openInEditor({ projectId: agent.projectId, file: path }) : undefined}
+                    className={cn("selectable break-words text-[12px] leading-snug", path && "cursor-pointer hover:underline", d.mono && "font-mono text-[11px]", err ? "text-error" : x.source === "agent" && x.e.kind === "prompt" ? "text-fg" : "text-fg-2")}
                   >
                     {path ? shortPath(path, cwd) : d.title}
                   </div>

@@ -1,6 +1,9 @@
 import { Bot, Copy, FolderGit2, FolderSearch, FolderX, SquareTerminal, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useGit } from "../../features/git/gitStore";
+import { openInEditor } from "../../features/editors/openInEditor";
+import { AGENTS } from "../../features/agents/registry";
+import { Kbd } from "../ui/Kbd";
 import { cn } from "../../lib/cn";
 import { InlineEdit } from "../ui/InlineEdit";
 import { IconButton } from "../ui/IconButton";
@@ -19,7 +22,7 @@ import { agentList } from "../../features/agents/registry";
 import { useAgentAvailability } from "../../features/agents/useAgentAvailability";
 import { startAgent } from "../../features/agents/agentActions";
 import { useTabs } from "../../stores/tabStore";
-import { basename, isMac, tildify } from "../../lib/platform";
+import { basename, isMac, modKey, tildify } from "../../lib/platform";
 import type { ID } from "../../types";
 import { AgentGlyph } from "../ui/AgentGlyph";
 import { EmptyLine, Panel, ViewHeader } from "./primitives";
@@ -56,6 +59,13 @@ export function ProjectView({ id }: { id: ID }) {
           </button>
         }
       >
+        <button
+          onClick={() => void openInEditor({ projectId: project.id })}
+          className="flex h-8 items-center gap-2 rounded-lg px-3 text-[12.5px] text-fg ring-1 ring-line hover:bg-surface"
+          title="Open Vim in this project"
+        >
+          <AgentGlyph agent={AGENTS.nvim} size={16} /> Open in Vim <Kbd>{modKey}E</Kbd>
+        </button>
         <IconButton icon={FolderSearch} label={isMac ? "Reveal in Finder" : "Show in Explorer"} onClick={() => void revealProject(project.path)} />
         <IconButton icon={Trash2} label="Remove project" onClick={() => void removeProject(project.id)} />
       </ViewHeader>

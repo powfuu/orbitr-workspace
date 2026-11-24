@@ -4,6 +4,8 @@ import { useLayout } from "../stores/layoutStore";
 import { getActiveTabs, useTabs } from "../stores/tabStore";
 import { useWorkspaces } from "../stores/workspaceStore";
 import { newDefaultTerminal } from "../features/terminals/newDefaultTerminal";
+import { openInEditor } from "../features/editors/openInEditor";
+import { useQuickOpen } from "../components/editors/QuickOpen";
 import { useVoice } from "../features/voice/voiceStore";
 import { useTerminalSearch } from "../features/search/searchStore";
 import { searchTarget } from "../features/search/searchTarget";
@@ -80,6 +82,8 @@ export function useGlobalShortcuts() {
             n: () => layout.setPaletteOpen(true, "Start "),
             w: () => useTabs.getState().close(getActiveTabs().activeTabId),
             ",": () => useTabs.getState().open({ type: "settings" }),
+            e: () => void openInEditor(),
+            p: () => useQuickOpen.getState().open(),
           };
       if (!e.shiftKey && /^[1-9]$/.test(key)) {
         const ws = useWorkspaces.getState().workspaces[Number(key) - 1];

@@ -8,6 +8,7 @@ import { isTauri } from "../../lib/platform";
 import { terminalRegistry } from "../terminals/terminalRegistry";
 import { launchTerminal } from "../terminals/terminalActions";
 import { launchAgent } from "../agents/agentActions";
+import { isEditor } from "../agents/registry";
 
 const KEY = "orbitr.scrollback";
 const banner = (s: string) => `\r\n\x1b[2m── ${s} ──\x1b[0m\r\n\r\n`;
@@ -52,7 +53,9 @@ export async function restoreSessions() {
     void launchTerminal(plain);
   }
   for (const a of agents) {
-    replay(a.id);
+    // Full-screen editors redraw themselves; replaying their old screen only leaves debris.
+    if (isEditor(a.kind)) terminalRegistry.create(a.id);
+    else replay(a.id);
     void launchAgent(a, a.chatId ?? true);
   }
 

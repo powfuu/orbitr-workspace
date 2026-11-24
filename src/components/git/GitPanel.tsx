@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, ArrowUp, Check, GitBranch, GitCommitHorizontal, Loader2, Minus, Plus, RefreshCw } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Columns2, FileCode2, GitBranch, GitCommitHorizontal, Loader2, Minus, Plus, RefreshCw } from "lucide-react";
+import { openInEditor, openVimDiff, projectIdForPath } from "../../features/editors/openInEditor";
 import { useEffect, useMemo, useState } from "react";
 import { gitService, type Commit, type FileChange } from "../../services/git";
 import { useGit } from "../../features/git/gitStore";
@@ -106,6 +107,9 @@ export function GitPanel({ path }: { path: string }) {
               <span className="truncate">{name}</span>
               <span className="min-w-0 flex-1 truncate font-mono text-[10.5px] text-faint">{dir}</span>
               <span className="opacity-0 group-hover:opacity-100">
+                <IconButton icon={FileCode2} size="sm" label="Open in Vim" onClick={() => void openInEditor({ projectId: projectIdForPath(path), file: f.path })} />
+              </span>
+              <span className="opacity-0 group-hover:opacity-100">
                 <IconButton
                   icon={isStaged ? Minus : Plus}
                   size="sm"
@@ -122,16 +126,24 @@ export function GitPanel({ path }: { path: string }) {
   return (
     <div className="-m-4 flex flex-col">
       {/* Branch bar */}
-      <div className="flex items-center gap-2 border-b border-line-soft px-4 py-2.5">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-2 border-b border-line-soft px-4 py-2.5">
+        {/* Branch info takes the row; when the pane is narrow the actions wrap below instead of squeezing it. */}
+        <div className="flex min-w-[12rem] flex-1 items-center gap-2">
         <BranchMenu repo={path} current={status.branch} />
-        {status.upstream && <span className="truncate font-mono text-[11px] text-faint">→ {status.upstream}</span>}
-        {status.ahead > 0 && <span className="flex items-center gap-0.5 font-mono text-[11px] text-fg-2"><ArrowUp size={11} />{status.ahead}</span>}
-        {status.behind > 0 && <span className="flex items-center gap-0.5 font-mono text-[11px] text-warning"><ArrowDown size={11} />{status.behind}</span>}
-        <div className="flex-1" />
+        {status.upstream && status.upstream !== `origin/${status.branch}` && (
+          <span className="min-w-0 shrink truncate whitespace-nowrap font-mono text-[11px] text-faint" title={status.upstream}>→ {status.upstream}</span>
+        )}
+        {status.upstream && status.upstream === `origin/${status.branch}` && (
+          <span className="shrink-0 font-mono text-[11px] text-faint" title={status.upstream}>→ origin</span>
+        )}
+        {status.ahead > 0 && <span className="flex shrink-0 items-center gap-0.5 font-mono text-[11px] text-fg-2"><ArrowUp size={11} />{status.ahead}</span>}
+        {status.behind > 0 && <span className="flex shrink-0 items-center gap-0.5 font-mono text-[11px] text-warning"><ArrowDown size={11} />{status.behind}</span>}
+        </div>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
         <button
           disabled={!!busy}
           onClick={() => void act("pull", () => gitService.pull(path), "Pulled")}
-          className="flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12px] text-fg-2 ring-1 ring-line hover:bg-surface disabled:opacity-50"
+          className="flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] text-fg-2 ring-1 ring-line hover:bg-surface disabled:opacity-50"
         >
           {busy === "pull" ? <Loader2 size={12} className="animate-spin" /> : <ArrowDown size={12} />} Pull
         </button>
@@ -139,13 +151,14 @@ export function GitPanel({ path }: { path: string }) {
           disabled={!!busy}
           onClick={() => void act("push", () => gitService.push(path), "Pushed")}
           className={cn(
-            "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12px] disabled:opacity-50",
+            "flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] disabled:opacity-50",
             status.ahead > 0 || !status.upstream ? "bg-white text-black hover:bg-white/85" : "text-fg-2 ring-1 ring-line hover:bg-surface",
           )}
         >
           {busy === "push" ? <Loader2 size={12} className="animate-spin" /> : <ArrowUp size={12} />} Push
         </button>
         <IconButton icon={RefreshCw} size="sm" label="Refresh" onClick={() => void refresh(path)} />
+        </div>
       </div>
 
       <div className="grid min-h-[280px] grid-cols-[minmax(min(240px,100%),1fr)_2fr] @max-2xl:grid-cols-1">
@@ -195,6 +208,16 @@ export function GitPanel({ path }: { path: string }) {
                 <div className="flex h-8 items-center gap-2 border-b border-line-soft px-4 font-mono text-[11px] text-muted">
                   <span className="truncate">{selected.path}</span>
                   <span className="text-faint">{selected.staged ? "staged" : selected.untracked ? "new file" : "working tree"}</span>
+                  <span className="ml-auto flex gap-1.5">
+                    <button onClick={() => void openInEditor({ projectId: projectIdForPath(path), file: selected.path })} className="flex h-6 items-center gap-1 rounded px-2 font-sans text-[11px] text-fg ring-1 ring-line hover:bg-surface">
+                      <FileCode2 size={11} /> Open in Vim
+                    </button>
+                    {!selected.untracked && (
+                      <button onClick={() => { const id = projectIdForPath(path); if (id) void openVimDiff(id, selected.path, selected.staged); }} className="flex h-6 items-center gap-1 rounded px-2 font-sans text-[11px] text-fg ring-1 ring-line hover:bg-surface">
+                        <Columns2 size={11} /> vimdiff
+                      </button>
+                    )}
+                  </span>
                 </div>
                 <div className="max-h-[420px] overflow-auto py-1">
                   <DiffView diff={diff} />

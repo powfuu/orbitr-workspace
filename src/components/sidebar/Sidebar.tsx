@@ -11,7 +11,8 @@ import { useSessions } from "../../stores/sessionStore";
 import { useActiveTabs, useTabs } from "../../stores/tabStore";
 import { useLayout } from "../../stores/layoutStore";
 import { addProjectFromDialog } from "../../features/projects/addProject";
-import { AGENTS, agentList } from "../../features/agents/registry";
+import { AGENTS, agentList, isEditor } from "../../features/agents/registry";
+import { openInEditor } from "../../features/editors/openInEditor";
 import { isMac, modKey } from "../../lib/platform";
 import { cn } from "../../lib/cn";
 import { Wordmark } from "../ui/Logo";
@@ -42,7 +43,9 @@ export function Sidebar() {
 
   const activeTarget = tabs.find((t) => t.id === activeTabId)?.target;
   const q = query.trim().toLowerCase();
-  const agents = allAgents.filter((a) => a.workspaceId === workspace.id && a.name.toLowerCase().includes(q));
+  const inWorkspace = allAgents.filter((a) => a.workspaceId === workspace.id && a.name.toLowerCase().includes(q));
+  const agents = inWorkspace.filter((a) => !isEditor(a.kind));
+  const editors = inWorkspace.filter((a) => isEditor(a.kind));
   const projects = useMemo(
     () => workspace.projectIds.map((id) => allProjects[id]).filter((p) => p && p.name.toLowerCase().includes(q)),
     [workspace.projectIds, allProjects, q],
@@ -151,6 +154,33 @@ export function Sidebar() {
                 </ContextMenu>
               );
             })
+          )}
+        </SidebarSection>
+
+        <SidebarSection id="editors" title="Editors" count={editors.length} onAdd={() => void openInEditor()} addLabel={`Open Vim (${modKey}E)`}>
+          {editors.length === 0 ? (
+            <SidebarHint
+              action={
+                !q && (
+                  <button onClick={() => void openInEditor()} className="text-accent hover:underline">
+                    Open Vim here →
+                  </button>
+                )
+              }
+            >
+              {q ? "No matching editors." : `Vim / Neovim in a center tab, in your project. ${modKey}E to open, ${modKey}P to find a file.`}
+            </SidebarHint>
+          ) : (
+            editors.map((a) => (
+              <ContextMenu key={a.id} items={[{ label: "Close (kills the editor)", icon: Trash2, danger: true, onSelect: () => void removeAgent(a.id) }]}>
+                <SidebarItem
+                  icon={<AgentGlyph agent={AGENTS[a.kind]} size={16} />}
+                  label={a.name}
+                  active={activeTarget?.type === "agent" && activeTarget.id === a.id}
+                  onClick={() => open({ type: "agent", id: a.id })}
+                />
+              </ContextMenu>
+            ))
           )}
         </SidebarSection>
 

@@ -4,6 +4,7 @@ import { useSettings, type Settings } from "../../stores/settingsStore";
 import { useShells } from "../../hooks/useShells";
 import { useAvailability } from "../../features/agents/availabilityStore";
 import { cn } from "../../lib/cn";
+import { modKey } from "../../lib/platform";
 import { ViewHeader } from "../workspace/primitives";
 import { UpdatesSection } from "./UpdatesSection";
 
@@ -19,7 +20,7 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
-function Toggle({ k }: { k: "cursorBlink" | "restoreOnLaunch" | "notifications" | "voiceAutoSubmit" }) {
+function Toggle({ k }: { k: "cursorBlink" | "restoreOnLaunch" | "notifications" | "voiceAutoSubmit" | "closeEditorOnQuit" }) {
   const value = useSettings((s) => s[k]);
   const set = useSettings((s) => s.set);
   return (
@@ -63,6 +64,7 @@ export function SettingsView() {
   const s = useSettings();
   const shells = useShells();
   const refresh = useAvailability((a) => a.refresh);
+  const editorPaths = useAvailability((a) => a.paths);
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 @lg:px-10 @lg:py-12">
       <ViewHeader eyebrow="Preferences" title="Settings">
@@ -112,6 +114,22 @@ export function SettingsView() {
         </Row>
         <Row label="Send automatically" hint="Press Enter when you stop speaking. Off = text is typed and left as a draft.">
           <Toggle k="voiceAutoSubmit" />
+        </Row>
+      </Section>
+
+      <Section title="Editor">
+        <Row label="Vim flavour" hint={`Used by ${modKey}E, ${modKey}P and every “Open in Vim”. Auto picks the first installed of Neovim, Vim, vi.`}>
+          <Segmented k="editor" options={[{ value: "auto", label: "Auto" }, { value: "nvim", label: "Neovim" }, { value: "vim", label: "Vim" }, { value: "vi", label: "vi" }]} />
+        </Row>
+        <Row label="Installed" hint="Detected through your login shell PATH.">
+          <span className="flex gap-3 font-mono text-[11px]">
+            {(["nvim", "vim", "vi"] as const).map((k) => (
+              <span key={k} className={editorPaths[k] ? "text-success" : "text-faint"} title={editorPaths[k] ?? "not installed"}>{k} {editorPaths[k] ? "✓" : "—"}</span>
+            ))}
+          </span>
+        </Row>
+        <Row label="Close tab on :q" hint="When the editor quits cleanly, close its tab. Off = keep it with the exit status.">
+          <Toggle k="closeEditorOnQuit" />
         </Row>
       </Section>
 

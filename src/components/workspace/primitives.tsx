@@ -5,13 +5,13 @@ import { Kbd } from "../ui/Kbd";
 
 export function ViewHeader({ eyebrow, title, subtitle, children }: { eyebrow: string; title: ReactNode; subtitle?: ReactNode; children?: ReactNode }) {
   return (
-    <header className="flex items-end justify-between gap-6 pb-8">
-      <div className="min-w-0">
+    <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pb-8">
+      <div className="min-w-[12rem] flex-1">
         <div className="mb-2 font-mono text-2xs uppercase tracking-[0.14em] text-accent/80">{eyebrow}</div>
         <h1 className="truncate text-[24px] font-semibold uppercase tracking-[0.08em] text-fg">{title}</h1>
         {subtitle && <div className="mt-1.5 text-[13px] text-muted">{subtitle}</div>}
       </div>
-      {children && <div className="flex shrink-0 gap-2">{children}</div>}
+      {children && <div className="flex shrink-0 flex-wrap items-center gap-2">{children}</div>}
     </header>
   );
 }

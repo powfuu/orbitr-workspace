@@ -8,6 +8,7 @@ import { ResizeHandle } from "./ResizeHandle";
 import { StatusBar } from "./StatusBar";
 import { Toaster } from "../ui/Toaster";
 import { ShortcutSheet } from "../help/ShortcutSheet";
+import { QuickOpen } from "../editors/QuickOpen";
 import { WelcomeTour } from "../onboarding/WelcomeTour";
 import { ApprovalsTray } from "../approvals/ApprovalsTray";
 import { VoiceIndicator } from "../voice/VoiceIndicator";
@@ -43,6 +44,7 @@ export function AppShell() {
       <StatusBar />
       <CommandPalette />
       <Toaster />
+      <ErrorBoundary label="Quick open"><QuickOpen /></ErrorBoundary>
       <ErrorBoundary label="Shortcuts"><ShortcutSheet /></ErrorBoundary>
       <ErrorBoundary label="Welcome"><WelcomeTour /></ErrorBoundary>
       <ErrorBoundary label="Voice"><VoiceIndicator /></ErrorBoundary>
