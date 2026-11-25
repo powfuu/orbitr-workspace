@@ -77,29 +77,13 @@ function loadWebgl(term: Terminal) {
   }
 }
 
-/**
- * xterm pauses drawing while an IntersectionObserver says it's off-screen. In the macOS
- * WebView that callback never arrives when the window first becomes visible at launch, so a
- * restored agent stays black until it's re-mounted (switching tabs). Un-pause any terminal
- * that is actually on screen. Uses xterm internals; harmless if they change (no-op).
- */
-type RenderService = { _isPaused?: boolean; _handleIntersectionChange?: (e: { isIntersecting: boolean; intersectionRatio: number }) => void };
-function wakeVisible() {
-  if (document.visibilityState !== "visible") return;
-  for (const e of entries.values()) {
-    if (!e.opened || !e.host.isConnected || e.host.clientWidth === 0 || e.host.clientHeight === 0) continue;
-    const rs = (e.term as unknown as { _core?: { _renderService?: RenderService } })._core?._renderService;
-    if (rs?._isPaused && rs._handleIntersectionChange) rs._handleIntersectionChange({ isIntersecting: true, intersectionRatio: 1 });
-  }
-}
-if (typeof window !== "undefined") {
-  window.addEventListener("focus", wakeVisible);
-  document.addEventListener("visibilitychange", wakeVisible);
-  window.setInterval(wakeVisible, 1000);
-}
-
 export const terminalRegistry = {
   create(id: ID): Terminal {
+    // Never replace a live instance: at launch the view can attach (and open) a terminal before
+    // the restore step asks for it. Replacing it left the screen showing an empty, orphaned
+    // terminal while the agent wrote into a new one — the black-until-tab-switch bug.
+    const existing = entries.get(id)?.term;
+    if (existing) return existing;
     const term = new Terminal({
       lineHeight: 1.25,
       macOptionIsMeta: true,
@@ -165,20 +149,6 @@ export const terminalRegistry = {
     } catch {
       /* renderer swapped mid-switch */
     }
-  },
-
-  /** Exactly what a tab switch does to a mounted terminal: take it out, put it back, refit, repaint. */
-  remount(id: ID) {
-    const e = entries.get(id);
-    const parent = e?.host.parentElement;
-    if (!e?.opened || !parent) return;
-    const hadFocus = e.host.contains(document.activeElement);
-    parent.removeChild(e.host);
-    parent.appendChild(e.host);
-    wakeVisible();
-    this.fit(id);
-    e.term.refresh(0, e.term.rows - 1);
-    if (hadFocus) e.term.focus();
   },
 
   detach(id: ID) {

@@ -5,7 +5,6 @@ import { TerminalSearchBar } from "./TerminalSearchBar";
 import { terminalRegistry } from "../../features/terminals/terminalRegistry";
 import type { ID } from "../../types";
 import { markSeen } from "../../features/sessions/activityStore";
-import { nudgeRedraw } from "../../features/sessions/ptySession";
 import { useFocusedSession } from "../../stores/focusStore";
 
 /** Mounts a registry-owned xterm instance and keeps it fitted to its container. */
@@ -15,10 +14,7 @@ export function TerminalView({ id, focused }: { id: ID; focused: boolean }) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    void terminalRegistry.attach(id, el).then(() => {
-      if (focused) terminalRegistry.focus(id);
-      window.setTimeout(() => nudgeRedraw(id), 400); // after the debounced fit
-    });
+    void terminalRegistry.attach(id, el).then(() => focused && terminalRegistry.focus(id));
     // Debounced: panels that slide open (timeline, sidebar) resize us every frame. Refitting each
     // frame makes the PTY app redraw (and the canvas clear) over and over, which flickers;
     // one fit once the size settles keeps the old frame on screen meanwhile.
