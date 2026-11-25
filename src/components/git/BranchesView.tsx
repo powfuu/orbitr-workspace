@@ -1,13 +1,13 @@
-import { Check, CloudDownload, GitBranch, GitMerge, Pencil, Workflow } from "lucide-react";
+import { CloudDownload, Workflow } from "lucide-react";
 import { useEffect, useState } from "react";
 import { branchService, gitMore, type Branch, type FlowConfig, type FlowKind } from "../../services/git";
 import { useGitRun } from "../../features/git/gitRun";
 import { useGit } from "../../features/git/gitStore";
-import { timeAgo } from "../../lib/time";
 import { cn } from "../../lib/cn";
 import { Select } from "../ui/Select";
-import { GitButton, SyncBadges, TextInput } from "./ui";
+import { GitButton, TextInput } from "./ui";
 import { RemotesSection } from "./RemotesSection";
+import { BranchList } from "./BranchList";
 
 const FLOW: { kind: FlowKind; from: "develop" | "main"; hint: string }[] = [
   { kind: "feature", from: "develop", hint: "New work" },
@@ -25,7 +25,6 @@ export function BranchesView({ repo }: { repo: string }) {
   const [flow, setFlow] = useState<FlowConfig | null>(null);
   const [name, setName] = useState("");
   const [base, setBase] = useState("");
-  const [renaming, setRenaming] = useState<{ from: string; to: string } | null>(null);
   const [q, setQ] = useState("");
   const { busy, run } = useGitRun(repo);
   // One row's actions at a time: CSS :hover can stick on several rows in WebKit after scrolling.
@@ -91,32 +90,9 @@ export function BranchesView({ repo }: { repo: string }) {
             <CloudDownload size={11} /> fetch
           </GitButton>
         </div>
-        <div onMouseLeave={() => setHot(null)} className="divide-y divide-line-soft rounded-lg border border-line-soft">
-          {localShown.map((b) => (
-            <div key={b.name} onMouseEnter={() => setHot(b.name)} onFocus={() => setHot(b.name)} className="group flex min-h-9 flex-wrap items-center gap-2 px-3 py-1.5">
-              <Check size={12} className={cn("shrink-0 text-accent", !b.current && "invisible")} />
-              {renaming?.from === b.name ? (
-                <TextInput autoFocus value={renaming.to} onChange={(to) => setRenaming({ from: b.name, to })} onCancel={() => setRenaming(null)} className="w-56"
-                  onEnter={() => {
-                    const to = renaming.to.trim();
-                    setRenaming(null);
-                    if (to && to !== b.name) void act("rename", () => gitMore.renameBranch(repo, b.name, to), `Renamed to ${to}`);
-                  }} />
-              ) : (
-                <span className={cn("min-w-[8rem] flex-1 truncate font-mono text-[12px]", b.current ? "text-fg" : "text-fg-2")} title={b.name}>{b.name}</span>
-              )}
-              <SyncBadges ahead={b.ahead} behind={b.behind} gone={b.gone} />
-              {b.upstream && b.upstream !== `origin/${b.name}` && <span className="max-w-[35%] truncate font-mono text-[10.5px] text-faint" title={b.upstream}>→ {b.upstream}</span>}
-              <span className="font-mono text-[10.5px] text-faint">{timeAgo(b.updatedAt)}</span>
-              <span className={cn("flex gap-1", hot !== b.name && "invisible")}>
-                {!b.current && <GitButton disabled={!!busy} onClick={() => void act("switch", () => branchService.switch(repo, b.name), `Switched to ${b.name}`)}><GitBranch size={11} /> switch</GitButton>}
-                {!b.current && current && <GitButton disabled={!!busy} title={`Merge ${b.name} into ${current}`} onClick={() => void act("merge", () => gitMore.merge(repo, b.name, true), `Merged ${b.name} into ${current}`)}><GitMerge size={11} /> merge into {current}</GitButton>}
-                <GitButton disabled={!!busy} onClick={() => setRenaming({ from: b.name, to: b.name })}><Pencil size={11} /></GitButton>
-                {!b.current && <GitButton danger disabled={!!busy} onClick={() => void act("delete", () => gitMore.deleteBranch(repo, b.name, false), `Deleted ${b.name}`)}>delete</GitButton>}
-              </span>
-            </div>
-          ))}
-          {remoteShown.length > 0 && <div className="bg-bg px-3 py-1 term-heading">remote</div>}
+        <BranchList repo={repo} branches={localShown} current={current} busy={!!busy} act={act} />
+        <div onMouseLeave={() => setHot(null)} className="mt-3 divide-y divide-line-soft rounded-lg border border-line-soft empty:hidden">
+          {remoteShown.length > 0 && <div className="bg-bg px-3 py-1 term-heading">remote only</div>}
           {remoteShown.map((r) => (
             <div key={r} onMouseEnter={() => setHot(r)} onFocus={() => setHot(r)} className="group flex min-h-8 items-center gap-2 px-3 py-1">
               <span className="w-3" />

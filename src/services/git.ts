@@ -121,6 +121,8 @@ export const gitMore = {
   stashOp: (repo: string, op: "apply" | "pop" | "drop", index: number) => invoke<void>("git_stash_op", { repo, op, index }),
   flowConfig: (repo: string) => invoke<FlowConfig>("git_flow_config", { repo }),
   flowStart: (repo: string, kind: FlowKind, name: string) => invoke<string>("git_flow_start", { repo, kind, name }),
+  pullBranch: (repo: string, branch: string) => invoke<string>("git_pull_branch", { repo, branch }),
+  pushBranch: (repo: string, branch: string) => invoke<string>("git_push_branch", { repo, branch }),
   flowFinish: (repo: string, branch: string, tag: boolean) => invoke<string>("git_flow_finish", { repo, branch, tag }),
 };
 

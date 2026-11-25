@@ -223,3 +223,13 @@ pub async fn git_browser_login(repo: String, remote: String) -> Result<(), Strin
 pub async fn git_remote_signed_in(repo: String, name: String) -> bool {
     tauri::async_runtime::spawn_blocking(move || git::remote_signed_in(&repo, &name)).await.unwrap_or(false)
 }
+
+#[tauri::command]
+pub async fn git_pull_branch(repo: String, branch: String) -> Result<String, String> {
+    run(move || git::pull_branch(&repo, &branch)).await
+}
+
+#[tauri::command]
+pub async fn git_push_branch(repo: String, branch: String) -> Result<String, String> {
+    run(move || git::push_branch(&repo, &branch)).await
+}

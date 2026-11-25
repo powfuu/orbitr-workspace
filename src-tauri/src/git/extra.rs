@@ -192,6 +192,40 @@ pub fn merge(repo: &str, branch: &str, no_ff: bool) -> Result<String, String> {
     git(repo, &args)
 }
 
+fn upstream_of(repo: &str, branch: &str) -> Result<(String, String), String> {
+    let up = git(repo, &["rev-parse", "--abbrev-ref", &format!("{branch}@{{upstream}}")]).map_err(|_| format!("{branch} has no upstream branch"))?;
+    let up = up.trim();
+    let (remote, name) = up.split_once('/').ok_or_else(|| format!("unexpected upstream: {up}"))?;
+    Ok((remote.to_string(), name.to_string()))
+}
+
+/// Pulls any local branch. The current one: `pull --ff-only`. Others: fast-forward them
+/// from their upstream without switching (`fetch origin x:x`), like Sourcetree.
+pub fn pull_branch(repo: &str, branch: &str) -> Result<String, String> {
+    if !exists(repo, branch) {
+        return Err(format!("no branch {branch}"));
+    }
+    let current = git(repo, &["rev-parse", "--abbrev-ref", "HEAD"])?;
+    if current.trim() == branch {
+        return git(repo, &["pull", "--ff-only"]);
+    }
+    let (remote, name) = upstream_of(repo, branch)?;
+    git(repo, &["fetch", &remote, &format!("{name}:{branch}")]).map_err(|e| {
+        if e.contains("non-fast-forward") || e.contains("rejected") { format!("{branch} has local commits that aren't on {remote}/{name}: switch to it and pull/merge") } else { e }
+    })
+}
+
+/// Pushes any local branch to its upstream (or publishes it to origin).
+pub fn push_branch(repo: &str, branch: &str) -> Result<String, String> {
+    if !exists(repo, branch) {
+        return Err(format!("no branch {branch}"));
+    }
+    match upstream_of(repo, branch) {
+        Ok((remote, name)) => git(repo, &["push", &remote, &format!("{branch}:{name}")]),
+        Err(_) => git(repo, &["push", "-u", "origin", branch]),
+    }
+}
+
 pub fn merge_abort(repo: &str) -> Result<(), String> {
     git(repo, &["merge", "--abort"]).map(|_| ())
 }
@@ -312,6 +346,44 @@ pub fn flow_finish(repo: &str, branch: &str, tag: bool) -> Result<String, String
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pulls_and_pushes_a_branch_you_are_not_on() {
+        let base = std::env::temp_dir().join(format!("orbitr-git-sync-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(&base).unwrap();
+        let b = base.to_str().unwrap();
+        git(b, &["init", "-q", "--bare", "-b", "main", "remote.git"]).unwrap();
+        let cfg = |r: &str| {
+            git(r, &["config", "user.email", "t@example.com"]).unwrap();
+            git(r, &["config", "user.name", "T"]).unwrap();
+        };
+        git(b, &["clone", "-q", "remote.git", "a"]).unwrap();
+        let a = base.join("a");
+        let a = a.to_str().unwrap();
+        cfg(a);
+        std::fs::write(base.join("a/f.txt"), "1\n").unwrap();
+        git(a, &["add", "-A"]).unwrap();
+        git(a, &["commit", "-qm", "one"]).unwrap();
+        git(a, &["push", "-q", "-u", "origin", "main"]).unwrap();
+        git(b, &["clone", "-q", "remote.git", "other"]).unwrap();
+        let o = base.join("other");
+        let o = o.to_str().unwrap();
+        cfg(o);
+        std::fs::write(base.join("other/f.txt"), "1\n2\n").unwrap();
+        git(o, &["commit", "-qam", "two"]).unwrap();
+        git(o, &["push", "-q"]).unwrap();
+
+        // In `a`, sit on another branch and update main without switching.
+        git(a, &["switch", "-q", "-c", "topic"]).unwrap();
+        git(a, &["fetch", "-q"]).unwrap();
+        pull_branch(a, "main").unwrap();
+        assert_eq!(git(a, &["log", "-1", "--format=%s", "main"]).unwrap().trim(), "two");
+        // Publish the new branch.
+        push_branch(a, "topic").unwrap();
+        assert!(git(a, &["ls-remote", "--heads", "origin", "topic"]).unwrap().contains("topic"));
+        let _ = std::fs::remove_dir_all(base);
+    }
 
     #[test]
     fn history_branches_stash_and_flow() {
