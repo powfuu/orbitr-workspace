@@ -89,6 +89,11 @@ pub fn browser_login(repo: &str, remote: &str) -> Result<(), String> {
     }
 }
 
+/// Whether git can already reach this remote with stored credentials (no prompts, no browser).
+pub fn remote_signed_in(repo: &str, name: &str) -> bool {
+    valid_name(name).is_ok() && git(repo, &["ls-remote", "--heads", name]).is_ok()
+}
+
 /// Splits an HTTPS remote into what `git credential` expects.
 fn credential_fields(url: &str) -> Option<(String, String, Option<String>)> {
     let (protocol, rest) = url.split_once("://")?;

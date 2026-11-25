@@ -82,6 +82,7 @@ pub fn run() {
             commands::git::git_store_credential,
             commands::git::git_gcm_installed,
             commands::git::git_browser_login,
+            commands::git::git_remote_signed_in,
             commands::fonts::nerd_fonts,
             commands::fonts::read_font,
         ])

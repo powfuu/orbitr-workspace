@@ -11,8 +11,19 @@ export function RemotesSection({ repo }: { repo: string }) {
   const [list, setList] = useState<Remote[]>([]);
   const [editing, setEditing] = useState<{ name: string; url: string } | null>(null);
   const [adding, setAdding] = useState<{ name: string; url: string } | null>(null);
+  /** Remote name → can already authenticate (checked quietly, no prompts). */
+  const [signedIn, setSignedIn] = useState<Record<string, boolean>>({});
   const { busy, run } = useGitRun(repo);
-  const reload = () => void remoteService.list(repo).then(setList).catch(() => setList([]));
+  const reload = () =>
+    void remoteService
+      .list(repo)
+      .then((l) => {
+        setList(l);
+        for (const r of l.filter((x) => /^https?:\/\//.test(x.url))) {
+          void invoke<boolean>("git_remote_signed_in", { repo, name: r.name }).then((ok) => setSignedIn((m) => ({ ...m, [r.name]: ok })));
+        }
+      })
+      .catch(() => setList([]));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(reload, [repo]);
   const act = (label: string, fn: () => Promise<unknown>, ok: string) => run(label, fn, ok).then(reload);
@@ -49,7 +60,12 @@ export function RemotesSection({ repo }: { repo: string }) {
               <>
                 <span className="selectable min-w-0 flex-1 truncate font-mono text-[11.5px] text-muted" title={r.url}>{r.url}</span>
                 <span className="flex gap-1">
-                  {/^https?:\/\//.test(r.url) && <GitButton disabled={!!busy} title="Save username + password/token in the keychain" onClick={() => void signIn(r)}><KeyRound size={11} /> sign in</GitButton>}
+                  {/^https?:\/\//.test(r.url) && signedIn[r.name] && (
+                    <span className="flex items-center gap-1 px-1 font-mono text-[10.5px] text-success" title="Credentials found — push and pull work without asking">
+                      <KeyRound size={11} /> signed in
+                    </span>
+                  )}
+                  {/^https?:\/\//.test(r.url) && signedIn[r.name] === false && <GitButton disabled={!!busy} title="Save username + password/token in the keychain" onClick={() => void signIn(r)}><KeyRound size={11} /> sign in</GitButton>}
                   <GitButton disabled={!!busy} onClick={() => setEditing({ name: r.name, url: r.url })}><Pencil size={11} /> edit URL</GitButton>
                   <GitButton danger disabled={!!busy} onClick={() => void act("remove remote", () => remoteService.remove(repo, r.name), `Removed ${r.name}`)}>remove</GitButton>
                 </span>

@@ -218,3 +218,8 @@ pub async fn git_gcm_installed() -> bool {
 pub async fn git_browser_login(repo: String, remote: String) -> Result<(), String> {
     run(move || git::browser_login(&repo, &remote)).await
 }
+
+#[tauri::command]
+pub async fn git_remote_signed_in(repo: String, name: String) -> bool {
+    tauri::async_runtime::spawn_blocking(move || git::remote_signed_in(&repo, &name)).await.unwrap_or(false)
+}

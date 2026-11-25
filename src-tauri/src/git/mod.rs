@@ -32,6 +32,8 @@ pub(crate) fn git(repo: &str, args: &[&str]) -> Result<String, String> {
         .args(args)
         // Never block on an interactive credential prompt; the UI reports the error instead.
         .env("GIT_TERMINAL_PROMPT", "0")
+        // Never pop a browser login from a background git call; Orbitr asks first (withAuth).
+        .env("GCM_INTERACTIVE", "never")
         .env("GIT_OPTIONAL_LOCKS", "0")
         .output()
         .map_err(|e| format!("git not available: {e}"))?;
