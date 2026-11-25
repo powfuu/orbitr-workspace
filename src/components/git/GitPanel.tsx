@@ -68,11 +68,11 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
   if (status === undefined) return <EmptyLine icon={GitBranch}>Reading repository…</EmptyLine>;
   if (status === null) return <EmptyLine icon={GitBranch}>Not a git repository.</EmptyLine>;
 
-  const act = async (label: typeof busy, fn: () => Promise<unknown>, ok?: string) => {
+  const act = async (label: typeof busy, fn: () => Promise<unknown>, ok?: string, detail?: string) => {
     setBusy(label);
     try {
       await withAuth(path, fn);
-      if (ok) toast({ kind: "success", title: ok });
+      if (ok) toast({ kind: "success", title: ok, detail });
     } catch (e) {
       if (!(e instanceof SilentError)) toast({ kind: "error", title: `git ${label} failed`, detail: String(e) });
     } finally {
@@ -157,20 +157,44 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
         <div className="ml-auto flex shrink-0 items-center gap-2">
         <button
           disabled={!!busy}
-          onClick={() => void act("pull", () => gitService.pull(path), "Pulled")}
-          className="flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] text-fg-2 ring-1 ring-line hover:bg-surface disabled:opacity-50"
+          title={status.behind > 0 ? `${status.behind} commit${status.behind === 1 ? "" : "s"} to pull from ${status.upstream}` : "Pull from upstream"}
+          onClick={() => {
+            const n = status.behind;
+            void act(
+              "pull",
+              () => gitService.pull(path),
+              n > 0 ? `Pulled ${n} commit${n === 1 ? "" : "s"} into ${status.branch}` : `Pulled ${status.branch}`,
+              `from ${status.upstream ?? "upstream"}`,
+            );
+          }}
+          className={cn(
+            "flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] disabled:opacity-50",
+            status.behind > 0 ? "bg-fg text-bg hover:bg-fg/85" : "text-fg-2 ring-1 ring-line hover:bg-surface",
+          )}
         >
           {busy === "pull" ? <Loader2 size={12} className="animate-spin" /> : <ArrowDown size={12} />} Pull
+          {status.behind > 0 && <span className="font-mono text-[10.5px] opacity-70">{status.behind}</span>}
         </button>
         <button
           disabled={!!busy}
-          onClick={() => void act("push", () => gitService.push(path), "Pushed")}
+          title={!status.upstream ? `Publish ${status.branch} to origin` : status.ahead > 0 ? `${status.ahead} commit${status.ahead === 1 ? "" : "s"} to push to ${status.upstream}` : "Nothing to push"}
+          onClick={() => {
+            const n = status.ahead;
+            const last = status.lastCommit;
+            void act(
+              "push",
+              () => gitService.push(path),
+              !status.upstream ? `Published ${status.branch} to origin` : n > 0 ? `Pushed ${n} commit${n === 1 ? "" : "s"} to ${status.upstream}` : `${status.branch} is already up to date`,
+              last ? `latest: ${last.short} ${last.subject}` : undefined,
+            );
+          }}
           className={cn(
             "flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] disabled:opacity-50",
             status.ahead > 0 || !status.upstream ? "bg-fg text-bg hover:bg-fg/85" : "text-fg-2 ring-1 ring-line hover:bg-surface",
           )}
         >
           {busy === "push" ? <Loader2 size={12} className="animate-spin" /> : <ArrowUp size={12} />} Push
+          {status.ahead > 0 && <span className="font-mono text-[10.5px] opacity-70">{status.ahead}</span>}
         </button>
         <IconButton icon={RefreshCw} size="sm" label="Refresh" onClick={() => void refresh(path)} />
         </div>
