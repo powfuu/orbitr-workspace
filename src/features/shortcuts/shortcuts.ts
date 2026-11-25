@@ -60,9 +60,12 @@ export const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
     items: [
       { keys: ["Esc"], label: "NORMAL mode (Esc Esc inside an editor)" },
       { keys: ["i"], label: "Back to typing (INSERT)" },
+      { keys: ["h", "j", "k", "l"], label: "Move the cursor between clickable elements" },
+      { keys: ["Enter"], label: "Click the element under the cursor" },
+      { keys: [shift, "H"], label: "Previous tab / terminal" },
+      { keys: [shift, "L"], label: "Next tab / terminal" },
       { keys: ["f"], label: "Hints: click anything by its letters" },
       { keys: [":"], label: "Command palette" },
-      { keys: ["j", "k"], label: "Scroll down / up" },
       { keys: ["d", "u"], label: "Half page down / up" },
     ],
   },

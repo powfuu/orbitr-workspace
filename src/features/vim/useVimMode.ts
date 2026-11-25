@@ -8,7 +8,8 @@ import { isEditor } from "../agents/registry";
 import { cycleTab, focusArea } from "../../hooks/useGlobalShortcuts";
 import { terminalRegistry } from "../terminals/terminalRegistry";
 import { useVim } from "./vimStore";
-import { activate, collectHints } from "./hints";
+import { activate, collectHints, isClickable } from "./hints";
+import { nextInDirection, type Dir } from "./spatialNav";
 
 const EDITABLE = "input, textarea, select, [contenteditable], .xterm";
 const DOUBLE_ESC_MS = 400;
@@ -87,6 +88,14 @@ export function useVimMode() {
         return set({ typed: next });
       }
 
+      if (e.key === "Escape" && mode === "normal") {
+        if (vim().cursor) {
+          swallow(e);
+          return set({ cursor: null });
+        }
+        return;
+      }
+
       if (e.key === "Escape" && mode === "insert") {
         const layout = useLayout.getState();
         if (layout.paletteOpen || layout.helpOpen || [...document.querySelectorAll<HTMLElement>('[role="dialog"], [role="menu"], [role="listbox"]')].some((el) => el.checkVisibility())) return;
@@ -95,22 +104,42 @@ export function useVimMode() {
           if (now - lastEsc > DOUBLE_ESC_MS) return void (lastEsc = now); // first Esc goes to Vim
         }
         swallow(e);
-        (document.activeElement as HTMLElement | null)?.blur();
-        return set({ mode: "normal" });
+        const was = document.activeElement as HTMLElement | null;
+        was?.blur();
+        // Start the cursor where you were, if that was something clickable (not a text field).
+        return set({ mode: "normal", cursor: isClickable(was) && !was.matches(EDITABLE) ? was : null });
       }
 
       if (mode !== "normal" || e.metaKey || e.altKey) return;
       if (target?.closest?.(EDITABLE) && !target.closest(".xterm")) return; // focused by hint/click → typing
 
       if (e.ctrlKey) return;
+      const move = (dir: Dir) => () => {
+        const scope = vim().cursor ? null : document.querySelector(`[data-region="${focusedRegion()}"]`);
+        const next = nextInDirection(vim().cursor, dir, scope);
+        if (!next) return;
+        next.scrollIntoView({ block: "nearest", inline: "nearest" });
+        set({ cursor: next });
+      };
+      const press = () => {
+        const el = vim().cursor;
+        if (!el?.isConnected) return toInsert();
+        activate(el);
+        if (!el.matches(EDITABLE) && !el.classList.contains("xterm")) el.blur(); // stay in NORMAL
+      };
       const actions: Record<string, () => void> = {
         ":": () => useLayout.getState().setPaletteOpen(true),
         i: toInsert,
         a: toInsert,
-        Enter: toInsert,
+        Enter: press,
+        " ": press,
         f: () => set({ hints: collectHints(), typed: "" }),
-        j: () => scroll(80),
-        k: () => scroll(-80),
+        h: move("h"),
+        j: move("j"),
+        k: move("k"),
+        l: move("l"),
+        H: () => cycle(-1),
+        L: () => cycle(1),
         d: () => scroll(innerHeight / 2),
         u: () => scroll(-innerHeight / 2),
       };
