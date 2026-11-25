@@ -13,6 +13,7 @@ import { useSettings } from "../../stores/settingsStore";
 import { toast } from "../../stores/toastStore";
 import { addProjectFromDialog } from "../projects/addProject";
 import { newDefaultTerminal } from "../terminals/newDefaultTerminal";
+import { focusedRegion } from "../../lib/focusRegion";
 import { closeTerminal, restartTerminal } from "../terminals/terminalActions";
 import { AGENTS, agentList, isEditor } from "../agents/registry";
 import { removeAgent, restartAgent, startAgent, stopAgent } from "../agents/agentActions";
@@ -115,7 +116,16 @@ export function useCommands(): Command[] {
     }
     add({ id: "next-tab", title: "Next tab", group: "Navigate", icon: ArrowRight, shortcut: "⌃Tab", run: () => cycleTab(1) });
     add({ id: "prev-tab", title: "Previous tab", group: "Navigate", icon: ArrowLeft, shortcut: "⌃⇧Tab", run: () => cycleTab(-1) });
-    add({ id: "close-tab", title: "Close tab", group: "Navigate", icon: X, shortcut: `${modKey}W`, run: () => tabs.close(getActiveTabs().activeTabId) });
+    add({ id: "close-tab", title: "Close tab", group: "Navigate", icon: X, shortcut: `${modKey}W`, run: () => {
+      const region = focusedRegion();
+      if (region === "sidebar") return;
+      if (region === "terminal") {
+        const id = useSessions.getState().activeTerminalId;
+        if (id) void closeTerminal(id);
+        return;
+      }
+      tabs.close(getActiveTabs().activeTabId);
+    } });
 
     // Workspace
     add({ id: "ws-new", title: "New workspace", group: "Workspace", icon: Plus, keywords: "create crear", run: () => {

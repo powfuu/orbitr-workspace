@@ -25,7 +25,7 @@ export function AppShell() {
         <AnimatePresence initial={false}>
           {sidebarOpen && (
             <motion.div key="sidebar" className="flex shrink-0 overflow-hidden" initial={{ width: 0 }} animate={{ width: sidebarWidth + 1 }} exit={{ width: 0 }} transition={slide}>
-              <div style={{ width: sidebarWidth }} className="shrink-0"><ErrorBoundary label="Sidebar"><Sidebar /></ErrorBoundary></div>
+              <div data-region="sidebar" style={{ width: sidebarWidth }} className="shrink-0"><ErrorBoundary label="Sidebar"><Sidebar /></ErrorBoundary></div>
               <ResizeHandle width={sidebarWidth} onChange={setSidebarWidth} dir={1} label="Resize sidebar" />
             </motion.div>
           )}
@@ -37,7 +37,7 @@ export function AppShell() {
           {terminalOpen && (
             <motion.div key="terminal" className="flex shrink-0 overflow-hidden" initial={{ width: 0 }} animate={{ width: terminalWidth + 1 }} exit={{ width: 0 }} transition={slide}>
               <ResizeHandle width={terminalWidth} onChange={setTerminalWidth} dir={-1} label="Resize terminal panel" />
-              <div style={{ width: terminalWidth }} className="shrink-0"><ErrorBoundary label="Terminal panel"><TerminalPanel /></ErrorBoundary></div>
+              <div data-region="terminal" style={{ width: terminalWidth }} className="shrink-0"><ErrorBoundary label="Terminal panel"><TerminalPanel /></ErrorBoundary></div>
             </motion.div>
           )}
         </AnimatePresence>
