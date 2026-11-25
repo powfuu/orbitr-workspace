@@ -7,10 +7,12 @@ export interface NvimConfigDef {
   blurb: string;
   /** Highlight label, e.g. our own config. */
   badge?: string;
+  /** Pin plugins to the config's lazy-lock.json on first install (avoids newer, incompatible versions). */
+  lazyRestore?: boolean;
 }
 
 export const NVIM_CONFIGS: NvimConfigDef[] = [
-  { name: "EverVim", app: "evervim", repo: "https://github.com/powfuu/EverVim", url: "https://github.com/powfuu/EverVim", blurb: "NvChad-based setup with Orbitr Dark, IDE keys and a theme picker.", badge: "from the creators of Orbitr" },
+  { name: "EverVim", app: "evervim", repo: "https://github.com/powfuu/EverVim", url: "https://github.com/powfuu/EverVim", blurb: "NvChad-based setup with Orbitr Dark, IDE keys and a theme picker.", badge: "from the creators of Orbitr", lazyRestore: true },
   { name: "LazyVim", app: "lazyvim", repo: "https://github.com/LazyVim/starter", url: "https://www.lazyvim.org", blurb: "Fast, modern defaults on lazy.nvim. Best starting point." },
   { name: "LunarVim", app: "lunarvim", repo: "https://github.com/LunarVim/LunarVim", url: "https://www.lunarvim.org", blurb: "IDE layer: LSP, formatting and debugging out of the box." },
   { name: "AstroNvim", app: "astronvim", repo: "https://github.com/AstroNvim/template", url: "https://astronvim.com", blurb: "Polished UI with a community plugin catalogue." },
@@ -22,5 +24,7 @@ export const NVIM_CONFIGS: NvimConfigDef[] = [
 export type NvimConfig = NvimConfigDef;
 
 /** Clones the config once into ~/.config/<app>, then opens Neovim with it. */
-export const installConfigCommand = (d: NvimConfig) =>
-  `[ -d ~/.config/${d.app} ] || git clone --depth 1 ${d.repo} ~/.config/${d.app}; NVIM_APPNAME=${d.app} nvim`;
+export const installConfigCommand = (d: NvimConfig) => {
+  const restore = d.lazyRestore ? ` && NVIM_APPNAME=${d.app} nvim --headless "+Lazy! restore" +qa` : "";
+  return `[ -d ~/.config/${d.app} ] || { git clone --depth 1 ${d.repo} ~/.config/${d.app}${restore}; }; NVIM_APPNAME=${d.app} nvim`;
+};
