@@ -5,6 +5,9 @@ import { persistOptions } from "./persist";
 export interface Settings {
   /** Theme id (see features/theme/themes.ts) or "system". */
   theme: string;
+  /** Themes used by "system" when the OS is in dark / light mode. */
+  systemDark: string;
+  systemLight: string;
   terminalFontSize: number;
   /** "auto" (first installed Nerd Font) or a font family name. */
   terminalFont: string;
@@ -37,6 +40,8 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: "midnight",
+  systemDark: "midnight",
+  systemLight: "paper",
   terminalFontSize: 12.5,
   terminalFont: "auto",
   cursorStyle: "bar",

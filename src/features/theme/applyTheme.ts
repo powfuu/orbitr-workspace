@@ -26,11 +26,12 @@ function apply(t: ThemeDef) {
 
 /** Applies the saved theme now and whenever the setting or (for "system") the OS appearance changes. */
 export function initTheme() {
-  apply(resolveTheme(useSettings.getState().theme));
+  const resolve = () => resolveTheme(useSettings.getState().theme, useSettings.getState());
+  apply(resolve());
   useSettings.subscribe((s, prev) => {
-    if (s.theme !== prev.theme) apply(resolveTheme(s.theme));
+    if (s.theme !== prev.theme || s.systemDark !== prev.systemDark || s.systemLight !== prev.systemLight) apply(resolve());
   });
   window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
-    if (useSettings.getState().theme === "system") apply(resolveTheme("system"));
+    if (useSettings.getState().theme === "system") apply(resolve());
   });
 }

@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronDown, Monitor } from "lucide-react";
 import { useState } from "react";
+import { SystemThemeDialog } from "./SystemThemeDialog";
+import { themeById } from "../../features/theme/themes";
 import { THEMES, type ThemeDef } from "../../features/theme/themes";
 import { useSettings } from "../../stores/settingsStore";
 import { cn } from "../../lib/cn";
@@ -42,6 +44,8 @@ export function ThemePicker() {
   const theme = useSettings((s) => s.theme);
   const set = useSettings((s) => s.set);
   const [open, setOpen] = useState(false);
+  const [systemOpen, setSystemOpen] = useState(false);
+  const pair = useSettings((s) => `${themeById(s.systemDark).name} · ${themeById(s.systemLight).name}`);
   // Collapsed: the first few, plus the current one so it's always visible.
   const shown = open ? THEMES : THEMES.filter((t, i) => i < COLLAPSED || t.id === theme);
   const card = (id: string, name: string, body: React.ReactNode) => (
@@ -52,7 +56,7 @@ export function ThemePicker() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
-      onClick={() => set("theme", id)}
+      onClick={() => (id === "system" ? setSystemOpen(true) : set("theme", id))}
       aria-pressed={theme === id}
       className={cn("rounded-lg p-1.5 text-left ring-1 transition-colors", theme === id ? "ring-accent" : "ring-line-soft hover:ring-line")}
     >
@@ -70,7 +74,7 @@ export function ThemePicker() {
       {shown.map((t) => card(t.id, t.name, <Preview t={t} />))}
       {card(
         "system",
-        "Match system",
+        theme === "system" ? `System · ${pair}` : "Match system",
         <div className="grid h-16 grid-cols-2 overflow-hidden rounded-md ring-1 ring-line">
           <div className="grid place-items-center" style={{ background: THEMES.find((t) => t.id === "paper")!.colors.bg }}>
             <Monitor size={14} color="#141414" />
@@ -90,6 +94,7 @@ export function ThemePicker() {
       {open ? "show less" : `show all ${THEMES.length} themes`}
       <motion.span animate={{ rotate: open ? 180 : 0 }} className="flex"><ChevronDown size={12} /></motion.span>
     </motion.button>
+    <SystemThemeDialog open={systemOpen} onClose={() => setSystemOpen(false)} />
     </div>
   );
 }

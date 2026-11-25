@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Kbd } from "./Kbd";
 
@@ -24,6 +24,15 @@ export function Tooltip({ label, shortcut, side = "bottom", children, block, cla
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const anchor = useRef<HTMLSpanElement>(null);
   const timer = useRef<number>(undefined);
+  const tip = useRef<HTMLSpanElement>(null);
+  const [shift, setShift] = useState(0);
+  // Keep the whole tooltip inside the window instead of letting it squeeze/wrap at the edge.
+  useLayoutEffect(() => {
+    const r = tip.current?.getBoundingClientRect();
+    if (!r) return setShift(0);
+    const M = 8;
+    setShift(r.right > innerWidth - M ? innerWidth - M - r.right : r.left < M ? M - r.left : 0);
+  }, [pos]);
 
   const show = () => {
     timer.current = window.setTimeout(() => {
@@ -41,6 +50,7 @@ export function Tooltip({ label, shortcut, side = "bottom", children, block, cla
   const hide = () => {
     window.clearTimeout(timer.current);
     setPos(null);
+    setShift(0);
   };
 
   const transform = {
@@ -57,15 +67,20 @@ export function Tooltip({ label, shortcut, side = "bottom", children, block, cla
         <AnimatePresence>
           {pos && (
             <motion.span
+              ref={tip}
               role="tooltip"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.12 }}
-              style={{ left: Math.min(pos.x, window.innerWidth - 8), top: pos.y, transform }}
-              className="pointer-events-none fixed z-[90] flex max-w-[min(520px,90vw)] items-center gap-2 rounded-md bg-surface-2 px-2 py-1 font-mono text-2xs text-fg-2 shadow-pop"
+              style={{ left: pos.x + shift, top: pos.y, transform }}
+              className="pointer-events-none fixed z-[90] flex max-w-[calc(100vw-16px)] items-center gap-2 whitespace-nowrap rounded-md border border-line bg-surface-2 px-2.5 py-1.5 font-mono text-2xs text-fg-2 shadow-pop"
             >
-              <span className="break-all">{label}</span>
+              <span className="min-w-0 truncate">
+                {label.split("  ·  ").map((part, i) => (
+                  <span key={i} className={i ? "text-faint" : undefined}>{i ? `  ·  ${part}` : part}</span>
+                ))}
+              </span>
               {shortcut && <Kbd>{shortcut}</Kbd>}
             </motion.span>
           )}

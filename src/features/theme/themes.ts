@@ -100,10 +100,10 @@ export const THEMES: ThemeDef[] = [
 
 export const themeById = (id: string) => THEMES.find((t) => t.id === id) ?? THEMES[0]!;
 
-/** "system" follows the OS appearance: Paper in light mode, Midnight in dark. */
-export function resolveTheme(choice: string): ThemeDef {
+/** "system" follows the OS appearance with the chosen dark/light pair. */
+export function resolveTheme(choice: string, pair: { systemDark: string; systemLight: string } = { systemDark: "midnight", systemLight: "paper" }): ThemeDef {
   if (choice !== "system") return themeById(choice);
-  return window.matchMedia("(prefers-color-scheme: light)").matches ? themeById("paper") : themeById("midnight");
+  return themeById(window.matchMedia("(prefers-color-scheme: light)").matches ? pair.systemLight : pair.systemDark);
 }
 
 /* ── Popular editor themes ─────────────────────────────────────────────── */
