@@ -38,3 +38,9 @@ pub async fn agent_timeline(cwd: String, session_id: String) -> Result<Vec<crate
 pub async fn claude_sessions_since(cwd: String, since: String) -> Vec<crate::agents::timeline::SessionStart> {
     tauri::async_runtime::spawn_blocking(move || crate::agents::timeline::sessions_since(&cwd, &since)).await.unwrap_or_default()
 }
+
+/// Transcript in `cwd` (touched since `since_ms`) containing a prompt like `typed`.
+#[tauri::command]
+pub async fn claude_session_with_prompt(cwd: String, since_ms: u64, typed: String) -> Option<String> {
+    tauri::async_runtime::spawn_blocking(move || crate::agents::timeline::session_with_prompt(&cwd, since_ms, &typed)).await.ok().flatten()
+}

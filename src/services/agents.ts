@@ -28,5 +28,6 @@ export interface TimelineEvent {
 
 export const timelineService = {
   events: (cwd: string, sessionId: string) => invoke<TimelineEvent[]>("agent_timeline", { cwd, sessionId }),
+  sessionWithPrompt: (cwd: string, sinceMs: number, typed: string) => invoke<string | null>("claude_session_with_prompt", { cwd, sinceMs, typed }),
   sessionsSince: (cwd: string, since: string) => invoke<{ id: string; firstAt: string }[]>("claude_sessions_since", { cwd, since }),
 };

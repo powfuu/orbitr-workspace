@@ -1,3 +1,4 @@
+import { emitPromptSubmitted } from "../timeline/promptSubmitted";
 import type { Terminal, IDisposable } from "@xterm/xterm";
 import { useActivity } from "./activityStore";
 import { logEvent } from "../timeline/eventLog";
@@ -25,6 +26,7 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean, 
   let lastInput = 0;
   let idleTimer = 0;
   let draft = 0;
+  let line = "";
   let workingSince = 0;
   let scanTimer = 0;
   let lastSignature = "";
@@ -42,8 +44,9 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean, 
     if (prompt && prompt.signature !== lastSignature) {
       logEvent(id, "waiting", `${{ approval: "Asked for approval", choice: "Asked you to choose", question: "Asked you" }[prompt.kind]}: ${prompt.question}`);
       if (!isFocused()) patch(id, { attention: true });
-      const what = { approval: "needs approval", choice: "asks you to choose", question: "is waiting for your answer" }[prompt.kind];
-      void notify(`${nameOf(id)} ${what}`, prompt.context[0] && prompt.kind === "approval" ? `${prompt.question} — ${prompt.context[0]}` : prompt.question);
+      // Only real blocking prompts notify; a reply that merely ends in "?" just gets the in-app chip.
+      const what = { approval: "needs approval", choice: "asks you to choose", question: "" }[prompt.kind];
+      if (what) void notify(`${nameOf(id)} ${what}`, prompt.context[0] && prompt.kind === "approval" ? `${prompt.question} — ${prompt.context[0]}` : prompt.question);
     }
     lastSignature = prompt?.signature ?? "";
   };
@@ -56,18 +59,20 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean, 
     if (finishedWork && !isFocused()) void notify(nameOf(id), "Finished — waiting for your input");
   };
 
-  const needsYou = (message?: string) => {
+  // Bell / OSC 9 / OSC 777 from the app itself (Claude Code sends one every time it finishes).
+  // Mark the session, but don't raise a desktop notification: Orbitr already sends one
+  // "Finished" per turn and one for real approval prompts.
+  const needsYou = () => {
     if (quiet || isFocused()) return false;
     patch(id, { attention: true });
-    void notify(nameOf(id), message || "Needs your attention");
     return false;
   };
   const disposables: IDisposable[] = [
     term.onTitleChange((title) => patch(id, { title: title.trim() || undefined })),
     term.onBell(() => needsYou()),
     // OSC 9 (iTerm/Windows Terminal) and OSC 777;notify;title;body desktop notifications.
-    term.parser.registerOscHandler(9, (data) => needsYou(data)),
-    term.parser.registerOscHandler(777, (data) => needsYou(data.split(";").slice(2).join(";"))),
+    term.parser.registerOscHandler(9, () => needsYou()),
+    term.parser.registerOscHandler(777, () => needsYou()),
   ];
 
   return {
@@ -84,15 +89,21 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean, 
         patch(id, { phase: "working", since: now });
       }
     },
-    onInput(data: string) {
+    onInput(raw: string) {
       lastInput = Date.now();
-      // Approximate the unsent line from keystrokes. Escape sequences (arrows…) are ignored.
+      // Approximate the unsent line from keystrokes. Escape sequences (arrows…) are ignored;
+      // bracketed-paste markers are stripped so pasted prompts count.
+      const data = raw.replace(/\x1b\[20[01]~/g, "");
       if (data.startsWith("\x1b")) return;
       for (const ch of data) {
-        if (ch === "\r" || ch === "\n" || ch === "\x03" || ch === "\x15") draft = 0;
-        else if (ch === "\x7f" || ch === "\b") draft = Math.max(0, draft - 1);
-        else if (ch === "\x17") draft = 0; // ^W: word delete, approximate
-        else if (ch >= " ") draft++;
+        if (ch === "\r") {
+          if (line.trim()) emitPromptSubmitted(id, line);
+          line = "";
+          draft = 0;
+        } else if (ch === "\n") line += " ";
+        else if (ch === "\x03" || ch === "\x15" || ch === "\x17") (line = ""), (draft = 0);
+        else if (ch === "\x7f" || ch === "\b") (line = line.slice(0, -1)), (draft = Math.max(0, draft - 1));
+        else if (ch >= " ") (line += ch), draft++;
       }
       patch(id, { draft, attention: false });
     },

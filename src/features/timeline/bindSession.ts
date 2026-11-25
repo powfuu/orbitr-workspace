@@ -1,6 +1,8 @@
 import { timelineService } from "../../services/agents";
 import { useSessions } from "../../stores/sessionStore";
 import type { AgentSession } from "../../types";
+import { useWorkspaces } from "../../stores/workspaceStore";
+import { onPromptSubmitted } from "./promptSubmitted";
 
 const watching = new Set<string>();
 
@@ -28,3 +30,21 @@ export function bindClaudeSession(agent: AgentSession, cwd: string) {
   };
   window.setTimeout(() => void tick(), 3000);
 }
+
+/**
+ * Follow the conversation you're actually typing into: after each prompt, find the transcript
+ * that contains it and rebind if it changed (/clear, resume, another Claude in the same folder).
+ */
+onPromptSubmitted((sessionId, text) => {
+  const agent = useSessions.getState().agents.find((a) => a.id === sessionId);
+  if (agent?.kind !== "claude-code" || text.trim().startsWith("/")) return;
+  const cwd = agent.cwd ?? useWorkspaces.getState().projects[agent.projectId]?.path;
+  if (!cwd) return;
+  const look = async (attempt: number) => {
+    const found = await timelineService.sessionWithPrompt(cwd, agent.startedAt - 5000, text).catch(() => null);
+    if (found) {
+      if (useSessions.getState().agents.find((a) => a.id === sessionId)?.chatId !== found) useSessions.getState().updateAgent(sessionId, { chatId: found });
+    } else if (attempt < 4) window.setTimeout(() => void look(attempt + 1), 2500);
+  };
+  window.setTimeout(() => void look(0), 1500);
+});

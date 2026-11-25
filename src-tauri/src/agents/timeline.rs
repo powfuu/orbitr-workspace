@@ -161,6 +161,37 @@ pub fn sessions_since(cwd: &str, since: &str) -> Vec<SessionStart> {
     out
 }
 
+/// The transcript (modified at or after `since_ms`, newest first) that contains a user prompt
+/// starting like `typed`. Lets an agent follow the conversation you're actually typing into,
+/// even after /clear, a resume or another Claude running in the same folder.
+pub fn session_with_prompt(cwd: &str, since_ms: u64, typed: &str) -> Option<String> {
+    let needle: String = typed.split_whitespace().collect::<Vec<_>>().join(" ").chars().take(40).collect();
+    if needle.chars().count() < 3 {
+        return None;
+    }
+    let dir = super::chats::claude_dir(cwd)?;
+    let since = std::time::UNIX_EPOCH + std::time::Duration::from_millis(since_ms);
+    let mut files: Vec<(std::time::SystemTime, std::path::PathBuf)> = fs::read_dir(&dir)
+        .ok()?
+        .flatten()
+        .filter_map(|e| {
+            let p = e.path();
+            let m = e.metadata().ok()?.modified().ok()?;
+            (p.extension()? == "jsonl" && m >= since).then_some((m, p))
+        })
+        .collect();
+    files.sort_by(|a, b| b.0.cmp(&a.0));
+    files.into_iter().take(20).find_map(|(_, p)| {
+        let hit = BufReader::new(File::open(&p).ok()?).lines().map_while(Result::ok).any(|l| {
+            l.contains("\"type\":\"user\"")
+                && serde_json::from_str::<Value>(&l).ok().is_some_and(|v| {
+                    v["message"]["content"].as_str().is_some_and(|t| t.split_whitespace().collect::<Vec<_>>().join(" ").contains(&needle))
+                })
+        });
+        if hit { p.file_stem().map(|s| s.to_string_lossy().into_owned()) } else { None }
+    })
+}
+
 fn first_timestamp(p: &Path) -> Option<String> {
     BufReader::new(File::open(p).ok()?)
         .lines()
