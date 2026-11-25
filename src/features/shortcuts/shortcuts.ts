@@ -51,4 +51,17 @@ export const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
       { keys: [alt, shift, "E"], label: "Focus terminal panel" },
     ],
   },
+  {
+    group: "Vim mode (Settings → Keyboard)",
+    items: [
+      { keys: ["Esc"], label: "NORMAL mode (Esc Esc inside an editor)" },
+      { keys: ["i"], label: "Back to typing (INSERT)" },
+      { keys: ["f"], label: "Hints: click anything by its letters" },
+      { keys: [ctrl, "H"], label: "Previous tab / terminal" },
+      { keys: [ctrl, "L"], label: "Next tab / terminal" },
+      { keys: [":"], label: "Command palette" },
+      { keys: ["j", "k"], label: "Scroll down / up" },
+      { keys: ["d", "u"], label: "Half page down / up" },
+    ],
+  },
 ];

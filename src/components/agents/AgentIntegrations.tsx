@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { CircleCheck, Download, ExternalLink, RefreshCw } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { agentList } from "../../features/agents/registry";
+import { agentList, type AgentDefinition } from "../../features/agents/registry";
 import { useAgentAvailability } from "../../features/agents/useAgentAvailability";
 import { useAvailability } from "../../features/agents/availabilityStore";
 import { installAgent, installCommand } from "../../features/agents/installAgent";
@@ -11,24 +11,24 @@ import { AgentGlyph } from "../ui/AgentGlyph";
 import { IconButton } from "../ui/IconButton";
 
 /** Every supported agent CLI with its real install state and a one-click installer. */
-export function AgentIntegrations() {
+export function AgentIntegrations({ title = "Agent integrations", list = agentList }: { title?: string; list?: AgentDefinition[] }) {
   const availability = useAgentAvailability();
   const checking = useAvailability((s) => s.checking);
   const refresh = useAvailability((s) => s.refresh);
-  const installed = agentList.filter((a) => availability?.[a.kind]).length;
+  const installed = list.filter((a) => availability?.[a.kind]).length;
 
   return (
     <div>
       <div className="mb-3 flex items-center gap-3">
-        <div className="term-heading">Agent integrations</div>
-        {availability && <span className="font-mono text-2xs text-faint">{installed}/{agentList.length} installed</span>}
+        <div className="term-heading">{title}</div>
+        {availability && <span className="font-mono text-2xs text-faint">{installed}/{list.length} installed</span>}
         <div className="flex-1" />
         <span className={cn(checking && "animate-spin")}>
-          <IconButton icon={RefreshCw} label="Re-check installed agents" size="sm" onClick={() => void refresh()} disabled={checking} />
+          <IconButton icon={RefreshCw} label="Re-check installed" size="sm" onClick={() => void refresh()} disabled={checking} />
         </span>
       </div>
       <div className="divide-y divide-line-soft overflow-hidden rounded-xl border border-line-soft bg-bg-2">
-        {agentList.map((a, i) => {
+        {list.map((a, i) => {
           const path = availability?.[a.kind];
           const cmd = installCommand(a);
           return (

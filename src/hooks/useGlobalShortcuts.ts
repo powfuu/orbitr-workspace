@@ -14,7 +14,7 @@ import { useTerminalSearch } from "../features/search/searchStore";
 import { closeFocused } from "../features/terminals/closeFocused";
 import { searchTarget } from "../features/search/searchTarget";
 
-function cycleTab(step: 1 | -1) {
+export function cycleTab(step: 1 | -1) {
   const { tabs, activeTabId } = getActiveTabs();
   const i = tabs.findIndex((t) => t.id === activeTabId);
   const next = tabs[(i + step + tabs.length) % tabs.length];
@@ -146,7 +146,7 @@ function openProject(n: number) {
 }
 
 /** Nth terminal in the right panel; opens the panel and focuses it. */
-function focusArea(code: string) {
+export function focusArea(code: string) {
   const layout = useLayout.getState();
   if (code === "KeyQ") {
     if (!layout.sidebarOpen) layout.toggleSidebar();

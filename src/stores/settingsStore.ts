@@ -27,6 +27,8 @@ export interface Settings {
   limitAlerts: boolean;
   /** Percentages that trigger a limit alert. */
   limitThresholds: string;
+  /** App-wide Vim mode: Esc → NORMAL (hints, Ctrl+H/L tabs, : palette). */
+  vimMode: boolean;
   /** Welcome tour finished or skipped. */
   onboarded: boolean;
 }
@@ -47,6 +49,7 @@ export const DEFAULT_SETTINGS: Settings = {
   closeEditorOnQuit: true,
   limitAlerts: true,
   limitThresholds: "80,95",
+  vimMode: false,
   onboarded: false,
 };
 

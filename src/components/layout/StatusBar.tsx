@@ -8,6 +8,8 @@ import { useActiveWorkspace } from "../../stores/workspaceStore";
 import { useSessions } from "../../stores/sessionStore";
 import { usePlatformInfo } from "../../hooks/usePlatformInfo";
 import { basename, isTauri } from "../../lib/platform";
+import { useSettings } from "../../stores/settingsStore";
+import { useVim } from "../../features/vim/vimStore";
 
 /** Segments separated by a thin bar, like a vim/tmux statusline. */
 function Segments({ items }: { items: ReactNode[] }) {
@@ -32,12 +34,14 @@ export function StatusBar() {
   const today = useUsage(null, 1);
   const update = useUpdates();
   const hasLimits = usePlanLimits((l) => l.limits.length > 0);
+  const vimMode = useSettings((s) => s.vimMode);
+  const mode = useVim((v) => (v.hints ? "HINT" : v.mode === "normal" ? "NORMAL" : "INSERT"));
 
   return (
     <footer className="flex h-6 shrink-0 items-center gap-2.5 border-t border-line-soft bg-bg pr-3 font-mono text-[10.5px] text-faint">
       {/* Mode block, inverse like vim's NORMAL */}
-      <span className={`flex h-full items-center px-2.5 font-semibold tracking-wide ${isTauri ? "bg-fg text-bg" : "bg-warning text-black"}`}>
-        {isTauri ? "ORBITR" : "PREVIEW"}
+      <span className={`flex h-full items-center px-2.5 font-semibold tracking-wide ${vimMode && mode !== "INSERT" ? "bg-accent text-bg" : isTauri ? "bg-fg text-bg" : "bg-warning text-black"}`}>
+        {vimMode ? mode : isTauri ? "ORBITR" : "PREVIEW"}
       </span>
       <Segments
         items={[

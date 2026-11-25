@@ -24,7 +24,7 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
-function Toggle({ k }: { k: "cursorBlink" | "restoreOnLaunch" | "notifications" | "voiceAutoSubmit" | "closeEditorOnQuit" | "limitAlerts" }) {
+function Toggle({ k }: { k: "cursorBlink" | "restoreOnLaunch" | "notifications" | "voiceAutoSubmit" | "closeEditorOnQuit" | "limitAlerts" | "vimMode" }) {
   const value = useSettings((s) => s[k]);
   const set = useSettings((s) => s.set);
   return (
@@ -77,6 +77,12 @@ export function SettingsView() {
           <RotateCcw size={13} /> Reset
         </button>
       </ViewHeader>
+
+      <Section title="Keyboard">
+        <Row label="Vim mode" hint="Esc leaves the input (NORMAL; double Esc inside an editor). Then f shows hints to click anything, Ctrl+H/L switch tabs, : opens the palette, i returns to typing.">
+          <Toggle k="vimMode" />
+        </Row>
+      </Section>
 
       <Section title="Appearance">
         <ThemePicker />
