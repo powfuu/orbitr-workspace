@@ -10,6 +10,8 @@ interface Props {
   children: ReactNode;
   /** Full-width wrapper (for rows) instead of inline. */
   block?: boolean;
+  /** Overrides the wrapper classes (e.g. flex sizing inside a tab strip). */
+  className?: string;
 }
 
 const GAP = 8;
@@ -18,7 +20,7 @@ const GAP = 8;
  * Hover tooltip rendered in a portal at a fixed position, so scroll containers
  * (sidebar, panels) never clip it. Kept inside the window.
  */
-export function Tooltip({ label, shortcut, side = "bottom", children, block }: Props) {
+export function Tooltip({ label, shortcut, side = "bottom", children, block, className }: Props) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const anchor = useRef<HTMLSpanElement>(null);
   const timer = useRef<number>(undefined);
@@ -49,7 +51,7 @@ export function Tooltip({ label, shortcut, side = "bottom", children, block }: P
   }[side];
 
   return (
-    <span ref={anchor} className={block ? "relative flex w-full" : "relative inline-flex"} onPointerEnter={show} onPointerLeave={hide} onPointerDown={hide}>
+    <span ref={anchor} className={className ?? (block ? "relative flex w-full" : "relative inline-flex")} onPointerEnter={show} onPointerLeave={hide} onPointerDown={hide}>
       {children}
       {createPortal(
         <AnimatePresence>
