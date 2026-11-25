@@ -149,6 +149,11 @@ export const terminalRegistry = {
     if (!e?.opened || !e.host.isConnected || e.host.clientWidth === 0) return;
     try {
       e.fit.fit();
+      // The WebGL canvas is cleared when it resizes (e.g. opening the timeline); repaint the
+      // screen on the next frame so it never stays black until new output arrives.
+      requestAnimationFrame(() => {
+        if (entries.get(id) === e && e.host.isConnected) e.term.refresh(0, e.term.rows - 1);
+      });
     } catch {
       /* renderer not ready yet */
     }
