@@ -90,8 +90,12 @@ export function BranchesView({ repo }: { repo: string }) {
             <div key={b.name} onMouseEnter={() => setHot(b.name)} onFocus={() => setHot(b.name)} className="group flex min-h-9 flex-wrap items-center gap-2 px-3 py-1.5">
               <Check size={12} className={cn("shrink-0 text-accent", !b.current && "invisible")} />
               {renaming?.from === b.name ? (
-                <TextInput autoFocus value={renaming.to} onChange={(to) => setRenaming({ from: b.name, to })} className="w-56"
-                  onEnter={() => void act("rename", () => gitMore.renameBranch(repo, b.name, renaming.to.trim()), `Renamed to ${renaming.to.trim()}`).then(() => setRenaming(null))} />
+                <TextInput autoFocus value={renaming.to} onChange={(to) => setRenaming({ from: b.name, to })} onCancel={() => setRenaming(null)} className="w-56"
+                  onEnter={() => {
+                    const to = renaming.to.trim();
+                    setRenaming(null);
+                    if (to && to !== b.name) void act("rename", () => gitMore.renameBranch(repo, b.name, to), `Renamed to ${to}`);
+                  }} />
               ) : (
                 <span className={cn("min-w-0 flex-1 truncate font-mono text-[12px]", b.current ? "text-fg" : "text-fg-2")}>{b.name}</span>
               )}

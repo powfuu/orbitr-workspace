@@ -62,10 +62,12 @@ export function RefChips({ refs }: { refs: string }) {
   );
 }
 
-export function TextInput({ value, onChange, onEnter, placeholder, className, autoFocus }: {
+export function TextInput({ value, onChange, onEnter, onCancel, placeholder, className, autoFocus }: {
   value: string;
   onChange: (v: string) => void;
   onEnter?: () => void;
+  /** Escape or leaving the field (for inline edits). */
+  onCancel?: () => void;
   placeholder?: string;
   className?: string;
   autoFocus?: boolean;
@@ -75,7 +77,14 @@ export function TextInput({ value, onChange, onEnter, placeholder, className, au
       autoFocus={autoFocus}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      onKeyDown={(e) => e.key === "Enter" && onEnter?.()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") onEnter?.();
+        if (e.key === "Escape" && onCancel) {
+          e.stopPropagation();
+          onCancel();
+        }
+      }}
+      onBlur={onCancel}
       placeholder={placeholder}
       className={cn("h-7 min-w-0 rounded-md bg-bg px-2 font-mono text-[12px] text-fg outline-none ring-1 ring-line-soft placeholder:font-sans placeholder:text-faint focus:ring-fg/30", className)}
     />
