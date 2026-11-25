@@ -5,6 +5,7 @@ import { useGitRun } from "../../features/git/gitRun";
 import { useGit } from "../../features/git/gitStore";
 import { timeAgo } from "../../lib/time";
 import { GitButton, TextInput } from "./ui";
+import { cn } from "../../lib/cn";
 
 /** Save work in progress aside and bring it back. */
 export function StashView({ repo }: { repo: string }) {
@@ -14,6 +15,8 @@ export function StashView({ repo }: { repo: string }) {
   const [message, setMessage] = useState("");
   const [untracked, setUntracked] = useState(true);
   const { busy, run } = useGitRun(repo);
+  // One row's actions at a time: CSS :hover can stick on several rows in WebKit after scrolling.
+  const [hot, setHot] = useState<string | null>(null);
   const reload = () => void gitMore.stashList(repo).then(setList).catch(() => setList([]));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(reload, [repo, fingerprint]);
@@ -35,13 +38,13 @@ export function StashView({ repo }: { repo: string }) {
       {list.length === 0 ? (
         <div className="text-[12px] text-muted">No stashes.</div>
       ) : (
-        <div className="divide-y divide-line-soft rounded-lg border border-line-soft">
+        <div onMouseLeave={() => setHot(null)} className="divide-y divide-line-soft rounded-lg border border-line-soft">
           {list.map((s) => (
-            <div key={s.index} className="group flex min-h-9 flex-wrap items-center gap-2 px-3 py-1.5">
+            <div key={s.index} onMouseEnter={() => setHot(String(s.index))} onFocus={() => setHot(String(s.index))} className="group flex min-h-9 flex-wrap items-center gap-2 px-3 py-1.5">
               <span className="font-mono text-[10.5px] text-faint">{`stash@{${s.index}}`}</span>
               <span className="min-w-0 flex-1 truncate text-[12px] text-fg-2" title={s.message}>{s.message}</span>
               <span className="font-mono text-[10.5px] text-faint">{timeAgo(s.time)}</span>
-              <span className="flex gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+              <span className={cn("flex gap-1", hot !== String(s.index) && "invisible")}>
                 <GitButton disabled={!!busy} onClick={() => void act("stash pop", () => gitMore.stashOp(repo, "pop", s.index), "Popped stash")}>pop</GitButton>
                 <GitButton disabled={!!busy} onClick={() => void act("stash apply", () => gitMore.stashOp(repo, "apply", s.index), "Applied stash")}>apply</GitButton>
                 <GitButton danger disabled={!!busy} onClick={() => void act("stash drop", () => gitMore.stashOp(repo, "drop", s.index), "Dropped stash")}>drop</GitButton>
