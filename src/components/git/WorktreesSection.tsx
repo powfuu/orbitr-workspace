@@ -1,13 +1,13 @@
 import { FolderGit2, SquareTerminal, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { ask } from "@tauri-apps/plugin-dialog";
+import { confirmDialog } from "../ui/ConfirmDialog";
 import { branchService, type Worktree } from "../../services/git";
 import { useSessions } from "../../stores/sessionStore";
 import { toast } from "../../stores/toastStore";
 import { newDefaultTerminal } from "../../features/terminals/newDefaultTerminal";
 import { removeAgent } from "../../features/agents/agentActions";
 import { AGENTS } from "../../features/agents/registry";
-import { isTauri, tildify } from "../../lib/platform";
+import { tildify } from "../../lib/platform";
 import { usePlatformInfo } from "../../hooks/usePlatformInfo";
 import { AgentGlyph } from "../ui/AgentGlyph";
 import { IconButton } from "../ui/IconButton";
@@ -31,12 +31,12 @@ export function WorktreesSection({ repo }: { repo: string }) {
   const remove = async (w: Worktree) => {
     const inside = agents.filter((a) => a.cwd === w.path);
     const msg = `Remove worktree ${w.branch ?? w.head}? Its folder is deleted; the branch is kept.` + (inside.length ? ` ${inside.length} agent(s) running there will be stopped.` : "");
-    if (!(isTauri ? await ask(msg, { title: "Remove worktree", kind: "warning", okLabel: "Remove" }) : window.confirm(msg))) return;
+    if (!(await confirmDialog({ title: "Remove worktree", message: msg, okLabel: "Remove" }))) return;
     await Promise.all(inside.map((a) => removeAgent(a.id)));
     try {
       await branchService.removeWorktree(repo, w.path, false);
     } catch (e) {
-      const force = isTauri && (await ask(`${String(e)}\n\nForce removal and discard uncommitted changes?`, { title: "Worktree has changes", kind: "warning", okLabel: "Discard & remove" }));
+      const force = await confirmDialog({ title: "Worktree has changes", message: `${String(e)}\n\nForce removal and discard uncommitted changes?`, okLabel: "Discard & remove" });
       if (!force) return;
       await branchService.removeWorktree(repo, w.path, true).catch((err) => toast({ kind: "error", title: "Couldn't remove worktree", detail: String(err) }));
     }

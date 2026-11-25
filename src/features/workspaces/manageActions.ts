@@ -1,4 +1,4 @@
-import { ask } from "@tauri-apps/plugin-dialog";
+import { confirmDialog } from "../../components/ui/ConfirmDialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useWorkspaces } from "../../stores/workspaceStore";
 import { useSessions } from "../../stores/sessionStore";
@@ -10,10 +10,7 @@ import type { ID } from "../../types";
 
 const isAlive = (s: { status: string }) => s.status === "running" || s.status === "starting";
 
-async function confirm(message: string, title: string, okLabel: string) {
-  if (!isTauri) return window.confirm(message);
-  return ask(message, { title, kind: "warning", okLabel, cancelLabel: "Cancel" });
-}
+const confirm = (message: string, title: string, okLabel: string) => confirmDialog({ title, message, okLabel });
 
 /** Removes a project; its agent sessions are ended (with confirmation if any are running). */
 export async function removeProject(id: ID) {

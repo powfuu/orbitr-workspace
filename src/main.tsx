@@ -1,3 +1,4 @@
+import { useFolders } from "./features/sidebar/folderStore";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./app/App";
@@ -17,7 +18,7 @@ import "@xterm/xterm/css/xterm.css";
 import "./styles/index.css";
 
 // Load persisted state before the first render so the UI never flashes defaults.
-await Promise.all([useLayout, useWorkspaces, useTabs, useHistory, useSessions, useSettings, useEventLog, useSnippets].map((s) => s.persist.rehydrate()));
+await Promise.all([useLayout, useWorkspaces, useTabs, useHistory, useSessions, useSettings, useEventLog, useSnippets, useFolders].map((s) => s.persist.rehydrate()));
 initTheme();
 window.addEventListener("beforeunload", () => void flushPendingWrites());
 void initFonts(useSettings.getState().terminalFont);

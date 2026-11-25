@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Gauge, RefreshCw } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { refreshIfStale, usePlanLimits } from "../../features/usage/planLimitsStore";
 import { shortLabel } from "../../features/usage/parseLimits";
 import { timeAgo } from "../../lib/time";
@@ -51,15 +51,41 @@ export function PlanLimits() {
 /** Compact status-bar form: "5h 93% · week 55%". */
 export function PlanLimitsCompact() {
   const limits = usePlanLimits((s) => s.limits);
+  const [open, setOpen] = useState(false);
+  const timer = useRef<number>(undefined);
   if (!limits.length) return null;
+  // Hover shows the full card (bars, reset times, last check), like the plan popover in Claude.
+  const show = () => {
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setOpen(true), 150);
+  };
+  const hide = () => {
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setOpen(false), 120);
+  };
   return (
-    <span className="flex items-center gap-2" title={limits.map((l) => `${shortLabel(l.label)}: ${l.percent}%${l.resets ? ` · resets ${l.resets}` : ""}`).join("\n")}>
-      <Gauge size={11} />
-      {limits.slice(0, 2).map((l) => (
-        <span key={l.label} className={text(l.percent)}>
-          {/session/i.test(l.label) ? "5h" : "wk"} {l.percent}%
-        </span>
-      ))}
+    <span className="relative flex items-center" onPointerEnter={show} onPointerLeave={hide}>
+      <span className="flex cursor-default items-center gap-2">
+        <Gauge size={11} />
+        {limits.slice(0, 2).map((l) => (
+          <span key={l.label} className={text(l.percent)}>
+            {/session/i.test(l.label) ? "5h" : "wk"} {l.percent}%
+          </span>
+        ))}
+      </span>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.12 }}
+            className="absolute bottom-full left-0 z-50 mb-2 w-80 rounded-xl border border-line bg-surface p-4 font-sans text-left shadow-pop"
+          >
+            <PlanLimits />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </span>
   );
 }

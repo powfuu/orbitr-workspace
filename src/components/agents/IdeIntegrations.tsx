@@ -23,10 +23,11 @@ export function IdeIntegrations() {
       </p>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(240px,100%),1fr))] gap-2">
         {NVIM_CONFIGS.map((d) => (
-          <div key={d.app} className={cn("flex items-start gap-3 rounded-xl border bg-bg-2 px-3.5 py-3", active === d.app ? "border-success/40" : "border-line-soft")}>
+          <div key={d.app} className={cn("flex items-start gap-3 rounded-xl border bg-bg-2 px-3.5 py-3", active === d.app ? "border-success/40" : d.badge ? "border-accent/40" : "border-line-soft")}>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 font-mono text-[12.5px] text-fg">
+              <div className="flex flex-wrap items-center gap-2 font-mono text-[12.5px] text-fg">
                 {d.name}
+                {d.badge && <span className="rounded-full bg-accent/15 px-1.5 text-[9.5px] uppercase tracking-[0.08em] text-accent">{d.badge}</span>}
                 {active === d.app && <span className="rounded-full border border-success/30 bg-success/10 px-1.5 text-[9.5px] uppercase tracking-[0.08em] text-success">in use</span>}
               </div>
               <div className="mt-0.5 text-[11.5px] text-muted">{d.blurb}</div>

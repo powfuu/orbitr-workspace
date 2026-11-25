@@ -1,5 +1,5 @@
 import { Reorder } from "framer-motion";
-import { Bot, FileCode2, GitBranch, LayoutDashboard } from "lucide-react";
+import { Bot, FileCode2, FolderPlus, GitBranch, LayoutDashboard, Pencil } from "lucide-react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { removeProject, revealProject } from "../../features/workspaces/manageActions";
 import { Folder, FolderOpen, FolderSearch, PanelLeftClose, RotateCw, Settings, Square, SquareTerminal, Trash2, Command } from "lucide-react";
@@ -31,6 +31,8 @@ import { ActivityIconFor } from "../agents/ActivityBadge";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { SidebarHint, SidebarSection } from "./SidebarSection";
 import { SidebarItem } from "./SidebarItem";
+import { FolderedList } from "./FolderedList";
+import { useFolders, useRenaming } from "../../features/sidebar/folderStore";
 
 export function Sidebar() {
   const workspace = useActiveWorkspace();
@@ -58,6 +60,7 @@ export function Sidebar() {
   // Projects that are git repos (unknown yet counts as maybe, so the section shows while loading).
   const gitProjects = projects.filter((p) => gitByPath[p.path] !== null);
 
+  const { updateAgent, updateTerminal } = useSessions.getState();
   const onDashboard = tabs.find((t) => t.id === activeTabId)?.target.type === "home";
 
   return (
@@ -149,7 +152,7 @@ export function Sidebar() {
           )}
         </SidebarSection>
 
-        <SidebarSection id="agents" icon={Bot} title="Agents" count={agents.length} addLabel="Start agent" onAdd={() => setPaletteOpen(true, "Start ")}>
+        <SidebarSection id="agents" icon={Bot} title="Agents" count={agents.length} addLabel="Start agent" onAdd={() => setPaletteOpen(true, "Start ")} actions={<IconButton icon={FolderPlus} label="New folder" size="sm" side="right" onClick={() => useRenaming.getState().set(useFolders.getState().add("agents"))} />}>
           {agents.length === 0 ? (
             <SidebarHint
               action={
@@ -166,30 +169,39 @@ export function Sidebar() {
               {q ? "No matching sessions." : "Your coding agents run here as real terminal processes."}
             </SidebarHint>
           ) : (
-            agents.map((a) => {
-              const alive = a.status === "running" || a.status === "starting";
-              return (
-                <ContextMenu
-                  key={a.id}
-                  items={[
-                    alive
-                      ? { label: "Stop", icon: Square, onSelect: () => void stopAgent(a.id) }
-                      : { label: "Restart", icon: RotateCw, onSelect: () => void restartAgent(a.id) },
-                    { label: "End session", icon: Trash2, danger: true, onSelect: () => void removeAgent(a.id) },
-                  ]}
-                >
-                  <SidebarItem
-                    icon={<AgentGlyph agent={AGENTS[a.kind]} size={16} status={a.status} />}
-                    label={a.name}
-                    trailing={<span className="flex items-center gap-1.5"><PromptChip id={a.id} /><ActivityIconFor id={a.id} status={a.status} /></span>}
-                    active={activeTarget?.type === "agent" && activeTarget.id === a.id}
-                    onClick={() => open({ type: "agent", id: a.id })}
-                    onClose={() => void removeAgent(a.id)}
-                    closeLabel={isEditor(a.kind) ? "Close editor" : "End session"}
-                  />
-                </ContextMenu>
-              );
-            })
+            <FolderedList
+              section="agents"
+              items={agents.map((a) => {
+                const alive = a.status === "running" || a.status === "starting";
+                return {
+                  id: a.id,
+                  node: (
+                    <ContextMenu
+                      items={[
+                        { label: "Rename", icon: Pencil, onSelect: () => useRenaming.getState().set(a.id) },
+                        alive
+                          ? { label: "Stop", icon: Square, onSelect: () => void stopAgent(a.id) }
+                          : { label: "Restart", icon: RotateCw, onSelect: () => void restartAgent(a.id) },
+                        { label: "End session", icon: Trash2, danger: true, onSelect: () => void removeAgent(a.id) },
+                      ]}
+                    >
+                      <SidebarItem
+                        icon={<AgentGlyph agent={AGENTS[a.kind]} size={16} status={a.status} />}
+                        label={a.name}
+                        renameId={a.id}
+                        onRename={(name) => updateAgent(a.id, { name })}
+                        dragId={a.id}
+                        trailing={<span className="flex items-center gap-1.5"><PromptChip id={a.id} /><ActivityIconFor id={a.id} status={a.status} /></span>}
+                        active={activeTarget?.type === "agent" && activeTarget.id === a.id}
+                        onClick={() => open({ type: "agent", id: a.id })}
+                        onClose={() => void removeAgent(a.id)}
+                        closeLabel="End session"
+                      />
+                    </ContextMenu>
+                  ),
+                };
+              })}
+            />
           )}
         </SidebarSection>
 
@@ -208,10 +220,12 @@ export function Sidebar() {
             </SidebarHint>
           ) : (
             editors.map((a) => (
-              <ContextMenu key={a.id} items={[{ label: "Close (kills the editor)", icon: Trash2, danger: true, onSelect: () => void removeAgent(a.id) }]}>
+              <ContextMenu key={a.id} items={[{ label: "Rename", icon: Pencil, onSelect: () => useRenaming.getState().set(a.id) }, { label: "Close (kills the editor)", icon: Trash2, danger: true, onSelect: () => void removeAgent(a.id) }]}>
                 <SidebarItem
                   icon={<AgentGlyph agent={AGENTS[a.kind]} size={16} />}
                   label={a.name}
+                  renameId={a.id}
+                  onRename={(name) => updateAgent(a.id, { name })}
                   active={activeTarget?.type === "agent" && activeTarget.id === a.id}
                   onClick={() => open({ type: "agent", id: a.id })}
                     onClose={() => void removeAgent(a.id)}
@@ -222,31 +236,40 @@ export function Sidebar() {
           )}
         </SidebarSection>
 
-        <SidebarSection id="terminals" icon={SquareTerminal} title="Terminals" count={terminals.length} onAdd={() => void newDefaultTerminal()} addLabel="New terminal">
+        <SidebarSection id="terminals" icon={SquareTerminal} title="Terminals" count={terminals.length} onAdd={() => void newDefaultTerminal()} addLabel="New terminal" actions={<IconButton icon={FolderPlus} label="New folder" size="sm" side="right" onClick={() => useRenaming.getState().set(useFolders.getState().add("terminals"))} />}>
           {terminals.length === 0 ? (
             <SidebarHint>Shell sessions from the right panel are listed here.</SidebarHint>
           ) : (
-            terminals.filter((t) => t.name.toLowerCase().includes(q)).map((t) => (
-              <ContextMenu
-                key={t.id}
-                items={[
-                  { label: "Restart", icon: RotateCw, onSelect: () => void restartTerminal(t.id) },
-                  { label: "Kill & close", icon: Trash2, danger: true, onSelect: () => void closeTerminal(t.id) },
-                ]}
-              >
-                <SidebarItem
-                  icon={<SquareTerminal size={14} className="text-muted" />}
-                  label={t.name}
-                  tooltip={`${cwdFull(t.cwd)}${t.pid ? `  ·  pid ${t.pid}` : ""}`}
-                  meta={t.pid ? String(t.pid) : undefined}
-                  trailing={<span className="flex items-center gap-1.5"><PromptChip id={t.id} /><StatusDot status={t.status} /></span>}
-                  active={t.id === activeTerminalId}
-                  onClick={() => { setActiveTerminal(t.id); openTerminalPanel(); }}
-                  onClose={() => void closeTerminal(t.id)}
-                  closeLabel="Close terminal"
-                />
-              </ContextMenu>
-            ))
+            <FolderedList
+              section="terminals"
+              items={terminals.filter((t) => t.name.toLowerCase().includes(q)).map((t) => ({
+                id: t.id,
+                node: (
+                  <ContextMenu
+                    items={[
+                      { label: "Rename", icon: Pencil, onSelect: () => useRenaming.getState().set(t.id) },
+                      { label: "Restart", icon: RotateCw, onSelect: () => void restartTerminal(t.id) },
+                      { label: "Kill & close", icon: Trash2, danger: true, onSelect: () => void closeTerminal(t.id) },
+                    ]}
+                  >
+                    <SidebarItem
+                      icon={<SquareTerminal size={14} className="text-muted" />}
+                      label={t.name}
+                      renameId={t.id}
+                      onRename={(name) => updateTerminal(t.id, { name })}
+                      dragId={t.id}
+                      tooltip={`${cwdFull(t.cwd)}${t.pid ? `  ·  pid ${t.pid}` : ""}`}
+                      meta={t.pid ? String(t.pid) : undefined}
+                      trailing={<span className="flex items-center gap-1.5"><PromptChip id={t.id} /><StatusDot status={t.status} /></span>}
+                      active={t.id === activeTerminalId}
+                      onClick={() => { setActiveTerminal(t.id); openTerminalPanel(); }}
+                      onClose={() => void closeTerminal(t.id)}
+                      closeLabel="Close terminal"
+                    />
+                  </ContextMenu>
+                ),
+              }))}
+            />
           )}
         </SidebarSection>
       </div>

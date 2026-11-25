@@ -3,6 +3,7 @@ import { Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "../../lib/cn";
 import { Tooltip } from "../ui/Tooltip";
+import { SESSION_MIME, useRenaming } from "../../features/sidebar/folderStore";
 
 interface Props {
   icon: ReactNode;
@@ -16,13 +17,29 @@ interface Props {
   closeLabel?: string;
   /** Hover tooltip (e.g. a terminal's full path). */
   tooltip?: string;
+  /** Enables rename (double-click, or the context menu via useRenaming) for this id. */
+  renameId?: string;
+  onRename?: (name: string) => void;
+  /** Session id to drag into a folder. */
+  dragId?: string;
 }
 
-export function SidebarItem({ icon, label, meta, trailing, active, onClick, onClose, closeLabel = "Close", tooltip }: Props) {
+export function SidebarItem({ icon, label, meta, trailing, active, onClick, onClose, closeLabel = "Close", tooltip, renameId, onRename, dragId }: Props) {
+  const renaming = useRenaming((r) => !!renameId && r.id === renameId);
+  const setRenaming = useRenaming((r) => r.set);
   const row = (
-    <div className="group relative w-full">
+    <div
+      className="group relative w-full"
+      draggable={!!dragId && !renaming}
+      onDragStart={(e) => {
+        if (!dragId) return;
+        e.dataTransfer.setData(SESSION_MIME, dragId);
+        e.dataTransfer.effectAllowed = "move";
+      }}
+    >
       <button
         onClick={onClick}
+        onDoubleClick={() => renameId && onRename && setRenaming(renameId)}
         className={cn(
           "relative flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] transition-colors",
           active ? "text-fg" : "text-fg-2 hover:bg-surface/60 hover:text-fg",
@@ -36,7 +53,28 @@ export function SidebarItem({ icon, label, meta, trailing, active, onClick, onCl
           />
         )}
         <span className="relative flex shrink-0 items-center">{icon}</span>
-        <span className="relative min-w-0 flex-1 truncate">{label}</span>
+        {renaming && onRename ? (
+          <input
+            autoFocus
+            aria-label={`Rename ${label}`}
+            defaultValue={label}
+            onClick={(e) => e.stopPropagation()}
+            onFocus={(e) => e.target.select()}
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (v && v !== label) onRename(v);
+              setRenaming(null);
+            }}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === "Enter") e.currentTarget.blur();
+              if (e.key === "Escape") setRenaming(null);
+            }}
+            className="relative min-w-0 flex-1 rounded bg-bg px-1 text-fg outline-none ring-1 ring-accent/50"
+          />
+        ) : (
+          <span className="relative min-w-0 flex-1 truncate">{label}</span>
+        )}
         <span className={cn("relative flex items-center gap-2", onClose && "group-hover:invisible group-focus-within:invisible")}>
           {meta && <span className="truncate font-mono text-[10.5px] text-faint">{meta}</span>}
           {trailing}

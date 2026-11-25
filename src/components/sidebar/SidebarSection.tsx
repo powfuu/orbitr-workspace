@@ -15,9 +15,11 @@ interface Props {
   icon?: LucideIcon;
   /** Initial state until the user toggles it (then their choice is remembered). */
   defaultCollapsed?: boolean;
+  /** Extra header buttons (e.g. new folder), shown on hover like the + button. */
+  actions?: ReactNode;
 }
 
-export function SidebarSection({ id, title, count, onAdd, addLabel, addDisabled, children, icon: Icon, defaultCollapsed = false }: Props) {
+export function SidebarSection({ id, title, count, onAdd, addLabel, addDisabled, children, icon: Icon, defaultCollapsed = false, actions }: Props) {
   const collapsed = useLayout((s) => s.collapsedSections[id] ?? defaultCollapsed);
   const setCollapsed = (v: boolean) => useLayout.setState((s) => ({ collapsedSections: { ...s.collapsedSections, [id]: v } }));
   return (
@@ -35,6 +37,7 @@ export function SidebarSection({ id, title, count, onAdd, addLabel, addDisabled,
           {title}
           <span className="ml-1 text-faint/70">[{count}]</span>
         </button>
+        {actions && <span className="flex opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">{actions}</span>}
         {onAdd && (
           <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
             <IconButton icon={Plus} label={addLabel ?? "Add"} size="sm" onClick={onAdd} disabled={addDisabled} side="right" />
