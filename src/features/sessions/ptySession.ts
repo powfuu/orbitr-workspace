@@ -22,6 +22,8 @@ interface Live {
 }
 
 const live = new Map<ID, Live>();
+const nudged = new Set<ID>();
+const settle = new Map<ID, number>();
 const dim = (s: string) => `\r\n\x1b[2m${s}\x1b[0m\r\n`;
 const hasFocus = (id: ID) => () =>
   document.hasFocus() && !!document.activeElement?.closest(`[data-session="${id}"]`);
@@ -44,6 +46,11 @@ export async function spawnPty(
     const { id: ptyId, pid } = await pty.spawn({ ...opts, cols: term.cols, rows: term.rows }, (e) => {
       if (e.event === "output") {
         tracker.onOutput();
+        // Once the app's first screen has settled, make it repaint at the real size (see nudgeRedraw).
+        if (!nudged.has(id)) {
+          window.clearTimeout(settle.get(id));
+          settle.set(id, window.setTimeout(() => nudgeRedraw(id), 900));
+        }
         return term.write(e.data);
       }
       if (live.get(id) !== state) return; // superseded by a restart
@@ -106,7 +113,6 @@ export async function sendText(id: ID, text: string, submit: boolean): Promise<b
   return true;
 }
 
-const nudged = new Set<ID>();
 /**
  * Full-screen TUIs (Claude Code, Codex…) started before their view existed only drew into an
  * off-screen 80×24 terminal; some don't repaint until the size changes. Jiggle the PTY size
@@ -116,7 +122,10 @@ export function nudgeRedraw(id: ID) {
   const state = live.get(id);
   const term = terminalRegistry.get(id);
   if (!state?.ptyId || !term || nudged.has(id)) return;
+  // Only once it's actually on screen; otherwise the next attach (tab switch) will do it.
+  if (!term.element?.isConnected || !term.element.clientWidth) return;
   nudged.add(id);
+  terminalRegistry.remount(id);
   const ptyId = state.ptyId;
   void pty.resize(ptyId, Math.max(2, term.cols - 1), term.rows).catch(() => undefined);
   window.setTimeout(() => void pty.resize(ptyId, term.cols, term.rows).catch(() => undefined), 80);

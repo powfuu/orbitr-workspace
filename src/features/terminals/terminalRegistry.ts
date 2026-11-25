@@ -167,6 +167,20 @@ export const terminalRegistry = {
     }
   },
 
+  /** Exactly what a tab switch does to a mounted terminal: take it out, put it back, refit, repaint. */
+  remount(id: ID) {
+    const e = entries.get(id);
+    const parent = e?.host.parentElement;
+    if (!e?.opened || !parent) return;
+    const hadFocus = e.host.contains(document.activeElement);
+    parent.removeChild(e.host);
+    parent.appendChild(e.host);
+    wakeVisible();
+    this.fit(id);
+    e.term.refresh(0, e.term.rows - 1);
+    if (hadFocus) e.term.focus();
+  },
+
   detach(id: ID) {
     entries.get(id)?.host.remove();
   },
