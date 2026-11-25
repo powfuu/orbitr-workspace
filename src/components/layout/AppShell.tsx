@@ -31,7 +31,7 @@ export function AppShell() {
           )}
         </AnimatePresence>
 
-        <div className="min-w-0 flex-1"><ErrorBoundary label="Workspace"><CenterWorkspace /></ErrorBoundary></div>
+        <div data-region="main" tabIndex={-1} className="min-w-0 flex-1 outline-none"><ErrorBoundary label="Workspace"><CenterWorkspace /></ErrorBoundary></div>
 
         <AnimatePresence initial={false}>
           {terminalOpen && (

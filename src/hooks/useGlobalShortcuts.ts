@@ -43,6 +43,12 @@ export function useGlobalShortcuts() {
         e.preventDefault();
         return cycleTab(e.shiftKey ? -1 : 1);
       }
+      // Option/Alt+Shift+Q/W/E: focus sidebar search · centre pane · terminal panel.
+      if (e.altKey && e.shiftKey && !e.metaKey && !e.ctrlKey && /^Key[QWE]$/.test(e.code)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return focusArea(e.code);
+      }
       // Number keys (e.code, so Shift/Option don't change the digit):
       //   Mod+N project · Mod+Shift+N workspace · Option/Alt+N tab in the focused pane ·
       //   Ctrl+N terminal on macOS (Ctrl+Alt+N on Windows/Linux, where Ctrl is the Mod key).
@@ -139,6 +145,24 @@ function openProject(n: number) {
 }
 
 /** Nth terminal in the right panel; opens the panel and focuses it. */
+function focusArea(code: string) {
+  const layout = useLayout.getState();
+  if (code === "KeyQ") {
+    if (!layout.sidebarOpen) layout.toggleSidebar();
+    return window.setTimeout(() => document.querySelector<HTMLInputElement>("[data-session-search]")?.focus(), 60);
+  }
+  if (code === "KeyE") {
+    const id = useSessions.getState().activeTerminalId ?? useSessions.getState().terminals[0]?.id;
+    layout.openTerminalPanel();
+    return id && window.setTimeout(() => terminalRegistry.focus(id), 60);
+  }
+  // Centre: the active tab's agent/editor input, else the pane itself.
+  const { tabs, activeTabId } = getActiveTabs();
+  const target = tabs.find((t) => t.id === activeTabId)?.target as { type: string; id?: string } | undefined;
+  if (target?.type === "agent" && target.id && terminalRegistry.get(target.id)) return terminalRegistry.focus(target.id);
+  document.querySelector<HTMLElement>('[data-region="main"]')?.focus();
+}
+
 function focusTerminal(n: number) {
   const t = useSessions.getState().terminals[n];
   if (!t) return;

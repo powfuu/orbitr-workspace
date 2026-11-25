@@ -73,6 +73,7 @@ export function Sidebar() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            data-session-search
             placeholder="search sessions"
             className="min-w-0 flex-1 bg-transparent font-mono text-[12px] text-fg outline-none placeholder:text-faint"
           />

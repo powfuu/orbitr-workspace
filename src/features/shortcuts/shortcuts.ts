@@ -9,6 +9,7 @@ export interface Shortcut {
 const m = modKey;
 const shift = isMac ? "⇧" : "Shift";
 const ctrl = isMac ? "⌃" : "Ctrl";
+const alt = isMac ? "⌥" : "Alt";
 
 export const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
   {
@@ -44,7 +45,10 @@ export const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
       { keys: [m, "\\"], label: "Split pane right" },
       { keys: [m, shift, "\\"], label: "Split pane down" },
       { keys: [ctrl, "Tab"], label: "Next tab" },
-      { keys: [m, "W"], label: "Close tab" },
+      { keys: [m, "W"], label: "Close tab / terminal (focused area)" },
+      { keys: [alt, shift, "Q"], label: "Focus session search" },
+      { keys: [alt, shift, "W"], label: "Focus centre (agent, Vim, view)" },
+      { keys: [alt, shift, "E"], label: "Focus terminal panel" },
     ],
   },
 ];
