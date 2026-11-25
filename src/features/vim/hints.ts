@@ -43,3 +43,15 @@ export function describe(el: HTMLElement): string {
   const clean = (text || el.tagName.toLowerCase()).replace(/\s+/g, " ").trim();
   return clean.length > 48 ? `${clean.slice(0, 47)}…` : clean;
 }
+
+/** Clickables for keyboard navigation: also ones scrolled out of view (they get scrolled to). Limited to an open dialog if there is one. */
+export function navigables(): HTMLElement[] {
+  const dialog = [...document.querySelectorAll<HTMLElement>('[role="dialog"]')].find((d) => d.checkVisibility());
+  const root: ParentNode = dialog ?? document;
+  return [...root.querySelectorAll<HTMLElement>(SELECTOR)].filter((el) => {
+    if (el.closest(".xterm") && !el.classList.contains("xterm")) return false;
+    if ((el as HTMLButtonElement).disabled || el.closest("[aria-hidden='true']")) return false;
+    const r = el.getBoundingClientRect();
+    return r.width >= 4 && r.height >= 4 && el.checkVisibility({ opacityProperty: true, visibilityProperty: true } as CheckVisibilityOptions);
+  });
+}

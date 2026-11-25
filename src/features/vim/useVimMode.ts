@@ -9,7 +9,7 @@ import { cycleTab, focusArea } from "../../hooks/useGlobalShortcuts";
 import { terminalRegistry } from "../terminals/terminalRegistry";
 import { useVim } from "./vimStore";
 import { activate, collectHints, isClickable } from "./hints";
-import { nextInDirection, type Dir } from "./spatialNav";
+import { nearestTo, nextInDirection, type Dir } from "./spatialNav";
 
 const EDITABLE = "input, textarea, select, [contenteditable], .xterm";
 const DOUBLE_ESC_MS = 400;
@@ -107,12 +107,11 @@ export function useVimMode() {
         return set({ typed: next });
       }
 
+      // Esc again leaves NORMAL: back to typing in the pane you're in.
       if (e.key === "Escape" && mode === "normal") {
-        if (vim().cursor) {
-          swallow(e);
-          return set({ cursor: null });
-        }
-        return;
+        swallow(e);
+        set({ cursor: null });
+        return toInsert();
       }
 
       if (e.key === "Escape" && mode === "insert") {
@@ -125,8 +124,15 @@ export function useVimMode() {
         swallow(e);
         const was = document.activeElement as HTMLElement | null;
         was?.blur();
-        // Start the cursor where you were, if that was something clickable (not a text field).
-        return set({ mode: "normal", cursor: isClickable(was) && !was.matches(EDITABLE) ? was : null });
+        // Start the cursor where you were: that element if clickable, else the nearest one in the same pane.
+        let start: HTMLElement | null = isClickable(was) && !was.matches(EDITABLE) ? was : null;
+        if (!start) {
+          const pane = was?.closest("[data-region]") ?? document.querySelector(`[data-region="${focusedRegion()}"]`);
+          const r = (was && was !== document.body ? was : pane)?.getBoundingClientRect();
+          if (r) start = nearestTo(r.left + Math.min(r.width / 2, 40), r.top + Math.min(r.height / 2, 40), pane);
+        }
+        if (start) setFocusedRegion((start.closest("[data-region]")?.getAttribute("data-region") as Region | null) ?? "main");
+        return set({ mode: "normal", cursor: start });
       }
 
       if (mode !== "normal" || e.metaKey || e.altKey) return;

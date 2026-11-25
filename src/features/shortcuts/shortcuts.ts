@@ -58,7 +58,7 @@ export const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
   {
     group: "Vim mode (Settings → Vim)",
     items: [
-      { keys: ["Esc"], label: "NORMAL mode (Esc Esc inside an editor)" },
+      { keys: ["Esc"], label: "NORMAL mode (Esc Esc inside an editor) · Esc again: back to typing" },
       { keys: ["i"], label: "Back to typing (INSERT)" },
       { keys: ["h", "j", "k", "l"], label: "Move the cursor between clickable elements" },
       { keys: ["Enter"], label: "Click the element under the cursor" },

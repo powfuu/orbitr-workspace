@@ -1,4 +1,4 @@
-import { clickables } from "./hints";
+import { navigables } from "./hints";
 
 export type Dir = "h" | "j" | "k" | "l";
 
@@ -9,7 +9,7 @@ const center = (r: DOMRect) => ({ x: r.left + r.width / 2, y: r.top + r.height /
  * Score = distance along the direction + 2 × sideways offset, so straight lines win over diagonals.
  */
 export function nextInDirection(from: HTMLElement | null, dir: Dir, scope?: Element | null): HTMLElement | null {
-  const all = clickables().filter((el) => el !== from && (!scope || scope.contains(el)));
+  const all = navigables().filter((el) => el !== from && (!scope || scope.contains(el)));
   if (!from || !from.isConnected) {
     // Reading order: rows (centres within 14px count as one row), then left to right.
     return all.sort((a, b) => {
@@ -34,6 +34,23 @@ export function nextInDirection(from: HTMLElement | null, dir: Dir, scope?: Elem
     const score = along + side * 2;
     if (score < bestScore) {
       bestScore = score;
+      best = el;
+    }
+  }
+  return best;
+}
+
+/** Clickable closest to a point inside `scope` (where you were when entering NORMAL). */
+export function nearestTo(x: number, y: number, scope: Element | null): HTMLElement | null {
+  let best: HTMLElement | null = null;
+  let bestD = Infinity;
+  for (const el of navigables()) {
+    if (scope && !scope.contains(el)) continue;
+    const c = center(el.getBoundingClientRect());
+    if (c.y < 0 || c.y > innerHeight) continue; // start on something on screen
+    const d = Math.hypot(c.x - x, c.y - y);
+    if (d < bestD) {
+      bestD = d;
       best = el;
     }
   }
