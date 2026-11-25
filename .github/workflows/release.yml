@@ -50,6 +50,21 @@ jobs:
 
       - run: npm ci
 
+      # Without the updater signing key, still build installers (just without auto-update files).
+      - name: Updater config
+        id: cfg
+        shell: bash
+        env:
+          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo '{"bundle":{"createUpdaterArtifacts":false}}' > no-updater.json
+            echo "extra=--config no-updater.json" >> "$GITHUB_OUTPUT"
+            echo "updater=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "updater=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -64,11 +79,13 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: Orbitr v__VERSION__
-          releaseBody: See the commits since the previous release.
-          releaseDraft: true
+          releaseBody: |
+            **Windows:** download the `.exe` (or `.msi`) and run it. If SmartScreen warns, click "More info" → "Run anyway".
+            **macOS:** download the `.dmg` for your Mac (aarch64 = Apple Silicon, x64 = Intel) and drag Orbitr to Applications. First launch: right-click → Open.
+          releaseDraft: false
           prerelease: false
-          includeUpdaterJson: true
-          args: --target ${{ matrix.target }}
+          includeUpdaterJson: ${{ steps.cfg.outputs.updater }}
+          args: --target ${{ matrix.target }} ${{ steps.cfg.outputs.extra }}
 
   checks:
     # Same gates as local development, on every tag.
