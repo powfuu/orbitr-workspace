@@ -77,6 +77,27 @@ function loadWebgl(term: Terminal) {
   }
 }
 
+/**
+ * xterm pauses drawing while an IntersectionObserver says it's off-screen. In the macOS
+ * WebView that callback never arrives when the window first becomes visible at launch, so a
+ * restored agent stays black until it's re-mounted (switching tabs). Un-pause any terminal
+ * that is actually on screen. Uses xterm internals; harmless if they change (no-op).
+ */
+type RenderService = { _isPaused?: boolean; _handleIntersectionChange?: (e: { isIntersecting: boolean; intersectionRatio: number }) => void };
+function wakeVisible() {
+  if (document.visibilityState !== "visible") return;
+  for (const e of entries.values()) {
+    if (!e.opened || !e.host.isConnected || e.host.clientWidth === 0 || e.host.clientHeight === 0) continue;
+    const rs = (e.term as unknown as { _core?: { _renderService?: RenderService } })._core?._renderService;
+    if (rs?._isPaused && rs._handleIntersectionChange) rs._handleIntersectionChange({ isIntersecting: true, intersectionRatio: 1 });
+  }
+}
+if (typeof window !== "undefined") {
+  window.addEventListener("focus", wakeVisible);
+  document.addEventListener("visibilitychange", wakeVisible);
+  window.setInterval(wakeVisible, 1000);
+}
+
 export const terminalRegistry = {
   create(id: ID): Terminal {
     const term = new Terminal({
@@ -135,21 +156,6 @@ export const terminalRegistry = {
         e.term.open(e.host);
         loadWebgl(e.term);
         e.opened = true;
-        // macOS WebKit sometimes leaves a just-opened terminal blank (seen after restoring at
-        // launch) until it's re-attached — which is what switching tabs does. Do that once
-        // ourselves: move the host out and back in, refit and repaint.
-        for (const ms of [250, 1200]) {
-          window.setTimeout(() => {
-            const parent = e.host.parentElement;
-            if (entries.get(id) !== e || !parent) return;
-            const hadFocus = e.host.contains(document.activeElement);
-            parent.removeChild(e.host);
-            parent.appendChild(e.host);
-            this.fit(id);
-            e.term.refresh(0, e.term.rows - 1);
-            if (hadFocus) e.term.focus();
-          }, ms);
-        }
       }
     }
     if (!e.host.isConnected) return;
