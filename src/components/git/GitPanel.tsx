@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, ArrowUp, Check, Columns2, FileCode2, GitBranch, GitCommitHorizontal, Loader2, Minus, Plus, RefreshCw } from "lucide-react";
 import { openInEditor, openVimDiff, projectIdForPath } from "../../features/editors/openInEditor";
 import { useEffect, useMemo, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { gitService, type Commit, type FileChange } from "../../services/git";
 import { useGit } from "../../features/git/gitStore";
 import { toast } from "../../stores/toastStore";
@@ -62,10 +63,22 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
     void gitService.diff(path, selected.path, selected.staged, selected.untracked).then(setDiff).catch((e) => setDiff(String(e)));
   }, [path, selected, fingerprint]);
 
-  const { staged, changes } = useMemo(() => {
+  const { conflicts, staged, changes } = useMemo(() => {
     const files = status?.files ?? [];
-    return { staged: files.filter((f) => f.staged && !f.conflicted), changes: files.filter((f) => (f.unstaged || f.untracked) && !f.conflicted) };
+    return {
+      conflicts: files.filter((f) => f.conflicted),
+      staged: files.filter((f) => f.staged && !f.conflicted),
+      changes: files.filter((f) => (f.unstaged || f.untracked) && !f.conflicted),
+    };
   }, [status]);
+  // During a merge the commit finishes it: prefill git's merge message.
+  const [mergeMsg, setMergeMsg] = useState<string | null>(null);
+  useEffect(() => {
+    void invoke<{ message: string } | null>("git_merge_state", { repo: path }).then((m) => setMergeMsg(m?.message ?? null)).catch(() => setMergeMsg(null));
+  }, [path, fingerprint]);
+  useEffect(() => {
+    if (mergeMsg) setMessage((m) => m || mergeMsg);
+  }, [mergeMsg]);
 
   if (status === undefined) return <EmptyLine icon={GitBranch}>Reading repository…</EmptyLine>;
   if (status === null) return <EmptyLine icon={GitBranch}>Not a git repository.</EmptyLine>;
@@ -119,7 +132,7 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
             <div
               key={`${isStaged}-${f.path}`}
               onClick={() => setSelected({ path: f.path, staged: isStaged, untracked: f.untracked })}
-              className={cn("group flex h-7 cursor-default items-center gap-2 px-3 text-[12px]", sel ? "bg-surface text-fg" : "text-fg-2 hover:bg-surface/60")}
+              className={cn("group flex h-7 cursor-default items-center gap-2 px-3 text-[12px]", f.conflicted ? (sel ? "bg-error/20 text-fg" : "bg-error/[0.07] text-fg hover:bg-error/15") : sel ? "bg-surface text-fg" : "text-fg-2 hover:bg-surface/60")}
             >
               <span className={cn("w-3 text-center font-mono text-[11px] font-semibold", tone[l] ?? "text-muted")}>{l}</span>
               <span className="truncate">{name}</span>
@@ -237,6 +250,7 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
               <div className="flex items-center gap-2 px-4 py-6 text-[12px] text-muted"><Check size={13} className="text-success" /> Working tree clean</div>
             ) : (
               <>
+                {section("Conflicts", conflicts, false)}
                 {section("Staged", staged, true)}
                 {section("Changes", changes, false)}
               </>
@@ -257,12 +271,12 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
               className="w-full resize-none rounded-md bg-bg px-2.5 py-2 text-[12.5px] text-fg outline-none ring-1 ring-line-soft placeholder:text-faint focus:ring-fg/30"
             />
             <button
-              disabled={!message.trim() || status.files.length === 0 || !!busy}
+              disabled={!message.trim() || (status.files.length === 0 && !mergeMsg) || conflicts.length > 0 || !!busy}
               onClick={commit}
               className="mt-2 flex h-8 w-full items-center justify-center gap-2 rounded-lg bg-fg text-[12.5px] font-medium text-bg hover:bg-fg/85 disabled:bg-surface disabled:text-faint"
             >
               {busy === "commit" ? <Loader2 size={13} className="animate-spin" /> : <GitCommitHorizontal size={14} />}
-              {staged.length ? `Commit ${staged.length} staged` : `Stage all & commit (${changes.length})`}
+              {mergeMsg ? (conflicts.length ? `Resolve ${conflicts.length} conflict${conflicts.length === 1 ? "" : "s"} first` : "Commit merge") : staged.length ? `Commit ${staged.length} staged` : `Stage all & commit (${changes.length})`}
               <Kbd>{modKey}↵</Kbd>
             </button>
           </div>

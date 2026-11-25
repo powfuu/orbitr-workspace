@@ -249,13 +249,27 @@ pub fn merge_state(repo: &str) -> Result<Option<MergeState>, String> {
 }
 
 /// Concludes a merge once every conflict is resolved and staged.
+fn has_markers(repo: &str, file: &str) -> bool {
+    std::fs::read_to_string(std::path::Path::new(repo).join(file)).is_ok_and(|c| c.lines().any(|l| l.starts_with("<<<<<<<") || l.starts_with(">>>>>>>")))
+}
+
+/// Stages conflicted files whose markers are gone (you resolved them in an editor), so the
+/// conflict list updates by itself. Returns the files it marked resolved.
+pub fn stage_resolved(repo: &str) -> Result<Vec<String>, String> {
+    let unmerged = git(repo, &["diff", "--name-only", "--diff-filter=U"])?;
+    let done: Vec<String> = unmerged.lines().filter(|f| !f.is_empty() && !has_markers(repo, f)).map(String::from).collect();
+    if !done.is_empty() {
+        let mut args = vec!["add", "--"];
+        args.extend(done.iter().map(String::as_str));
+        git(repo, &args)?;
+    }
+    Ok(done)
+}
+
 pub fn merge_continue(repo: &str) -> Result<String, String> {
     // Refuse while any conflicted file still has markers, so they never get committed.
     let unmerged = git(repo, &["diff", "--name-only", "--diff-filter=U"])?;
-    let left: Vec<&str> = unmerged
-        .lines()
-        .filter(|f| std::fs::read_to_string(std::path::Path::new(repo).join(f)).is_ok_and(|c| c.lines().any(|l| l.starts_with("<<<<<<<") || l.starts_with(">>>>>>>"))))
-        .collect();
+    let left: Vec<&str> = unmerged.lines().filter(|f| has_markers(repo, f)).collect();
     if !left.is_empty() {
         return Err(format!("Still has conflict markers: {}", left.join(", ")));
     }
@@ -449,7 +463,9 @@ mod tests {
 
         let _ = merge(r, "other", true);
         assert!(merge_continue(r).unwrap_err().contains("f.txt"), "markers left → refused");
+        assert!(stage_resolved(r).unwrap().is_empty(), "still has markers");
         std::fs::write(dir.join("f.txt"), "resolved\n").unwrap();
+        assert_eq!(stage_resolved(r).unwrap(), vec!["f.txt".to_string()]);
         merge_continue(r).unwrap();
         assert!(merge_state(r).unwrap().is_none());
         assert!(git(r, &["log", "-1", "--format=%s"]).unwrap().contains("Merge branch 'other'"));

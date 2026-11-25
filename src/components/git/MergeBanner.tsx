@@ -1,4 +1,4 @@
-import { AlertTriangle, Check, FileCode2, GitMerge } from "lucide-react";
+import { AlertTriangle, FileCode2, GitMerge } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import { gitMore, type FileChange } from "../../services/git";
@@ -6,6 +6,7 @@ import { useGit } from "../../features/git/gitStore";
 import { useGitRun } from "../../features/git/gitRun";
 import { openInEditor, projectIdForPath } from "../../features/editors/openInEditor";
 import { confirmDialog } from "../ui/ConfirmDialog";
+import { toast } from "../../stores/toastStore";
 import { cn } from "../../lib/cn";
 import { GitButton } from "./ui";
 
@@ -24,6 +25,29 @@ export function MergeBanner({ repo }: { repo: string }) {
     void invoke<{ message: string } | null>("git_merge_state", { repo }).then(setMerge).catch(() => setMerge(null));
   }, [repo, fingerprint]);
 
+  // While conflicts remain, notice files you fixed in an editor (no markers left) and mark
+  // them resolved automatically, so the list updates live.
+  const pending = conflicted.length > 0;
+  useEffect(() => {
+    if (!pending) return;
+    const tick = () =>
+      void invoke<string[]>("git_stage_resolved", { repo })
+        .then((done) => {
+          if (done.length) {
+            toast({ kind: "success", title: `Resolved ${done.map((f) => f.split("/").pop()).join(", ")}` });
+            void useGit.getState().refresh(repo);
+          }
+        })
+        .catch(() => undefined);
+    tick();
+    const t = window.setInterval(tick, 2000);
+    window.addEventListener("focus", tick);
+    return () => {
+      window.clearInterval(t);
+      window.removeEventListener("focus", tick);
+    };
+  }, [repo, pending]);
+
   if (!merge && conflicted.length === 0) return null;
   const done = conflicted.length === 0;
   const projectId = projectIdForPath(repo);
@@ -38,22 +62,16 @@ export function MergeBanner({ repo }: { repo: string }) {
       <div className="flex flex-wrap items-center gap-2">
         {done ? <GitMerge size={15} className="text-success" /> : <AlertTriangle size={15} className="text-error" />}
         <span className={cn("font-mono text-[12.5px] font-semibold", done ? "text-success" : "text-error")}>
-          {done ? "Conflicts resolved — finish the merge" : `${conflicted.length} merge conflict${conflicted.length === 1 ? "" : "s"}`}
+          {done ? "All conflicts resolved — commit below to finish the merge" : `${conflicted.length} merge conflict${conflicted.length === 1 ? "" : "s"}`}
         </span>
         {merge && <span className="min-w-0 truncate font-mono text-[11.5px] text-fg-2">{merge.message}</span>}
         <span className="ml-auto flex gap-1.5">
           <GitButton danger disabled={!!busy} onClick={() => void abort()}>abort merge</GitButton>
-          <GitButton primary disabled={!!busy} title="Commit the merge (checks that no conflict markers are left)" onClick={() => void run("finish merge", () => invoke("git_merge_continue", { repo }), "Merge finished")}>
-            <Check size={11} /> finish merge
-          </GitButton>
         </span>
       </div>
       {conflicted.length > 0 && (
         <>
-          <p className="mt-1.5 text-[11.5px] text-muted">
-            These files changed in both branches. Open each one, keep what you want and delete the <span className="font-mono">{"<<<<<<<"}</span> / <span className="font-mono">{">>>>>>>"}</span> markers, save — then finish the merge.
-          </p>
-          <div className="mt-2 divide-y divide-error/20 rounded-lg border border-error/30 bg-bg/60">
+          <div className="mt-2.5 divide-y divide-error/20 rounded-lg border border-error/30 bg-bg/60">
             {conflicted.map((f: FileChange) => (
               <div key={f.path} className="flex flex-wrap items-center gap-2 px-3 py-1.5">
                 <AlertTriangle size={12} className="shrink-0 text-error" />

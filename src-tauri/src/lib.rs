@@ -87,6 +87,7 @@ pub fn run() {
             commands::git::git_push_branch,
             commands::git::git_merge_state,
             commands::git::git_merge_continue,
+            commands::git::git_stage_resolved,
             commands::fonts::nerd_fonts,
             commands::fonts::read_font,
         ])

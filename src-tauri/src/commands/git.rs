@@ -243,3 +243,8 @@ pub async fn git_merge_state(repo: String) -> Result<Option<git::MergeState>, St
 pub async fn git_merge_continue(repo: String) -> Result<String, String> {
     run(move || git::merge_continue(&repo)).await
 }
+
+#[tauri::command]
+pub async fn git_stage_resolved(repo: String) -> Result<Vec<String>, String> {
+    run(move || git::stage_resolved(&repo)).await
+}
