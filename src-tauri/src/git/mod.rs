@@ -14,7 +14,6 @@ pub use branches::{add_worktree, branches, create as create_branch, remove_workt
 use parse::{parse_log, parse_status};
 pub use parse::{Commit, GitStatus};
 use std::path::Path;
-use std::process::Command;
 
 const MAX_DIFF: usize = 256 * 1024;
 
@@ -22,7 +21,7 @@ pub(crate) fn git(repo: &str, args: &[&str]) -> Result<String, String> {
     if !Path::new(repo).is_dir() {
         return Err(format!("not a folder: {repo}"));
     }
-    let mut cmd = Command::new("git");
+    let mut cmd = crate::process::command("git");
     cmd.arg("-C").arg(repo);
     // With Git Credential Manager installed, add it as a helper so browser sign-ins are used.
     if let Some(gcm) = remote::gcm_path() {
@@ -81,7 +80,7 @@ pub fn diff(repo: &str, file: &str, staged: bool, untracked: bool) -> Result<Str
     let mut out = if untracked {
         let null = if cfg!(windows) { "NUL" } else { "/dev/null" };
         // `--no-index` exits 1 when files differ, which is the normal case here.
-        let o = Command::new("git")
+        let o = crate::process::command("git")
             .arg("-C")
             .arg(repo)
             .args(["diff", "--no-color", "--no-index", "--", null, file])

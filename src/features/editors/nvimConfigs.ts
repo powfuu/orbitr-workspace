@@ -1,3 +1,5 @@
+import { isWindows } from "../../lib/platform";
+
 /** Ready-made Neovim configs. Each lives in its own NVIM_APPNAME, so your ~/.config/nvim is never touched. */
 export interface NvimConfigDef {
   name: string;
@@ -23,8 +25,15 @@ export const NVIM_CONFIGS: NvimConfigDef[] = [
 
 export type NvimConfig = NvimConfigDef;
 
-/** Clones the config once into ~/.config/<app>, then opens Neovim with it. */
-export const installConfigCommand = (d: NvimConfig) => {
+/**
+ * Clones the config once into Neovim's config folder for that NVIM_APPNAME, then opens Neovim with it.
+ * Windows terminals run PowerShell and Neovim reads %LOCALAPPDATA%\<app> there; elsewhere ~/.config/<app>.
+ */
+export const installConfigCommand = (d: NvimConfig, windows = isWindows) => {
+  if (windows) {
+    const restore = d.lazyRestore ? ` if ($LASTEXITCODE -eq 0) { $env:NVIM_APPNAME = '${d.app}'; nvim --headless '+Lazy! restore' +qa }` : "";
+    return `$d = Join-Path $env:LOCALAPPDATA '${d.app}'; if (-not (Test-Path $d)) { git clone --depth 1 ${d.repo} $d;${restore} }; $env:NVIM_APPNAME = '${d.app}'; nvim`;
+  }
   const restore = d.lazyRestore ? ` && NVIM_APPNAME=${d.app} nvim --headless "+Lazy! restore" +qa` : "";
   return `[ -d ~/.config/${d.app} ] || { git clone --depth 1 ${d.repo} ~/.config/${d.app}${restore}; }; NVIM_APPNAME=${d.app} nvim`;
 };

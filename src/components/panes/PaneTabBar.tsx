@@ -13,6 +13,7 @@ import { isMac, modKey } from "../../lib/platform";
 import { cn } from "../../lib/cn";
 import type { ID } from "../../types";
 import { IconButton } from "../ui/IconButton";
+import { windowControlsPad } from "../layout/WindowControls";
 import { ContextMenu } from "../ui/ContextMenu";
 import { VoiceButton } from "../voice/VoiceButton";
 import { ActivityIconFor } from "../agents/ActivityBadge";
@@ -82,6 +83,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
       onDragOver={allowDrop}
       onDragLeave={() => setDropIndex(null)}
       onDrop={(e) => onDrop(e)}
+      style={topRight && !terminalOpen ? windowControlsPad : undefined}
       className={cn(
         "flex h-11 shrink-0 items-end gap-1 border-b border-line-soft bg-bg pr-2",
         topLeft && !sidebarOpen && isMac ? "pl-[84px]" : "pl-2",

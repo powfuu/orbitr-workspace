@@ -2,7 +2,6 @@ pub mod chats;
 pub mod timeline;
 pub mod usage;
 
-use std::process::Command;
 
 /// Only plain executable names are accepted; this value is interpolated into a shell command.
 fn is_safe_name(name: &str) -> bool {
@@ -16,9 +15,9 @@ pub fn resolve_executable(name: &str) -> Option<String> {
         return None;
     }
     let output = if cfg!(windows) {
-        Command::new("where.exe").arg(name).output().ok()?
+        crate::process::command("where.exe").arg(name).output().ok()?
     } else {
-        Command::new(crate::terminal::default_shell())
+        crate::process::command(crate::terminal::default_shell())
             .args(["-l", "-c", &format!("command -v {name}")])
             .output()
             .ok()?

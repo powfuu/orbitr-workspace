@@ -3,6 +3,7 @@ mod commands;
 mod fonts;
 mod git;
 mod persistence;
+mod process;
 mod terminal;
 mod voice;
 

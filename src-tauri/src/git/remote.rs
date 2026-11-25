@@ -3,7 +3,7 @@
 use super::git;
 use serde::Serialize;
 use std::io::Write;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 #[derive(Serialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -71,7 +71,7 @@ pub fn browser_login(repo: &str, remote: &str) -> Result<(), String> {
     if remote.is_empty() || remote.starts_with('-') {
         return Err("invalid remote".into());
     }
-    let out = Command::new("git")
+    let out = crate::process::command("git")
         .arg("-C")
         .arg(repo)
         .arg("-c")
@@ -113,7 +113,7 @@ pub fn store_credential(repo: &str, remote_url: &str, username: &str, password: 
     if username.is_empty() || password.is_empty() || username.contains('\n') || password.contains('\n') {
         return Err("username and password are required".into());
     }
-    let mut child = Command::new("git")
+    let mut child = crate::process::command("git")
         .arg("-C")
         .arg(repo)
         .args(["credential", "approve"])

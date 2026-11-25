@@ -1,10 +1,10 @@
 import type { SpawnOptions } from "../../services/pty";
 import { resolveDefaultShell } from "../terminals/defaultShell";
-import { isMac } from "../../lib/platform";
+import { isMac, isWindows } from "../../lib/platform";
 import type { AgentDefinition } from "./registry";
 import { useSettings } from "../../stores/settingsStore";
 
-export const isWindows = navigator.userAgent.includes("Windows");
+export { isWindows } from "../../lib/platform";
 const quote = (a: string) => (/^[\w@%+=:,./-]+$/.test(a) ? a : `'${a.replace(/'/g, `'\\''`)}'`);
 
 /**

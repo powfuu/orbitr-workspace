@@ -8,6 +8,7 @@ import { newDefaultTerminal } from "../../features/terminals/newDefaultTerminal"
 import { createTerminal, restartTerminal } from "../../features/terminals/terminalActions";
 import { isTauri, modKey } from "../../lib/platform";
 import { IconButton } from "../ui/IconButton";
+import { windowControlsPad } from "../layout/WindowControls";
 import { Kbd } from "../ui/Kbd";
 import { ShellPicker } from "./ShellPicker";
 import { TerminalTabs } from "./TerminalTabs";
@@ -22,7 +23,7 @@ export function TerminalPanel() {
 
   return (
     <aside className="flex h-full flex-col bg-bg">
-      <div {...windowDragProps} className="flex h-11 shrink-0 items-center gap-1 border-b border-line-soft px-2">
+      <div {...windowDragProps} style={windowControlsPad} className="flex h-11 shrink-0 items-center gap-1 border-b border-line-soft px-2">
         <div className="flex items-center gap-2 pl-1.5 font-mono text-[12px] text-fg-2">
           <SquareTerminal size={14} className="text-muted" />
           terminal

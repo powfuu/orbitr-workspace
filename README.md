@@ -4,6 +4,20 @@
 
 Terminal-first desktop workspace for AI coding agents. Tauri 2 · Rust · React · TypeScript · Tailwind v4 · Zustand · Framer Motion.
 
+## Install on Windows (one click)
+
+```bash
+git clone https://github.com/powfuu/orbitr-workspace.git
+```
+
+Then double-click **`setup.cmd`** in the cloned folder. It installs whatever is missing
+(Node, Rust, Visual Studio C++ Build Tools, CMake, libclang) with winget, builds Orbitr,
+installs it for your user (Start menu + desktop shortcut) and opens it. Accept the Windows
+permission prompt if one appears while the Build Tools install.
+
+To update: `git pull` and run `setup.cmd` again. Options: `setup.cmd -NoInstall` (only build the
+installer in `src-tauri\target\release\bundle\nsis\`), `setup.cmd -NoLaunch`.
+
 ## Prerequisites
 
 - Node 20+

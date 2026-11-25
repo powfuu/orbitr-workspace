@@ -6,6 +6,7 @@ import { isMac, isTauri, modKey } from "../../lib/platform";
 import { cn } from "../../lib/cn";
 import { IconButton } from "../ui/IconButton";
 import { windowDragProps } from "../../hooks/useWindowDrag";
+import { windowControlsPad } from "../layout/WindowControls";
 import { TerminalView } from "../terminal/TerminalView";
 
 const shift = isMac ? "⇧" : "+Shift+";
@@ -42,7 +43,7 @@ export function FloatingTerminal() {
               full ? "h-full w-full" : "h-[min(78vh,820px)] w-[min(1180px,92vw)] rounded-xl border border-line shadow-pop",
             )}
           >
-            <div {...(full ? windowDragProps : {})} className={cn("flex h-9 shrink-0 items-center gap-2 border-b border-line-soft bg-bg px-3 font-mono text-[11.5px]", full && isMac && "pl-20")}>
+            <div {...(full ? windowDragProps : {})} style={full ? windowControlsPad : undefined} className={cn("flex h-9 shrink-0 items-center gap-2 border-b border-line-soft bg-bg px-3 font-mono text-[11.5px]", full && isMac && "pl-20")}>
               <span className="text-success">❯</span>
               <span className="text-fg-2">terminal</span>
               <span className="text-faint">{full ? `${modKey}${shift}N to exit full screen` : `${modKey}N to hide · it keeps running`}</span>

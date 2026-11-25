@@ -82,6 +82,11 @@ impl PtyManager {
                 cmd.env_remove(&key);
             }
         }
+        // Pick up tools installed while Orbitr is running (e.g. winget install Neovim).
+        #[cfg(windows)]
+        if let Some(path) = crate::process::fresh_path() {
+            cmd.env("PATH", path);
+        }
         cmd.env("TERM", "xterm-256color");
         cmd.env("COLORTERM", "truecolor");
         cmd.env("TERM_PROGRAM", "Orbitr");
@@ -106,11 +111,21 @@ impl PtyManager {
         tauri::async_runtime::spawn_blocking(move || {
             let mut buf = [0u8; 16 * 1024];
             let mut decoder = Utf8Stream::default();
+            // ConPTY opens with a cursor-position query (ESC[6n) and blocks the shell until it is
+            // answered. The xterm.js view may not be attached yet, so answer it here, once.
+            let mut startup_query = cfg!(windows);
             loop {
                 match reader.read(&mut buf) {
                     Ok(0) | Err(_) => break,
                     Ok(n) => {
-                        let text = decoder.push(&buf[..n]);
+                        let mut text = decoder.push(&buf[..n]);
+                        if startup_query && text.contains("\x1b[6n") {
+                            startup_query = false;
+                            text = text.replacen("\x1b[6n", "", 1);
+                            if let Some(s) = sessions.lock().unwrap().get_mut(&id) {
+                                let _ = s.writer.write_all(b"\x1b[1;1R").and_then(|_| s.writer.flush());
+                            }
+                        }
                         if !text.is_empty() && channel.send(PtyEvent::Output(text)).is_err() {
                             break; // frontend went away
                         }
@@ -223,5 +238,39 @@ mod tests {
         let (_, exit) = collect_until_exit(&rx);
         assert!(exit.contains("exit"));
         assert!(matches!(m.write(id, "x"), Err(PtyError::NotFound(_))));
+    }
+}
+
+#[cfg(all(test, windows))]
+mod windows_tests {
+    use super::*;
+    use std::sync::mpsc;
+    use std::time::{Duration, Instant};
+    use tauri::ipc::InvokeResponseBody;
+
+    #[test]
+    fn interactive_powershell_prints_a_prompt() {
+        let (tx, rx) = mpsc::channel();
+        let ch = Channel::new(move |body| {
+            if let InvokeResponseBody::Json(s) = body {
+                let _ = tx.send(s);
+            }
+            Ok(())
+        });
+        let m = PtyManager::default();
+        let (id, _) = m
+            .spawn(SpawnOptions { program: "powershell.exe".into(), args: vec![], cwd: None, env: HashMap::new(), cols: 80, rows: 24 }, ch)
+            .unwrap();
+        let mut out = String::new();
+        let deadline = Instant::now() + Duration::from_secs(20);
+        while Instant::now() < deadline && !out.contains("PS ") {
+            // Nothing answers terminal queries here: the manager must unblock ConPTY by itself.
+            if let Ok(s) = rx.recv_timeout(Duration::from_millis(200)) {
+                out.push_str(&s);
+            }
+        }
+        let _ = m.kill(id);
+        eprintln!("OUTPUT: {out:?}");
+        assert!(out.contains("PS "), "no prompt: {out:?}");
     }
 }

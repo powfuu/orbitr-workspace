@@ -20,7 +20,8 @@ import { CredentialsDialog } from "../git/CredentialsDialog";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { Minimize2 } from "lucide-react";
 import { toggleFocusMode } from "../../features/layout/focusMode";
-import { modKey, isMac } from "../../lib/platform";
+import { modKey, isMac, customTitleBar } from "../../lib/platform";
+import { WindowControls } from "./WindowControls";
 
 const slide = { type: "spring", stiffness: 420, damping: 42 } as const;
 
@@ -31,7 +32,7 @@ export function AppShell() {
   return (
     <div className="flex h-full flex-col">
       {/* Full screen hides every bar, so keep a strip to drag the window by (and clear the traffic lights). */}
-      {focusMode && <div {...windowDragProps} className="h-7 shrink-0 bg-bg" />}
+      {focusMode && <div {...windowDragProps} className={customTitleBar ? "h-11 shrink-0 bg-bg" : "h-7 shrink-0 bg-bg"} />}
       <div className="flex min-h-0 flex-1">
         <AnimatePresence initial={false}>
           {sidebarOpen && (
@@ -58,11 +59,12 @@ export function AppShell() {
         <button
           onClick={() => toggleFocusMode(false)}
           title={`Exit full screen (${modKey}${isMac ? "⇧↩" : "+Shift+Enter"})`}
-          className="fixed right-3 top-3 z-50 grid h-7 w-7 place-items-center rounded-md bg-surface/80 text-muted opacity-0 ring-1 ring-line backdrop-blur transition-opacity hover:text-fg hover:opacity-100 focus-visible:opacity-100"
+          className={`fixed ${customTitleBar ? "right-[150px] top-2" : "right-3 top-3"} z-50 grid h-7 w-7 place-items-center rounded-md bg-surface/80 text-muted opacity-0 ring-1 ring-line backdrop-blur transition-opacity hover:text-fg hover:opacity-100 focus-visible:opacity-100`}
         >
           <Minimize2 size={13} />
         </button>
       )}
+      <WindowControls />
       <CommandPalette />
       <Toaster />
       <ErrorBoundary label="Quick open"><QuickOpen /></ErrorBoundary>

@@ -12,3 +12,8 @@ export const basename = (path: string): string =>
 
 export const tildify = (path: string, home?: string): string =>
   home && path.startsWith(home) ? "~" + path.slice(home.length) : path;
+
+export const isWindows = navigator.userAgent.includes("Windows");
+
+/** Windows runs without the native title bar (tauri.windows.conf.json); the app draws its own caption buttons. */
+export const customTitleBar = isTauri && isWindows;
