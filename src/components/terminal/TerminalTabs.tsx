@@ -29,7 +29,7 @@ export function TerminalTabs() {
   const nudge = (dir: 1 | -1) => strip.current?.scrollBy({ left: dir * strip.current.clientWidth * 0.7, behavior: "smooth" });
   // Keep the active tab visible when there are more tabs than fit.
   useEffect(() => {
-    strip.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
+    strip.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ inline: "nearest", block: "nearest" });
   }, [activeTerminalId, terminals.length]);
 
   return (
@@ -42,7 +42,6 @@ export function TerminalTabs() {
             <Tooltip key={t.id} className="relative flex min-w-[128px] max-w-56 flex-1 basis-0" label={`${cwdFull(t.cwd)}${t.pid ? `  ·  pid ${t.pid}` : ""}`}>
             <motion.div
               key={t.id}
-              layout
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, width: 0, transition: { duration: 0.1 } }}
@@ -58,7 +57,7 @@ export function TerminalTabs() {
               )}
             >
               {active && (
-                <motion.span layoutId="term-tab" className="absolute inset-x-0 bottom-0 h-[2px] bg-accent" transition={{ type: "spring", stiffness: 500, damping: 40 }} />
+                <motion.span layoutId="term-tab" className="absolute inset-x-0 bottom-0 h-[2px] bg-accent" transition={{ duration: 0.12, ease: [0.2, 0, 0, 1] }} />
               )}
               <span className="relative"><StatusDot status={t.status} /></span>
               {i < 9 && <span className="relative text-[10px] text-faint">{i + 1}</span>}

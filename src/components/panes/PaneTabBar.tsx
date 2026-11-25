@@ -125,7 +125,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                     {active && (
                       <motion.span
                         layoutId={`tab-active-${paneId}`}
-                        transition={{ type: "spring", stiffness: 520, damping: 44, mass: 0.7 }}
+                        transition={{ duration: 0.12, ease: [0.2, 0, 0, 1] }}
                         className="absolute inset-0 -z-0 rounded-t-md bg-bg-2 shadow-[inset_0_1px_0_0_#ffffff0f,0_0_0_1px_var(--color-line-soft)]"
                       >
                         <span

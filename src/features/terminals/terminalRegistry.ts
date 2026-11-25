@@ -106,12 +106,21 @@ export const terminalRegistry = {
     container.appendChild(e.host);
     if (!e.opened) {
       await fontsReady;
-      e.term.open(e.host);
-      loadWebgl(e.term);
-      e.opened = true;
+      // Rapid tab switching: another attach may have opened it, or the view is already gone.
+      if (entries.get(id) !== e || !e.host.isConnected) return;
+      if (!e.opened) {
+        e.term.open(e.host);
+        loadWebgl(e.term);
+        e.opened = true;
+      }
     }
+    if (!e.host.isConnected) return;
     this.fit(id);
-    e.term.refresh(0, e.term.rows - 1);
+    try {
+      e.term.refresh(0, e.term.rows - 1);
+    } catch {
+      /* renderer swapped mid-switch */
+    }
   },
 
   detach(id: ID) {
