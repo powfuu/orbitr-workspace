@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSessions } from "../../stores/sessionStore";
 import { closeTerminal } from "../../features/terminals/terminalActions";
@@ -13,13 +13,28 @@ export function TerminalTabs() {
   const { terminals, activeTerminalId, setActiveTerminal, updateTerminal } = useSessions();
   const [editing, setEditing] = useState<string | null>(null);
   const strip = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+  const measure = () => {
+    const el = strip.current;
+    if (el) setEdges({ left: el.scrollLeft > 2, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 2 });
+  };
+  useEffect(() => {
+    const el = strip.current;
+    if (!el) return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  useEffect(measure, [terminals.length]);
+  const nudge = (dir: 1 | -1) => strip.current?.scrollBy({ left: dir * strip.current.clientWidth * 0.7, behavior: "smooth" });
   // Keep the active tab visible when there are more tabs than fit.
   useEffect(() => {
     strip.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
   }, [activeTerminalId, terminals.length]);
 
   return (
-    <div ref={strip} onWheel={(e) => { if (strip.current && Math.abs(e.deltaY) > Math.abs(e.deltaX)) strip.current.scrollLeft += e.deltaY; }} role="tablist" className="flex h-9 shrink-0 items-stretch gap-px overflow-x-auto border-b border-line-soft px-1 [scrollbar-width:none]">
+    <div className="relative flex h-9 shrink-0 border-b border-line-soft">
+    <div ref={strip} onScroll={measure} onWheel={(e) => { if (strip.current && Math.abs(e.deltaY) > Math.abs(e.deltaX)) strip.current.scrollLeft += e.deltaY; }} role="tablist" className="no-scrollbar flex min-w-0 flex-1 items-stretch gap-px overflow-x-auto px-1">
       <AnimatePresence initial={false}>
         {terminals.map((t, i) => {
           const active = t.id === activeTerminalId;
@@ -75,6 +90,23 @@ export function TerminalTabs() {
           );
         })}
       </AnimatePresence>
+    </div>
+      {(["left", "right"] as const).map((side) =>
+        edges[side] ? (
+          <button
+            key={side}
+            aria-label={`More terminals ${side}`}
+            onClick={() => nudge(side === "left" ? -1 : 1)}
+            className={cn(
+              "absolute inset-y-0 z-10 flex w-8 items-center text-muted hover:text-fg",
+              side === "left" ? "left-0 justify-start bg-gradient-to-r pl-1" : "right-0 justify-end bg-gradient-to-l pr-1",
+              "from-bg via-bg/90 to-transparent",
+            )}
+          >
+            {side === "left" ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
+          </button>
+        ) : null,
+      )}
     </div>
   );
 }

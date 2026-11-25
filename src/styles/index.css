@@ -82,3 +82,7 @@ body {
 /* Section labels read like shell comments: "# launch here". */
 .term-heading { font-family: var(--font-mono); font-size: 11px; text-transform: lowercase; letter-spacing: 0; color: var(--color-faint); }
 .term-heading::before { content: "# "; opacity: 0.7; }
+
+/* Scrollable strips without a visible scrollbar (WebKit ignores scrollbar-width). */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
