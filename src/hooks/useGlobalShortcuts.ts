@@ -11,6 +11,7 @@ import { useQuickOpen } from "../components/editors/QuickOpen";
 import { useSnippetPicker } from "../components/snippets/SnippetPicker";
 import { useVoice } from "../features/voice/voiceStore";
 import { useTerminalSearch } from "../features/search/searchStore";
+import { closeFocused } from "../features/terminals/closeFocused";
 import { searchTarget } from "../features/search/searchTarget";
 
 function cycleTab(step: 1 | -1) {
@@ -112,7 +113,7 @@ export function useGlobalShortcuts() {
             j: layout.toggleTerminal,
             t: () => void newDefaultTerminal(),
             n: () => layout.setPaletteOpen(true, "Start "),
-            w: () => useTabs.getState().close(getActiveTabs().activeTabId),
+            w: closeFocused,
             ",": () => useTabs.getState().open({ type: "settings" }),
             e: () => void openInEditor(),
             p: () => useQuickOpen.getState().open(),
