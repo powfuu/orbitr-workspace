@@ -148,7 +148,9 @@ export const terminalRegistry = {
     const e = entries.get(id);
     if (!e?.opened || !e.host.isConnected || e.host.clientWidth === 0) return;
     try {
+      const { cols, rows } = e.term;
       e.fit.fit();
+      if (cols !== e.term.cols || rows !== e.term.rows) e.term.refresh(0, e.term.rows - 1);
       // The WebGL canvas is cleared when it resizes (e.g. opening the timeline); repaint the
       // screen on the next frame so it never stays black until new output arrives.
       requestAnimationFrame(() => {

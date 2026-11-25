@@ -15,14 +15,17 @@ export function TerminalView({ id, focused }: { id: ID; focused: boolean }) {
     const el = ref.current;
     if (!el) return;
     void terminalRegistry.attach(id, el).then(() => focused && terminalRegistry.focus(id));
-    let frame = 0;
+    // Debounced: panels that slide open (timeline, sidebar) resize us every frame. Refitting each
+    // frame makes the PTY app redraw (and the canvas clear) over and over, which flickers;
+    // one fit once the size settles keeps the old frame on screen meanwhile.
+    let timer = 0;
     const ro = new ResizeObserver(() => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => terminalRegistry.fit(id));
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => terminalRegistry.fit(id), 140);
     });
     ro.observe(el);
     return () => {
-      cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
       ro.disconnect();
       terminalRegistry.detach(id);
     };

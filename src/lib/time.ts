@@ -6,7 +6,11 @@ export function timeAgo(ts: number): string {
   if (abs < 60) return rtf.format(s, "second");
   if (abs < 3600) return rtf.format(Math.round(s / 60), "minute");
   if (abs < 86400) return rtf.format(Math.round(s / 3600), "hour");
-  return rtf.format(Math.round(s / 86400), "day");
+  if (abs < 2 * 86400) return rtf.format(Math.round(s / 86400), "day"); // "ayer"
+  // Older: the date itself ("12 nov", with the year when it isn't this year).
+  const d = new Date(ts);
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short", ...(sameYear ? {} : { year: "numeric" }) });
 }
 
 export function duration(ms: number): string {
