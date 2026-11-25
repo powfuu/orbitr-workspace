@@ -13,7 +13,7 @@ import { activate, collectHints } from "./hints";
 const EDITABLE = "input, textarea, select, [contenteditable], .xterm";
 const DOUBLE_ESC_MS = 400;
 
-function editorFocused(target: Element | null) {
+export function editorFocused(target: Element | null) {
   if (focusedRegion() !== "main" || !target?.closest(".xterm")) return false;
   const { tabs, activeTabId } = getActiveTabs();
   const t = tabs.find((x) => x.id === activeTabId)?.target as { type: string; id?: string } | undefined;
@@ -64,7 +64,7 @@ export function useVimMode() {
 
     const onKey = (e: KeyboardEvent) => {
       // Ctrl+H / Ctrl+L: previous / next tab in the focused area (centre tabs or terminals), always.
-      if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (e.code === "KeyH" || e.code === "KeyL") && focusedRegion() !== "sidebar" && focusedRegion() !== "floating") {
+      if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (e.code === "KeyH" || e.code === "KeyL") && focusedRegion() !== "sidebar" && focusedRegion() !== "floating" && !editorFocused(e.target as Element | null)) {
         swallow(e);
         return cycle(e.code === "KeyL" ? 1 : -1);
       }

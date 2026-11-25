@@ -11,6 +11,7 @@ import { useQuickOpen } from "../components/editors/QuickOpen";
 import { useSnippetPicker } from "../components/snippets/SnippetPicker";
 import { useVoice } from "../features/voice/voiceStore";
 import { useTerminalSearch } from "../features/search/searchStore";
+import { editorFocused } from "../features/vim/useVimMode";
 import { toggleFloating } from "../features/floating/floatingTerminal";
 import { toggleFocusMode } from "../features/layout/focusMode";
 import { closeFocused } from "../features/terminals/closeFocused";
@@ -42,6 +43,8 @@ export function useGlobalShortcuts() {
         return useLayout.getState().setHelpOpen(!useLayout.getState().helpOpen);
       }
       // Ctrl+Tab cycles tabs on every platform, as in browsers/editors.
+      // Inside Vim/Neovim every Ctrl/Option combo belongs to the editor; only ⌘ shortcuts stay app-wide.
+      if (!e.metaKey && (e.ctrlKey || e.altKey) && editorFocused(e.target as Element | null)) return;
       if (e.ctrlKey && e.key === "Tab") {
         e.preventDefault();
         return cycleTab(e.shiftKey ? -1 : 1);
