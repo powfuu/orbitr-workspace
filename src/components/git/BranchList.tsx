@@ -36,11 +36,7 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
   const merge = (b: Branch) =>
     void act(
       "merge",
-      () =>
-        gitMore.merge(repo, b.name, true).catch((e: unknown) => {
-          const msg = String(e);
-          throw new Error(/conflict/i.test(msg) ? `Conflicts merging ${b.name} into ${current}. Resolve them in "changes" and commit, or abort the merge from a terminal (git merge --abort).` : msg);
-        }),
+      () => gitMore.merge(repo, b.name, true),
       (out) => (/already up.to.date/i.test(String(out)) ? `Nothing to merge: ${current} already has everything from ${b.name}` : `Merged ${b.name} into ${current}`),
     );
   const remove = async (b: Branch) => {

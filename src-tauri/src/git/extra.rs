@@ -226,6 +226,34 @@ pub fn push_branch(repo: &str, branch: &str) -> Result<String, String> {
     }
 }
 
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MergeState {
+    /// First line of MERGE_MSG, e.g. "Merge branch 'master' into develop".
+    pub message: String,
+}
+
+/// Whether a merge is in progress (MERGE_HEAD exists) and what it's merging.
+pub fn merge_state(repo: &str) -> Result<Option<MergeState>, String> {
+    let head = git(repo, &["rev-parse", "--git-path", "MERGE_HEAD"])?;
+    let head = std::path::Path::new(repo).join(head.trim());
+    if !head.exists() {
+        return Ok(None);
+    }
+    let msg_path = git(repo, &["rev-parse", "--git-path", "MERGE_MSG"])?;
+    let message = std::fs::read_to_string(std::path::Path::new(repo).join(msg_path.trim()))
+        .ok()
+        .and_then(|m| m.lines().next().map(str::to_string))
+        .unwrap_or_else(|| "Merge in progress".into());
+    Ok(Some(MergeState { message }))
+}
+
+/// Concludes a merge once every conflict is resolved and staged.
+pub fn merge_continue(repo: &str) -> Result<String, String> {
+    git(repo, &["add", "-u"])?;
+    git(repo, &["commit", "--no-edit"])
+}
+
 pub fn merge_abort(repo: &str) -> Result<(), String> {
     git(repo, &["merge", "--abort"]).map(|_| ())
 }
@@ -383,6 +411,39 @@ mod tests {
         push_branch(a, "topic").unwrap();
         assert!(git(a, &["ls-remote", "--heads", "origin", "topic"]).unwrap().contains("topic"));
         let _ = std::fs::remove_dir_all(base);
+    }
+
+    #[test]
+    fn merge_conflict_state_abort_and_finish() {
+        let dir = std::env::temp_dir().join(format!("orbitr-git-merge-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let r = dir.to_str().unwrap();
+        git(r, &["init", "-q", "-b", "main"]).unwrap();
+        git(r, &["config", "user.email", "t@example.com"]).unwrap();
+        git(r, &["config", "user.name", "T"]).unwrap();
+        std::fs::write(dir.join("f.txt"), "base\n").unwrap();
+        git(r, &["add", "-A"]).unwrap();
+        git(r, &["commit", "-qm", "base"]).unwrap();
+        git(r, &["switch", "-q", "-c", "other"]).unwrap();
+        std::fs::write(dir.join("f.txt"), "other\n").unwrap();
+        git(r, &["commit", "-qam", "other"]).unwrap();
+        git(r, &["switch", "-q", "main"]).unwrap();
+        std::fs::write(dir.join("f.txt"), "main\n").unwrap();
+        git(r, &["commit", "-qam", "main"]).unwrap();
+
+        assert!(merge_state(r).unwrap().is_none());
+        assert!(merge(r, "other", true).is_err(), "conflict");
+        assert!(merge_state(r).unwrap().unwrap().message.contains("other"));
+        merge_abort(r).unwrap();
+        assert!(merge_state(r).unwrap().is_none());
+
+        let _ = merge(r, "other", true);
+        std::fs::write(dir.join("f.txt"), "resolved\n").unwrap();
+        merge_continue(r).unwrap();
+        assert!(merge_state(r).unwrap().is_none());
+        assert!(git(r, &["log", "-1", "--format=%s"]).unwrap().contains("Merge branch 'other'"));
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]

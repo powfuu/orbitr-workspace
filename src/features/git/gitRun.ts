@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "../../stores/toastStore";
 import { useGit } from "./gitStore";
 import { SilentError, withAuth } from "./withAuth";
+import { conflictAlert, isConflictError } from "./conflicts";
 
 /** Runs a git action with a busy flag, a toast on success/failure and a status refresh after. */
 export function useGitRun(repo: string) {
@@ -13,7 +14,8 @@ export function useGitRun(repo: string) {
       if (ok) toast({ kind: "success", title: typeof ok === "function" ? ok(r) : ok });
       return r;
     } catch (e) {
-      if (!(e instanceof SilentError)) toast({ kind: "error", title: `${label} failed`, detail: String(e) });
+      if (isConflictError(e)) void conflictAlert(repo, `${label[0]!.toUpperCase()}${label.slice(1)} stopped on conflicts.`);
+      else if (!(e instanceof SilentError)) toast({ kind: "error", title: `${label} failed`, detail: String(e) });
       return undefined;
     } finally {
       setBusy(null);

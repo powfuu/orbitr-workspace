@@ -19,9 +19,10 @@ import { BranchesView } from "./BranchesView";
 import { StashView } from "./StashView";
 import { RefChips } from "./ui";
 import { SilentError, withAuth } from "../../features/git/withAuth";
+import { conflictAlert, isConflictError, useGitTabs, type GitTab } from "../../features/git/conflicts";
+import { MergeBanner } from "./MergeBanner";
 
 const TABS = ["changes", "history", "branches", "stash"] as const;
-type Tab = (typeof TABS)[number];
 
 type Selected = { path: string; staged: boolean; untracked: boolean };
 
@@ -38,7 +39,8 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState<null | "commit" | "push" | "pull">(null);
   const [log, setLog] = useState<Commit[]>([]);
-  const [tab, setTab] = useState<Tab>("changes");
+  const tab = useGitTabs((t) => t.byPath[path] ?? "changes");
+  const setTab = (t: GitTab) => useGitTabs.getState().set(path, t);
   const [openCommit, setOpenCommit] = useState<string | null>(null);
   const showCommit = (hash: string | null) => {
     setOpenCommit(hash);
@@ -62,7 +64,7 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
 
   const { staged, changes } = useMemo(() => {
     const files = status?.files ?? [];
-    return { staged: files.filter((f) => f.staged), changes: files.filter((f) => f.unstaged || f.untracked || f.conflicted) };
+    return { staged: files.filter((f) => f.staged && !f.conflicted), changes: files.filter((f) => (f.unstaged || f.untracked) && !f.conflicted) };
   }, [status]);
 
   if (status === undefined) return <EmptyLine icon={GitBranch}>Reading repository…</EmptyLine>;
@@ -74,7 +76,8 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
       await withAuth(path, fn);
       if (ok) toast({ kind: "success", title: ok, detail });
     } catch (e) {
-      if (!(e instanceof SilentError)) toast({ kind: "error", title: `git ${label} failed`, detail: String(e) });
+      if (isConflictError(e)) void conflictAlert(path, `git ${label} stopped on conflicts.`);
+      else if (!(e instanceof SilentError)) toast({ kind: "error", title: `git ${label} failed`, detail: String(e) });
     } finally {
       setBusy(null);
       void refresh(path);
@@ -200,6 +203,7 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
         </div>
       </div>
 
+      <MergeBanner repo={path} />
       {full && (
         <div role="tablist" className="flex shrink-0 items-stretch gap-1 border-b border-line-soft px-3">
           {TABS.map((t) => (
@@ -211,7 +215,11 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
               className={cn("relative h-8 px-2.5 font-mono text-[11.5px] transition-colors", tab === t ? "text-fg" : "text-muted hover:text-fg-2")}
             >
               {t}
-              {t === "changes" && status.files.length > 0 && <span className="ml-1.5 text-faint">{status.files.length}</span>}
+              {t === "changes" && status.files.some((f) => f.conflicted) ? (
+                <span className="ml-1.5 rounded-sm bg-error px-1 text-[10px] font-semibold text-white">{status.files.filter((f) => f.conflicted).length} conflicts</span>
+              ) : (
+                t === "changes" && status.files.length > 0 && <span className="ml-1.5 text-faint">{status.files.length}</span>
+              )}
               {tab === t && <motion.span layoutId={`git-tab-${path}`} className="absolute inset-x-1 bottom-0 h-[2px] bg-accent" transition={{ duration: 0.12 }} />}
             </button>
           ))}

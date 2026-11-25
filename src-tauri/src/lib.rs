@@ -85,6 +85,8 @@ pub fn run() {
             commands::git::git_remote_signed_in,
             commands::git::git_pull_branch,
             commands::git::git_push_branch,
+            commands::git::git_merge_state,
+            commands::git::git_merge_continue,
             commands::fonts::nerd_fonts,
             commands::fonts::read_font,
         ])

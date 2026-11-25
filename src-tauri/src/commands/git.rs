@@ -233,3 +233,13 @@ pub async fn git_pull_branch(repo: String, branch: String) -> Result<String, Str
 pub async fn git_push_branch(repo: String, branch: String) -> Result<String, String> {
     run(move || git::push_branch(&repo, &branch)).await
 }
+
+#[tauri::command]
+pub async fn git_merge_state(repo: String) -> Result<Option<git::MergeState>, String> {
+    run(move || git::merge_state(&repo)).await
+}
+
+#[tauri::command]
+pub async fn git_merge_continue(repo: String) -> Result<String, String> {
+    run(move || git::merge_continue(&repo)).await
+}
