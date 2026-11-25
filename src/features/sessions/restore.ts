@@ -1,3 +1,4 @@
+import { useAvailability } from "../agents/availabilityStore";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useSessions } from "../../stores/sessionStore";
@@ -8,7 +9,7 @@ import { isTauri } from "../../lib/platform";
 import { terminalRegistry } from "../terminals/terminalRegistry";
 import { launchTerminal } from "../terminals/terminalActions";
 import { launchAgent } from "../agents/agentActions";
-import { isEditor } from "../agents/registry";
+import { AGENTS, isEditor } from "../agents/registry";
 
 const KEY = "orbitr.scrollback";
 const banner = (s: string) => `\r\n\x1b[2m── ${s} ──\x1b[0m\r\n\r\n`;
@@ -52,7 +53,17 @@ export async function restoreSessions() {
     updateTerminal(t.id, plain);
     void launchTerminal(plain);
   }
+  // Don't relaunch agents whose CLI isn't installed any more: they'd only fail with
+  // "not found on PATH" on every start. They stay as stopped tabs you can close.
+  await useAvailability.getState().refresh().catch(() => undefined);
+  const paths = useAvailability.getState().paths;
   for (const a of agents) {
+    const def = AGENTS[a.kind];
+    if (def && paths[a.kind] === null && def.executable !== "git") {
+      replay(a.id);
+      useSessions.getState().updateAgent(a.id, { status: "exited" });
+      continue;
+    }
     // Full-screen editors redraw themselves; replaying their old screen only leaves debris.
     if (isEditor(a.kind)) terminalRegistry.create(a.id);
     else replay(a.id);
