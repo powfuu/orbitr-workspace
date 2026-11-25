@@ -1,13 +1,12 @@
-import { ArrowDown, ArrowUp, Check, ChevronRight, GitBranch, GitMerge, Pencil, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronRight, Folder, FolderOpen, GitBranch, GitMerge, Pencil, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useMemo, useState, type ReactNode } from "react";
 import { branchService, gitMore, type Branch } from "../../services/git";
 import { useLayout } from "../../stores/layoutStore";
 import { timeAgo } from "../../lib/time";
 import { cn } from "../../lib/cn";
-import { IconButton } from "../ui/IconButton";
 import { confirmDialog } from "../ui/ConfirmDialog";
-import { SyncBadges, TextInput } from "./ui";
+import { GitButton, SyncBadges, TextInput } from "./ui";
 
 type Act = <T>(label: string, fn: () => Promise<T>, ok?: string | ((r: T) => string)) => Promise<unknown>;
 
@@ -47,7 +46,7 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
       title={b.current ? undefined : "Double-click to switch"}
       className={cn("group flex h-9 items-center gap-2 pl-3 pr-2", b.current && "bg-surface/50")}
     >
-      <Check size={12} className={cn("shrink-0 text-accent", !b.current && "invisible")} />
+      <GitBranch size={13} className={cn("shrink-0", b.current ? "text-accent" : "text-faint")} />
       {renaming?.from === b.name ? (
         <TextInput
           autoFocus
@@ -62,31 +61,35 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
           }}
         />
       ) : (
-        <span className={cn("min-w-0 flex-1 truncate font-mono text-[12px]", b.current ? "text-fg" : "text-fg-2")} title={b.name}>
+        <span className={cn("min-w-0 flex-1 truncate font-mono text-[12px]", b.current ? "font-semibold text-fg" : "text-fg-2")} title={b.name}>
           {short}
+          {b.current && <span className="ml-2 rounded-sm bg-accent/15 px-1.5 py-px text-[9.5px] font-normal uppercase tracking-[0.08em] text-accent">current</span>}
         </span>
       )}
-      <SyncBadges ahead={b.ahead} behind={b.behind} gone={b.gone} />
+      {/* The pull/push buttons carry the counts; only "gone" needs its own badge. */}
+      {b.gone && <SyncBadges ahead={0} behind={0} gone />}
       {/* Direct pull/push, always visible when there's something to sync. */}
       {b.behind > 0 && (
-        <button disabled={busy} onClick={() => pull(b)} className="flex h-6 shrink-0 items-center gap-1 rounded-md bg-warning/15 px-2 font-mono text-[11px] text-warning hover:bg-warning/25 disabled:opacity-40">
-          <ArrowDown size={11} /> pull
+        <button disabled={busy} onClick={() => pull(b)} className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-fg px-2.5 font-mono text-[11px] font-medium text-bg shadow-sm transition hover:bg-fg/85 disabled:opacity-40">
+          <ArrowDown size={11} strokeWidth={2.5} /> pull {b.behind}
         </button>
       )}
       {(b.ahead > 0 || (!b.upstream && hot === b.name)) && (
-        <button disabled={busy} onClick={() => push(b)} className="flex h-6 shrink-0 items-center gap-1 rounded-md bg-fg/10 px-2 font-mono text-[11px] text-fg hover:bg-fg/20 disabled:opacity-40">
-          <ArrowUp size={11} /> {b.upstream ? "push" : "publish"}
+        <button disabled={busy} onClick={() => push(b)} className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-fg px-2.5 font-mono text-[11px] font-medium text-bg shadow-sm transition hover:bg-fg/85 disabled:opacity-40">
+          <ArrowUp size={11} strokeWidth={2.5} /> {b.upstream ? `push ${b.ahead}` : "publish"}
         </button>
       )}
       {hot === b.name && !renaming ? (
-        <span className="flex shrink-0 items-center">
-          {b.upstream && b.behind === 0 && <IconButton icon={ArrowDown} size="sm" label={`Pull ${b.name}`} onClick={() => pull(b)} disabled={busy} />}
-          {!b.current && <IconButton icon={GitBranch} size="sm" label={`Switch to ${b.name}`} onClick={() => switchTo(b)} disabled={busy} />}
+        <span className="flex shrink-0 items-center gap-1">
+          {b.upstream && b.behind === 0 && <GitButton disabled={busy} onClick={() => pull(b)}><ArrowDown size={11} /> pull</GitButton>}
+          {!b.current && <GitButton disabled={busy} onClick={() => switchTo(b)}><GitBranch size={11} /> switch</GitButton>}
           {!b.current && current && (
-            <IconButton icon={GitMerge} size="sm" label={`Merge ${b.name} into ${current}`} onClick={() => void act("merge", () => gitMore.merge(repo, b.name, true), `Merged ${b.name} into ${current}`)} disabled={busy} />
+            <GitButton disabled={busy} title={`Merge ${b.name} into ${current}`} onClick={() => void act("merge", () => gitMore.merge(repo, b.name, true), `Merged ${b.name} into ${current}`)}>
+              <GitMerge size={11} /> merge
+            </GitButton>
           )}
-          <IconButton icon={Pencil} size="sm" label="Rename" onClick={() => setRenaming({ from: b.name, to: b.name })} disabled={busy} />
-          {!b.current && <IconButton icon={Trash2} size="sm" label="Delete branch" onClick={() => void remove(b)} disabled={busy} />}
+          <GitButton disabled={busy} onClick={() => setRenaming({ from: b.name, to: b.name })}><Pencil size={11} /> rename</GitButton>
+          {!b.current && <GitButton disabled={busy} onClick={() => void remove(b)}><Trash2 size={11} /> delete</GitButton>}
         </span>
       ) : (
         <span className="w-16 shrink-0 text-right font-mono text-[10.5px] text-faint">{timeAgo(b.updatedAt)}</span>
@@ -109,6 +112,7 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
               <motion.span animate={{ rotate: isCollapsed ? 0 : 90 }} transition={{ duration: 0.15 }} className="flex text-faint">
                 <ChevronRight size={11} />
               </motion.span>
+              {isCollapsed ? <Folder size={13} className="text-muted" /> : <FolderOpen size={13} className="text-muted" />}
               <span className={cn("font-mono text-[11.5px]", hasCurrent ? "text-fg" : "text-muted")}>{prefix}/</span>
               <span className="font-mono text-[10.5px] text-faint">{list.length}</span>
               {isCollapsed && <SyncBadges ahead={ahead} behind={behind} />}
