@@ -6,6 +6,7 @@ import { useGit } from "../../features/git/gitStore";
 import { toast } from "../../stores/toastStore";
 import { timeAgo } from "../../lib/time";
 import { cn } from "../../lib/cn";
+import { SyncBadges } from "./ui";
 
 /** Current branch as a dropdown: switch to another branch or create one from HEAD. */
 export function BranchMenu({ repo, current }: { repo: string; current: string | null }) {
@@ -91,6 +92,7 @@ export function BranchMenu({ repo, current }: { repo: string; current: string | 
                 >
                   <Check size={12} className={cn("shrink-0 text-accent", !b.current && "invisible")} />
                   <span className="truncate font-mono text-[12px]">{b.name}</span>
+                  <SyncBadges ahead={b.ahead} behind={b.behind} gone={b.gone} />
                   <span className="ml-auto shrink-0 font-mono text-[10px] text-faint">{timeAgo(b.updatedAt)}</span>
                 </button>
               ))}

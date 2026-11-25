@@ -6,7 +6,7 @@ import { useGit } from "../../features/git/gitStore";
 import { timeAgo } from "../../lib/time";
 import { cn } from "../../lib/cn";
 import { Select } from "../ui/Select";
-import { GitButton, TextInput } from "./ui";
+import { GitButton, SyncBadges, TextInput } from "./ui";
 import { RemotesSection } from "./RemotesSection";
 
 const FLOW: { kind: FlowKind; from: "develop" | "main"; hint: string }[] = [
@@ -38,6 +38,9 @@ export function BranchesView({ repo }: { repo: string }) {
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(reload, [repo, current, status?.lastCommit?.hash]);
+  // Like Sourcetree: fetch quietly when opened so ↑/↓ counts are current (never prompts).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => void gitMore.fetch(repo).then(reload, () => undefined), [repo]);
   const act = <T,>(label: string, fn: () => Promise<T>, ok?: string | ((r: T) => string)) => run(label, fn, ok).then(reload);
 
   const needle = q.trim().toLowerCase();
@@ -100,9 +103,10 @@ export function BranchesView({ repo }: { repo: string }) {
                     if (to && to !== b.name) void act("rename", () => gitMore.renameBranch(repo, b.name, to), `Renamed to ${to}`);
                   }} />
               ) : (
-                <span className={cn("min-w-0 flex-1 truncate font-mono text-[12px]", b.current ? "text-fg" : "text-fg-2")}>{b.name}</span>
+                <span className={cn("min-w-[8rem] flex-1 truncate font-mono text-[12px]", b.current ? "text-fg" : "text-fg-2")} title={b.name}>{b.name}</span>
               )}
-              {b.upstream && <span className="truncate font-mono text-[10.5px] text-faint">→ {b.upstream}</span>}
+              <SyncBadges ahead={b.ahead} behind={b.behind} gone={b.gone} />
+              {b.upstream && b.upstream !== `origin/${b.name}` && <span className="max-w-[35%] truncate font-mono text-[10.5px] text-faint" title={b.upstream}>→ {b.upstream}</span>}
               <span className="font-mono text-[10.5px] text-faint">{timeAgo(b.updatedAt)}</span>
               <span className={cn("flex gap-1", hot !== b.name && "invisible")}>
                 {!b.current && <GitButton disabled={!!busy} onClick={() => void act("switch", () => branchService.switch(repo, b.name), `Switched to ${b.name}`)}><GitBranch size={11} /> switch</GitButton>}

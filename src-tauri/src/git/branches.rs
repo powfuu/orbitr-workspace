@@ -9,6 +9,17 @@ pub struct Branch {
     pub current: bool,
     pub upstream: Option<String>,
     pub updated_at: u64,
+    /// Commits to push / to pull against the upstream (as of the last fetch).
+    pub ahead: u32,
+    pub behind: u32,
+    /// The upstream branch was deleted on the remote.
+    pub gone: bool,
+}
+
+/// `%(upstream:track,nobracket)`: "ahead 1, behind 2", "behind 3", "gone" or "".
+fn parse_track(t: &str) -> (u32, u32, bool) {
+    let num = |key: &str| t.split(", ").find_map(|p| p.strip_prefix(key)).and_then(|n| n.trim().parse().ok()).unwrap_or(0);
+    (num("ahead "), num("behind "), t.trim() == "gone")
 }
 
 #[derive(Serialize, Debug, PartialEq)]
@@ -31,16 +42,20 @@ fn validate_branch(repo: &str, name: &str) -> Result<(), String> {
 }
 
 pub fn branches(repo: &str) -> Result<Vec<Branch>, String> {
-    let raw = git(repo, &["for-each-ref", "--sort=-committerdate", "--format=%(refname:short)%1f%(HEAD)%1f%(upstream:short)%1f%(committerdate:unix)", "refs/heads"])?;
+    let raw = git(repo, &["for-each-ref", "--sort=-committerdate", "--format=%(refname:short)%1f%(HEAD)%1f%(upstream:short)%1f%(committerdate:unix)%1f%(upstream:track,nobracket)", "refs/heads"])?;
     Ok(raw
         .lines()
         .filter_map(|l| {
             let f: Vec<&str> = l.split('\u{1f}').collect();
-            (f.len() == 4).then(|| Branch {
+            let (ahead, behind, gone) = parse_track(f.get(4).copied().unwrap_or(""));
+            (f.len() >= 4).then(|| Branch {
                 name: f[0].into(),
                 current: f[1] == "*",
                 upstream: (!f[2].is_empty()).then(|| f[2].into()),
                 updated_at: f[3].parse::<u64>().unwrap_or(0) * 1000,
+                ahead,
+                behind,
+                gone,
             })
         })
         .collect())
@@ -118,6 +133,14 @@ pub fn remove_worktree(repo: &str, path: &str, force: bool) -> Result<(), String
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parses_upstream_tracking() {
+        assert_eq!(parse_track("ahead 1, behind 2"), (1, 2, false));
+        assert_eq!(parse_track("behind 14"), (0, 14, false));
+        assert_eq!(parse_track("gone"), (0, 0, true));
+        assert_eq!(parse_track(""), (0, 0, false));
+    }
 
     #[test]
     fn parses_worktree_list() {

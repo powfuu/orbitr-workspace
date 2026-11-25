@@ -74,6 +74,11 @@ export interface Branch {
   current: boolean;
   upstream: string | null;
   updatedAt: number;
+  /** Commits to push / pull against the upstream (as of the last fetch). */
+  ahead: number;
+  behind: number;
+  /** Upstream deleted on the remote. */
+  gone: boolean;
 }
 
 export interface Worktree {

@@ -93,3 +93,15 @@ export function TextInput({ value, onChange, onEnter, onCancel, placeholder, cla
     />
   );
 }
+
+/** Sourcetree-style sync badges: ↑ to push, ↓ to pull. */
+export function SyncBadges({ ahead, behind, gone }: { ahead: number; behind: number; gone?: boolean }) {
+  if (gone) return <span className="shrink-0 rounded-sm bg-error/15 px-1.5 font-mono text-[10px] leading-4 text-error" title="Upstream branch was deleted on the remote">gone</span>;
+  if (!ahead && !behind) return null;
+  return (
+    <span className="flex shrink-0 items-center gap-1 font-mono text-[10.5px] leading-4">
+      {ahead > 0 && <span className="rounded-sm bg-fg/10 px-1.5 text-fg" title={`${ahead} commit${ahead === 1 ? "" : "s"} to push`}>↑{ahead}</span>}
+      {behind > 0 && <span className="rounded-sm bg-warning/15 px-1.5 text-warning" title={`${behind} commit${behind === 1 ? "" : "s"} to pull`}>↓{behind}</span>}
+    </span>
+  );
+}
