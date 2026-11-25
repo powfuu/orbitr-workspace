@@ -14,7 +14,7 @@ export function TerminalTabs() {
   const [editing, setEditing] = useState<string | null>(null);
 
   return (
-    <div role="tablist" className="flex h-9 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-line-soft px-2 [scrollbar-width:none]">
+    <div role="tablist" className="flex h-9 shrink-0 items-stretch overflow-x-auto border-b border-line-soft px-2 [scrollbar-width:none]">
       <AnimatePresence initial={false}>
         {terminals.map((t) => {
           const active = t.id === activeTerminalId;
@@ -33,12 +33,12 @@ export function TerminalTabs() {
               onDoubleClick={() => setEditing(t.id)}
               onAuxClick={(e) => e.button === 1 && void closeTerminal(t.id)}
               className={cn(
-                "group relative flex h-6 max-w-56 shrink-0 cursor-default items-center gap-1.5 rounded-md pl-2 pr-1 font-mono text-[11px]",
-                active ? "text-fg" : "text-muted hover:text-fg-2",
+                "group relative flex h-full max-w-56 shrink-0 cursor-default items-center gap-1.5 px-2.5 font-mono text-[11px] transition-colors",
+                active ? "text-fg" : "text-faint hover:text-fg-2",
               )}
             >
               {active && (
-                <motion.span layoutId="term-tab" className="absolute inset-0 rounded-md bg-surface ring-1 ring-line" transition={{ type: "spring", stiffness: 500, damping: 40 }} />
+                <motion.span layoutId="term-tab" className="absolute inset-x-2 bottom-0 h-px bg-fg" transition={{ type: "spring", stiffness: 500, damping: 40 }} />
               )}
               <span className="relative"><StatusDot status={t.status} /></span>
               {editing === t.id ? (
