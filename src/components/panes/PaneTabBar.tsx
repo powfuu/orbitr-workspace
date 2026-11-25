@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Columns2, Maximize2, PanelLeftOpen, PanelRightOpen, Rows2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Columns2, Maximize2, PanelLeftOpen, PanelRightOpen, Rows2, X } from "lucide-react";
 import { toggleFocusMode } from "../../features/layout/focusMode";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { useTabs, type TabGroup } from "../../stores/tabStore";
 import { useWorkspaces } from "../../stores/workspaceStore";
@@ -42,6 +42,25 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
   const [dropIndex, setDropIndex] = useState<number | null>(null);
   const closable = (t: { target: { type: string } }) => t.target.type !== "home" || multi;
   const byId = useActivity((s) => s.byId);
+  const strip = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+  const measure = () => {
+    const el = strip.current;
+    if (el) setEdges({ left: el.scrollLeft > 2, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 2 });
+  };
+  useEffect(() => {
+    const el = strip.current;
+    if (!el) return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // Keep the active tab in view when switching or when tabs open/close.
+  useEffect(() => {
+    strip.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ inline: "nearest", block: "nearest" });
+    measure();
+  }, [group.activeTabId, group.tabs.length]);
+  const nudge = (dir: 1 | -1) => strip.current?.scrollBy({ left: dir * strip.current.clientWidth * 0.7, behavior: "smooth" });
   const waiting = new Set(Object.keys(byId).filter((k) => byId[k]?.prompt));
 
   const onDrop = (e: React.DragEvent, index?: number) => {
@@ -73,7 +92,16 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
           <IconButton icon={PanelLeftOpen} label="Show sidebar" shortcut={`${modKey}B`} onClick={toggleSidebar} size="sm" />
         </div>
       )}
-      <div role="tablist" className="flex min-w-0 flex-1 items-end gap-0.5 overflow-x-auto [scrollbar-width:none]">
+      <div className="relative flex min-w-0 flex-1 self-stretch">
+      <div
+        ref={strip}
+        role="tablist"
+        onScroll={measure}
+        onWheel={(e) => {
+          if (strip.current && Math.abs(e.deltaY) > Math.abs(e.deltaX)) strip.current.scrollLeft += e.deltaY;
+        }}
+        className="no-scrollbar flex min-w-0 flex-1 items-end gap-0.5 overflow-x-auto"
+      >
         {/* popLayout: a closing tab leaves the layout immediately so neighbours slide in with no gap. */}
         <AnimatePresence initial={false} mode="popLayout">
           {group.tabs.map((tab, i) => {
@@ -168,6 +196,23 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
             );
           })}
         </AnimatePresence>
+      </div>
+      {(["left", "right"] as const).map((side) =>
+        edges[side] ? (
+          <button
+            key={side}
+            aria-label={`More tabs ${side}`}
+            onClick={() => nudge(side === "left" ? -1 : 1)}
+            className={cn(
+              "absolute bottom-0 top-0 z-20 flex w-9 items-center text-muted hover:text-fg",
+              side === "left" ? "left-0 justify-start bg-gradient-to-r pl-1" : "right-0 justify-end bg-gradient-to-l pr-1",
+              "from-bg via-bg/90 to-transparent",
+            )}
+          >
+            {side === "left" ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+          </button>
+        ) : null,
+      )}
       </div>
       <div className="mb-2 flex items-center gap-0.5">
         <IconButton icon={Maximize2} label="Full screen" shortcut={`${modKey}${isMac ? "⇧↩" : "+Shift+Enter"}`} size="sm" onClick={() => toggleFocusMode(true)} />
