@@ -118,3 +118,17 @@ export const gitMore = {
   flowStart: (repo: string, kind: FlowKind, name: string) => invoke<string>("git_flow_start", { repo, kind, name }),
   flowFinish: (repo: string, branch: string, tag: boolean) => invoke<string>("git_flow_finish", { repo, branch, tag }),
 };
+
+export interface Remote {
+  name: string;
+  url: string;
+}
+
+/** Remotes and HTTPS credentials (passwords go to git's helper — the macOS keychain). */
+export const remoteService = {
+  list: (repo: string) => invoke<Remote[]>("git_remotes", { repo }),
+  setUrl: (repo: string, name: string, url: string) => invoke<void>("git_remote_set_url", { repo, name, url }),
+  add: (repo: string, name: string, url: string) => invoke<void>("git_remote_add", { repo, name, url }),
+  remove: (repo: string, name: string) => invoke<void>("git_remote_remove", { repo, name }),
+  storeCredential: (repo: string, url: string, username: string, password: string) => invoke<void>("git_store_credential", { repo, url, username, password }),
+};

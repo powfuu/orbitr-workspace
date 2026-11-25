@@ -18,6 +18,7 @@ import { HistoryView } from "./HistoryView";
 import { BranchesView } from "./BranchesView";
 import { StashView } from "./StashView";
 import { RefChips } from "./ui";
+import { withAuth } from "../../features/git/withAuth";
 
 const TABS = ["changes", "history", "branches", "stash"] as const;
 type Tab = (typeof TABS)[number];
@@ -70,7 +71,7 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
   const act = async (label: typeof busy, fn: () => Promise<unknown>, ok?: string) => {
     setBusy(label);
     try {
-      await fn();
+      await withAuth(path, fn);
       if (ok) toast({ kind: "success", title: ok });
     } catch (e) {
       toast({ kind: "error", title: `git ${label} failed`, detail: String(e) });

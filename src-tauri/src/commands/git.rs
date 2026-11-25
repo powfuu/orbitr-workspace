@@ -181,3 +181,30 @@ pub async fn git_flow_start(repo: String, kind: String, name: String) -> Result<
 pub async fn git_flow_finish(repo: String, branch: String, tag: bool) -> Result<String, String> {
     run(move || git::flow_finish(&repo, &branch, tag)).await
 }
+
+/* ── remotes & credentials ──────────────────────────────────────────────── */
+
+#[tauri::command]
+pub async fn git_remotes(repo: String) -> Result<Vec<git::Remote>, String> {
+    run(move || git::remotes(&repo)).await
+}
+
+#[tauri::command]
+pub async fn git_remote_set_url(repo: String, name: String, url: String) -> Result<(), String> {
+    run(move || git::remote_set_url(&repo, &name, &url)).await
+}
+
+#[tauri::command]
+pub async fn git_remote_add(repo: String, name: String, url: String) -> Result<(), String> {
+    run(move || git::remote_add(&repo, &name, &url)).await
+}
+
+#[tauri::command]
+pub async fn git_remote_remove(repo: String, name: String) -> Result<(), String> {
+    run(move || git::remote_remove(&repo, &name)).await
+}
+
+#[tauri::command]
+pub async fn git_store_credential(repo: String, url: String, username: String, password: String) -> Result<(), String> {
+    run(move || git::store_credential(&repo, &url, &username, &password)).await
+}

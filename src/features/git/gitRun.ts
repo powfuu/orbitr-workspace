@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "../../stores/toastStore";
 import { useGit } from "./gitStore";
+import { withAuth } from "./withAuth";
 
 /** Runs a git action with a busy flag, a toast on success/failure and a status refresh after. */
 export function useGitRun(repo: string) {
@@ -8,7 +9,7 @@ export function useGitRun(repo: string) {
   const run = async <T,>(label: string, fn: () => Promise<T>, ok?: string | ((r: T) => string)): Promise<T | undefined> => {
     setBusy(label);
     try {
-      const r = await fn();
+      const r = await withAuth(repo, fn);
       if (ok) toast({ kind: "success", title: typeof ok === "function" ? ok(r) : ok });
       return r;
     } catch (e) {

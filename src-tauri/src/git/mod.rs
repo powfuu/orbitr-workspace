@@ -3,6 +3,9 @@
 mod branches;
 mod extra;
 mod parse;
+mod remote;
+
+pub use remote::*;
 
 pub use extra::*;
 

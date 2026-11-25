@@ -7,6 +7,7 @@ import { timeAgo } from "../../lib/time";
 import { cn } from "../../lib/cn";
 import { Select } from "../ui/Select";
 import { GitButton, TextInput } from "./ui";
+import { RemotesSection } from "./RemotesSection";
 
 const FLOW: { kind: FlowKind; from: "develop" | "main"; hint: string }[] = [
   { kind: "feature", from: "develop", hint: "New work" },
@@ -75,6 +76,8 @@ export function BranchesView({ repo }: { repo: string }) {
           <FlowFinish branch={current} busy={!!busy} flow={flow} onFinish={(tag) => act("finish", () => gitMore.flowFinish(repo, current, tag), (into) => `Finished ${current} → ${into}`)} />
         )}
       </section>
+
+      <RemotesSection repo={repo} />
 
       {/* Branch lists */}
       <section className="px-4 py-3">

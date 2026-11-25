@@ -75,6 +75,11 @@ pub fn run() {
             commands::git::git_flow_config,
             commands::git::git_flow_start,
             commands::git::git_flow_finish,
+            commands::git::git_remotes,
+            commands::git::git_remote_set_url,
+            commands::git::git_remote_add,
+            commands::git::git_remote_remove,
+            commands::git::git_store_credential,
             commands::fonts::nerd_fonts,
             commands::fonts::read_font,
         ])
