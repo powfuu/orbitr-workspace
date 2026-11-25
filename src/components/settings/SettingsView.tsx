@@ -127,7 +127,7 @@ export function SettingsView() {
       </Section>
 
       <Section title="Vim">
-        <Row label="Vim mode" hint="Esc leaves the input (NORMAL; Esc Esc inside an editor tab). Then h/j/k/l move a cursor between buttons and Enter clicks, Shift+H/L switch tabs, f shows letter hints, : opens the palette, i goes back to typing.">
+        <Row label="Vim mode" hint="Esc leaves the input (NORMAL; Esc Esc inside an editor tab). Then h/j/k/l move a cursor between buttons and Enter clicks, Shift+H/L jump between sidebar, middle and terminals, Ctrl+H/L switch tabs, f shows letter hints, : opens the palette, i goes back to typing.">
           <Toggle k="vimMode" />
         </Row>
         <Row label="Vim flavour" hint={`Used by ${modKey}E, ${modKey}P and every “Open in Vim”. Auto picks the first installed of Neovim, Vim, vi.`}>

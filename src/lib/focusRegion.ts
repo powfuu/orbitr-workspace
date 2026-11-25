@@ -11,3 +11,5 @@ if (typeof window !== "undefined") {
 }
 
 export const focusedRegion = () => last;
+
+export const setFocusedRegion = (r: Region) => void (last = r);

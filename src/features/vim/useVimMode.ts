@@ -3,7 +3,7 @@ import { useSettings } from "../../stores/settingsStore";
 import { useLayout } from "../../stores/layoutStore";
 import { getActiveTabs } from "../../stores/tabStore";
 import { useSessions } from "../../stores/sessionStore";
-import { focusedRegion } from "../../lib/focusRegion";
+import { focusedRegion, setFocusedRegion, type Region } from "../../lib/focusRegion";
 import { isEditor } from "../agents/registry";
 import { cycleTab, focusArea } from "../../hooks/useGlobalShortcuts";
 import { terminalRegistry } from "../terminals/terminalRegistry";
@@ -47,6 +47,25 @@ function scroll(dy: number) {
   const region = document.querySelector(`[data-region="${focusedRegion()}"]`) ?? document.body;
   const box = [...region.querySelectorAll<HTMLElement>("*")].find((el) => el.scrollHeight > el.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(el).overflowY) && el.offsetParent);
   box?.scrollBy({ top: dy, behavior: "smooth" });
+}
+
+const PANES: Region[] = ["sidebar", "main", "terminal"];
+const lastCursor = new Map<Region, HTMLElement>();
+
+/** Shift+H / Shift+L: move to the pane on the left / right (sidebar · middle · terminal panel), staying in NORMAL. */
+function switchPane(step: 1 | -1) {
+  const open = PANES.filter((r) => document.querySelector(`[data-region="${r}"]`));
+  const here = focusedRegion();
+  const { cursor, set } = useVim.getState();
+  if (cursor) lastCursor.set(here, cursor);
+  const i = Math.max(0, open.indexOf(here));
+  const next = open[i + step];
+  if (!next) return;
+  setFocusedRegion(next);
+  const remembered = lastCursor.get(next);
+  const target = remembered?.isConnected ? remembered : nextInDirection(null, "j", document.querySelector(`[data-region="${next}"]`));
+  target?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  set({ cursor: target ?? null });
 }
 
 /** App-wide Vim mode. Esc (double Esc inside an editor) → NORMAL; i/Enter or clicking an input → INSERT. */
@@ -119,6 +138,7 @@ export function useVimMode() {
         const next = nextInDirection(vim().cursor, dir, scope);
         if (!next) return;
         next.scrollIntoView({ block: "nearest", inline: "nearest" });
+        setFocusedRegion((next.closest("[data-region]")?.getAttribute("data-region") as Region | null) ?? "main");
         set({ cursor: next });
       };
       const press = () => {
@@ -138,8 +158,8 @@ export function useVimMode() {
         j: move("j"),
         k: move("k"),
         l: move("l"),
-        H: () => cycle(-1),
-        L: () => cycle(1),
+        H: () => switchPane(-1),
+        L: () => switchPane(1),
         d: () => scroll(innerHeight / 2),
         u: () => scroll(-innerHeight / 2),
       };

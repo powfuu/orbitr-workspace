@@ -11,7 +11,12 @@ const center = (r: DOMRect) => ({ x: r.left + r.width / 2, y: r.top + r.height /
 export function nextInDirection(from: HTMLElement | null, dir: Dir, scope?: Element | null): HTMLElement | null {
   const all = clickables().filter((el) => el !== from && (!scope || scope.contains(el)));
   if (!from || !from.isConnected) {
-    return all.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top || a.getBoundingClientRect().left - b.getBoundingClientRect().left)[0] ?? null;
+    // Reading order: rows (centres within 14px count as one row), then left to right.
+    return all.sort((a, b) => {
+      const ca = center(a.getBoundingClientRect());
+      const cb = center(b.getBoundingClientRect());
+      return Math.abs(ca.y - cb.y) < 14 ? ca.x - cb.x : ca.y - cb.y;
+    })[0] ?? null;
   }
   const r = from.getBoundingClientRect();
   const c = center(r);
