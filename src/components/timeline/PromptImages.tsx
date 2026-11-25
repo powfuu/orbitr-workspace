@@ -37,9 +37,9 @@ function Thumb({ path, onOpen }: { path: string; onOpen: (src: string) => void }
     <button
       onClick={() => src && onOpen(src)}
       title="View image"
-      className="h-14 w-20 overflow-hidden rounded-md bg-surface ring-1 ring-line transition hover:ring-fg/40"
+      className="h-14 w-20 cursor-pointer overflow-hidden rounded-md bg-surface ring-1 ring-line transition hover:ring-fg/40"
     >
-      {src && <img src={src} alt="" className="h-full w-full object-cover" draggable={false} />}
+      {src && <img src={src} alt="" className="h-full w-full cursor-pointer object-cover" draggable={false} />}
     </button>
   );
 }
