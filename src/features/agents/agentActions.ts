@@ -110,7 +110,8 @@ export async function restartAgent(id: ID) {
   finishOpenRuns(id);
   resetScreen(id);
   useSessions.getState().updateAgent(id, { startedAt: Date.now() });
-  await launchAgent(a);
+  // Restart continues the same conversation when we know it (Claude Code), instead of a blank one.
+  await launchAgent(a, a.chatId ?? false);
 }
 
 /** Explicit removal: kills the process, frees the terminal, closes its tab. */

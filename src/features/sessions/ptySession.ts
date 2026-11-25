@@ -37,6 +37,7 @@ export async function spawnPty(
   const tracker = trackActivity(id, term, hasFocus(id), quiet);
   const state: Live = { ptyId: null, listeners: [tracker] };
   live.set(id, state);
+  nudged.delete(id);
   onStatus({ status: "starting", exitCode: null });
 
   try {
@@ -103,4 +104,20 @@ export async function sendText(id: ID, text: string, submit: boolean): Promise<b
     await pty.write(ptyId, "\r");
   }
   return true;
+}
+
+const nudged = new Set<ID>();
+/**
+ * Full-screen TUIs (Claude Code, Codex…) started before their view existed only drew into an
+ * off-screen 80×24 terminal; some don't repaint until the size changes. Jiggle the PTY size
+ * once after the view is fitted so they redraw everything at the real size.
+ */
+export function nudgeRedraw(id: ID) {
+  const state = live.get(id);
+  const term = terminalRegistry.get(id);
+  if (!state?.ptyId || !term || nudged.has(id)) return;
+  nudged.add(id);
+  const ptyId = state.ptyId;
+  void pty.resize(ptyId, Math.max(2, term.cols - 1), term.rows).catch(() => undefined);
+  window.setTimeout(() => void pty.resize(ptyId, term.cols, term.rows).catch(() => undefined), 80);
 }
