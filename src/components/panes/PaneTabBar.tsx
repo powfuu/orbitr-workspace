@@ -105,6 +105,8 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
         {/* popLayout: a closing tab leaves the layout immediately so neighbours slide in with no gap. */}
         <AnimatePresence initial={false} mode="popLayout">
           {group.tabs.map((tab, i) => {
+            // The Dashboard can't be closed, so it lives in the sidebar instead of the tab strip.
+            if (tab.target.type === "home") return null;
             const { title, icon: Icon } = describeTab(tab.target, { workspaces, projects, agents });
             const active = tab.id === group.activeTabId;
             const agent = tab.target.type === "agent" ? agents.find((a) => a.id === (tab.target as { id: string }).id) : undefined;

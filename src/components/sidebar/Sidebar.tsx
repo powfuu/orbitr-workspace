@@ -1,5 +1,5 @@
 import { Reorder } from "framer-motion";
-import { Bot, FileCode2, GitBranch } from "lucide-react";
+import { Bot, FileCode2, GitBranch, LayoutDashboard } from "lucide-react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { removeProject, revealProject } from "../../features/workspaces/manageActions";
 import { Folder, FolderOpen, FolderSearch, PanelLeftClose, RotateCw, Settings, Square, SquareTerminal, Trash2, Command } from "lucide-react";
@@ -58,6 +58,8 @@ export function Sidebar() {
   // Projects that are git repos (unknown yet counts as maybe, so the section shows while loading).
   const gitProjects = projects.filter((p) => gitByPath[p.path] !== null);
 
+  const onDashboard = tabs.find((t) => t.id === activeTabId)?.target.type === "home";
+
   return (
     <aside className="flex h-full flex-col bg-bg-2">
       <div {...windowDragProps} className={cn("flex h-11 shrink-0 items-center justify-between pr-2", isMac ? "pl-[84px]" : "pl-4")}>
@@ -66,6 +68,15 @@ export function Sidebar() {
       </div>
 
       <WorkspaceSwitcher />
+
+      <div className="px-3 pt-2">
+        <SidebarItem
+          icon={<LayoutDashboard size={14} strokeWidth={1.75} />}
+          label="Dashboard"
+          active={onDashboard}
+          onClick={() => useTabs.getState().open({ type: "home" })}
+        />
+      </div>
 
       <div className="px-3 pt-2">
         <label className="flex h-7 items-center gap-2 rounded-md bg-bg px-2 ring-1 ring-line-soft transition focus-within:ring-accent/50">

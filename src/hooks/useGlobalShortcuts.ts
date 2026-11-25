@@ -17,8 +17,14 @@ import { toggleFocusMode } from "../features/layout/focusMode";
 import { closeFocused } from "../features/terminals/closeFocused";
 import { searchTarget } from "../features/search/searchTarget";
 
-export function cycleTab(step: 1 | -1) {
+/** Tabs shown in the strip (the Dashboard lives in the sidebar). */
+const stripTabs = () => {
   const { tabs, activeTabId } = getActiveTabs();
+  return { tabs: tabs.filter((t) => t.target.type !== "home"), activeTabId };
+};
+
+export function cycleTab(step: 1 | -1) {
+  const { tabs, activeTabId } = stripTabs();
   const i = tabs.findIndex((t) => t.id === activeTabId);
   const next = tabs[(i + step + tabs.length) % tabs.length];
   if (next) useTabs.getState().activate(next.id);
@@ -179,7 +185,7 @@ function focusTerminal(n: number) {
 
 /** Nth tab of the focused pane; 9 = last tab, as in browsers. */
 function goToTab(n: number) {
-  const { tabs } = getActiveTabs();
+  const { tabs } = stripTabs();
   const tab = n === 8 ? tabs[tabs.length - 1] : tabs[n];
   if (tab) useTabs.getState().activate(tab.id);
 }

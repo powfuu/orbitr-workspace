@@ -37,12 +37,14 @@ export function GitButton({ children, onClick, disabled, primary, danger, title 
   );
 }
 
-/** Branch/tag decorations from `%D` as chips. */
+/** Branch/tag decorations from `%D` as chips: at most two, each truncated, the rest as "+n". */
 export function RefChips({ refs }: { refs: string }) {
   if (!refs) return null;
+  const all = refs.split(", ");
+  const shown = all.slice(0, 2);
   return (
-    <span className="flex shrink-0 flex-wrap gap-1">
-      {refs.split(", ").map((r) => {
+    <span className="flex min-w-0 max-w-[45%] shrink items-center gap-1 overflow-hidden" title={all.join("\n")}>
+      {shown.map((r) => {
         const head = r.startsWith("HEAD -> ");
         const tag = r.startsWith("tag: ");
         const name = r.replace("HEAD -> ", "").replace("tag: ", "");
@@ -50,14 +52,15 @@ export function RefChips({ refs }: { refs: string }) {
           <span
             key={r}
             className={cn(
-              "rounded-sm px-1.5 font-mono text-[10px] leading-4",
-              head ? "bg-accent text-bg" : tag ? "bg-warning/15 text-warning" : name.includes("/") ? "bg-surface-2 text-muted" : "bg-success/15 text-success",
+              "min-w-0 max-w-[16rem] truncate rounded-sm px-1.5 font-mono text-[10px] leading-4",
+              head ? "shrink-0 bg-accent text-bg" : tag ? "bg-warning/15 text-warning" : name.includes("/") ? "bg-surface-2 text-muted" : "bg-success/15 text-success",
             )}
           >
             {tag ? `⌂ ${name}` : name}
           </span>
         );
       })}
+      {all.length > 2 && <span className="shrink-0 font-mono text-[10px] text-faint">+{all.length - 2}</span>}
     </span>
   );
 }
