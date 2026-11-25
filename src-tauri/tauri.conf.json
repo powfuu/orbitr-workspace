@@ -49,7 +49,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZENDEyMjBGNzJFMTk2NUIKUldSYmx1RnlEeUpCL1hETE52eU9QQWpsWHdQVEZJMEU1bDhEL1RCaDE5RS9hWHJwdU9iSUFsWmYK",
       "endpoints": [
-        "https://github.com/OWNER/REPO/releases/latest/download/latest.json"
+        "https://github.com/powfuu/orbitr-workspace/releases/latest/download/latest.json"
       ]
     }
   }
