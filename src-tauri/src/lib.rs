@@ -39,6 +39,7 @@ pub fn run() {
             commands::state::state_remove,
             commands::voice::voice_model_status,
             commands::voice::voice_download_model,
+            commands::voice::voice_cancel_download,
             commands::voice::voice_start,
             commands::voice::voice_stop,
             commands::git::git_status,

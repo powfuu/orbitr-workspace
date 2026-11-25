@@ -9,6 +9,7 @@ export type VoiceEvent =
 export const voiceService = {
   modelStatus: () => invoke<{ ready: boolean; path: string }>("voice_model_status"),
   downloadModel: () => invoke<{ ready: boolean }>("voice_download_model"),
+  cancelDownload: () => invoke<void>("voice_cancel_download"),
   start: (language: string) => invoke<void>("voice_start", { language }),
   stop: () => invoke<void>("voice_stop"),
   onEvent: (cb: (e: VoiceEvent) => void) => listen<VoiceEvent>("voice://event", (e) => cb(e.payload)),

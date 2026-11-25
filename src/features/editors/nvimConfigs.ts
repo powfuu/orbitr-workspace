@@ -1,4 +1,5 @@
 import { isWindows } from "../../lib/platform";
+import { ENSURE_NEOVIM_PS } from "./windowsNeovim";
 
 /** Ready-made Neovim configs. Each lives in its own NVIM_APPNAME, so your ~/.config/nvim is never touched. */
 export interface NvimConfigDef {
@@ -31,8 +32,11 @@ export type NvimConfig = NvimConfigDef;
  */
 export const installConfigCommand = (d: NvimConfig, windows = isWindows) => {
   if (windows) {
-    const restore = d.lazyRestore ? ` if ($LASTEXITCODE -eq 0) { $env:NVIM_APPNAME = '${d.app}'; nvim --headless '+Lazy! restore' +qa }` : "";
-    return `$d = Join-Path $env:LOCALAPPDATA '${d.app}'; if (-not (Test-Path $d)) { git clone --depth 1 ${d.repo} $d;${restore} }; $env:NVIM_APPNAME = '${d.app}'; nvim`;
+    // Plugins are pinned once (marker file), also for a config cloned by an earlier failed attempt.
+    const restore = d.lazyRestore
+      ? ` if (-not (Test-Path (Join-Path $env:LOCALAPPDATA '${d.app}.orbitr-restored'))) { $env:NVIM_APPNAME = '${d.app}'; nvim --headless '+Lazy! restore' +qa; if ($LASTEXITCODE -eq 0) { New-Item -ItemType File (Join-Path $env:LOCALAPPDATA '${d.app}.orbitr-restored') | Out-Null } };`
+      : "";
+    return `${ENSURE_NEOVIM_PS}; $d = Join-Path $env:LOCALAPPDATA '${d.app}'; if (-not (Test-Path $d)) { git clone --depth 1 ${d.repo} $d; if ($LASTEXITCODE -ne 0) { return } };${restore} $env:NVIM_APPNAME = '${d.app}'; nvim`;
   }
   const restore = d.lazyRestore ? ` && NVIM_APPNAME=${d.app} nvim --headless "+Lazy! restore" +qa` : "";
   return `[ -d ~/.config/${d.app} ] || { git clone --depth 1 ${d.repo} ~/.config/${d.app}${restore}; }; NVIM_APPNAME=${d.app} nvim`;

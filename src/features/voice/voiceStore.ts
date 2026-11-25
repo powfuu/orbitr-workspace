@@ -21,6 +21,8 @@ export type VoicePhase = "off" | "downloading" | "loading" | "listening" | "spea
 interface VoiceState {
   phase: VoicePhase;
   level: number;
+  /** Model download running in the background (independent of the HUD): 0..1, or null when the size is unknown. */
+  downloading: boolean;
   download: number | null; // 0..1
   lastText: string | null;
   lastTarget: string | null;
@@ -30,6 +32,8 @@ interface VoiceState {
   stop: () => Promise<void>;
   sendPendingTo: (id: ID, name: string) => Promise<void>;
   discardPending: () => void;
+  /** Stops the model download and deletes the partial file. */
+  cancelDownload: () => Promise<void>;
 }
 
 const alive = (s: { status: string }) => s.status === "running";
@@ -52,9 +56,34 @@ export function resolveVoiceTarget(): { id: ID; name: string } | null {
 
 let unlisten: (() => void)[] = [];
 
+/** The one model download in flight, shared by every mic press: true = ready, false = cancelled. */
+let modelDownload: Promise<boolean> | null = null;
+
+function ensureModel(): Promise<boolean> {
+  if (modelDownload) return modelDownload;
+  modelDownload = (async () => {
+    useVoice.setState({ downloading: true, download: 0 });
+    toast({ kind: "info", title: "Downloading speech model", detail: "One-time ~148 MB download. Runs fully on this device. Close the panel to keep it downloading in the background." });
+    const off = await voiceService.onDownload((p) => useVoice.setState({ download: p.total ? p.downloaded / p.total : null }));
+    try {
+      await voiceService.downloadModel();
+      return true;
+    } catch (err) {
+      if (String(err).includes("cancelled")) return false;
+      throw err;
+    } finally {
+      off();
+      modelDownload = null;
+      useVoice.setState({ downloading: false, download: null });
+    }
+  })();
+  return modelDownload;
+}
+
 export const useVoice = create<VoiceState>()((set, get) => ({
   phase: "off",
   level: 0,
+  downloading: false,
   download: null,
   lastText: null,
   lastTarget: null,
@@ -65,17 +94,16 @@ export const useVoice = create<VoiceState>()((set, get) => ({
     set({ pending: null });
     if (!isTauri) return toast({ kind: "info", title: "Voice input needs the desktop app" });
     try {
+      // Already downloading (panel was closed): just show it again, never start a second download.
+      if (modelDownload) return set({ phase: "downloading" });
       const status = await voiceService.modelStatus();
       if (!status.ready) {
-        set({ phase: "downloading", download: 0 });
-        toast({ kind: "info", title: "Downloading speech model", detail: "One-time ~148 MB download. Runs fully on this device." });
-        const off = await voiceService.onDownload((p) => set({ download: p.total ? p.downloaded / p.total : null }));
-        try {
-          await voiceService.downloadModel();
-        } finally {
-          off();
+        set({ phase: "downloading" });
+        if (!(await ensureModel())) return set({ phase: "off" });
+        // The panel was closed while downloading: don't open the mic by surprise.
+        if (get().phase !== "downloading") {
+          return toast({ kind: "success", title: "Speech model ready", detail: "Press the mic to talk." });
         }
-        set({ download: null });
       }
       set({ phase: "loading" });
       unlisten = await Promise.all([
@@ -95,8 +123,15 @@ export const useVoice = create<VoiceState>()((set, get) => ({
   },
 
   async stop() {
+    // Closing the panel during the download only hides it; the download keeps going.
+    if (get().phase === "downloading") return set({ phase: "off" });
     await releaseMic();
-    set({ phase: "off", level: 0, download: null, pending: null });
+    set({ phase: "off", level: 0, pending: null });
+  },
+
+  async cancelDownload() {
+    if (isTauri) await voiceService.cancelDownload().catch(() => undefined);
+    if (get().phase === "downloading") set({ phase: "off" });
   },
 
   async sendPendingTo(id, name) {

@@ -11,10 +11,17 @@ import type { ID, TerminalSession } from "../../types";
 export async function launchTerminal(t: TerminalSession) {
   const cwd = t.cwd === "~" ? undefined : t.cwd;
   const opts = t.command ? await shellCommand(t.command, cwd, true) : { program: t.shell, cwd };
+  // Installer terminals keep an interactive shell open afterwards, so their exit can't signal
+  // "installed". Re-check while it runs: the new CLI/editor shows as installed within seconds.
+  const poll = t.command ? setInterval(() => void useAvailability.getState().refresh(), 3000) : undefined;
+  const stopPoll = poll ? setTimeout(() => clearInterval(poll), 15 * 60_000) : undefined;
   await spawnPty(t.id, opts, (u) => {
     useSessions.getState().updateTerminal(t.id, u);
-    // An installer may have just added an agent CLI.
-    if (t.command && u.status !== "running" && u.status !== "starting") void useAvailability.getState().refresh();
+    if (t.command && u.status !== "running" && u.status !== "starting") {
+      clearInterval(poll);
+      clearTimeout(stopPoll);
+      void useAvailability.getState().refresh();
+    }
   });
 }
 

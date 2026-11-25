@@ -1,4 +1,4 @@
-use crate::voice::{download_model, model_path, ModelStatus, Transcriber, VoiceSession};
+use crate::voice::{cancel_download, download_model, model_path, ModelStatus, Transcriber, VoiceSession};
 use std::sync::Mutex;
 use tauri::{AppHandle, State};
 
@@ -17,6 +17,11 @@ pub fn voice_model_status(app: AppHandle) -> Result<ModelStatus, String> {
 #[tauri::command]
 pub async fn voice_download_model(app: AppHandle) -> Result<ModelStatus, String> {
     download_model(&app).await
+}
+
+#[tauri::command]
+pub fn voice_cancel_download() {
+    cancel_download();
 }
 
 /// Starts listening. Loads the model on first use (off the main thread).

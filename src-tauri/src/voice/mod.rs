@@ -6,5 +6,5 @@ mod segmenter;
 mod transcribe;
 
 pub use capture::VoiceSession;
-pub use model::{download_model, model_path, ModelStatus};
+pub use model::{cancel_download, download_model, model_path, ModelStatus};
 pub use transcribe::Transcriber;

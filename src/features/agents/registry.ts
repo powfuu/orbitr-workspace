@@ -1,3 +1,4 @@
+import { ENSURE_NEOVIM_PS } from "../editors/windowsNeovim";
 import claudeIcon from "../../assets/agents/claudecode-color.svg";
 import codexIcon from "../../assets/agents/codex-color.svg";
 import geminiIcon from "../../assets/agents/geminicli-color.svg";
@@ -59,7 +60,7 @@ const editor = (kind: string, displayName: string, executable: string, icon: str
 
 /** Terminal editors, opened in center tabs. `diff` runs `git difftool` with the Vim diff tool. */
 export const editorList: AgentDefinition[] = [
-  editor("nvim", "Neovim", "nvim", neovimIcon, { unix: "brew install neovim", windows: "winget install Neovim.Neovim" }, "https://neovim.io"),
+  editor("nvim", "Neovim", "nvim", neovimIcon, { unix: "brew install neovim", windows: ENSURE_NEOVIM_PS }, "https://neovim.io"),
   editor("vim", "Vim", "vim", vimIcon, { unix: "brew install vim", windows: "winget install vim.vim" }, "https://www.vim.org"),
   editor("vi", "vi", "vi", vimIcon, {}, "https://www.vim.org"),
   editor("diff", "vimdiff", "git", vimIcon, {}, "https://git-scm.com/docs/git-difftool"),

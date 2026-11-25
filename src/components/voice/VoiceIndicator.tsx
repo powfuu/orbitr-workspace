@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, MousePointerClick, Send, SquareTerminal, X } from "lucide-react";
+import { ArrowRight, Download, MousePointerClick, Send, SquareTerminal, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { resolveVoiceTarget, useVoice, type VoicePhase } from "../../features/voice/voiceStore";
 import { AGENTS } from "../../features/agents/registry";
@@ -39,6 +39,8 @@ export function VoiceIndicator() {
   }, [lastText, lastTarget]);
 
   return (
+    <>
+    <ModelDownloadPill />
     <div className="pointer-events-none fixed bottom-10 left-1/2 z-[55] flex -translate-x-1/2 flex-col items-center gap-2">
       <AnimatePresence mode="popLayout">
         {phase === "needsTarget" ? (
@@ -77,7 +79,7 @@ export function VoiceIndicator() {
                 <ArrowRight size={12} />
                 <span className="max-w-56 truncate">{target ? target.name : "choose after speaking"}</span>
               </span>
-              <button aria-label="Stop voice input" onClick={() => void stop()} className="grid h-7 w-7 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg">
+              <button aria-label={phase === "downloading" ? "Hide (keeps downloading)" : "Stop voice input"} title={phase === "downloading" ? "Hide (keeps downloading)" : undefined} onClick={() => void stop()} className="grid h-7 w-7 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg">
                 <X size={13} />
               </button>
             </div>
@@ -98,6 +100,40 @@ export function VoiceIndicator() {
         ) : null}
       </AnimatePresence>
     </div>
+    </>
+  );
+}
+
+/** Background model download, shown at the top once its panel is closed: progress + cancel. */
+function ModelDownloadPill() {
+  const { phase, downloading, download, toggle, cancelDownload } = useVoice();
+  const show = downloading && phase !== "downloading";
+  const pct = download != null ? Math.round(download * 100) : null;
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          key="model-download"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={spring}
+          className="fixed left-1/2 top-14 z-[55] flex h-8 -translate-x-1/2 items-center gap-2.5 overflow-hidden rounded-full bg-surface pl-3 pr-1 text-[11.5px] shadow-pop"
+        >
+          <button onClick={() => void toggle()} title="Show voice panel" className="flex items-center gap-2 text-fg-2 hover:text-fg">
+            <Download size={12} className="text-muted" />
+            <span className="font-mono uppercase tracking-[0.08em]">Speech model</span>
+            <span className="relative h-1 w-24 overflow-hidden rounded-full bg-line">
+              <motion.span className="absolute inset-y-0 left-0 rounded-full bg-fg" animate={{ width: `${pct ?? 0}%` }} transition={{ duration: 0.2 }} />
+            </span>
+            <span className="w-8 text-right font-mono tabular-nums text-muted">{pct != null ? `${pct}%` : "…"}</span>
+          </button>
+          <button aria-label="Cancel download" title="Cancel download" onClick={() => void cancelDownload()} className="grid h-6 w-6 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg">
+            <X size={12} />
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
