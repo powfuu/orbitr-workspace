@@ -250,6 +250,15 @@ pub fn merge_state(repo: &str) -> Result<Option<MergeState>, String> {
 
 /// Concludes a merge once every conflict is resolved and staged.
 pub fn merge_continue(repo: &str) -> Result<String, String> {
+    // Refuse while any conflicted file still has markers, so they never get committed.
+    let unmerged = git(repo, &["diff", "--name-only", "--diff-filter=U"])?;
+    let left: Vec<&str> = unmerged
+        .lines()
+        .filter(|f| std::fs::read_to_string(std::path::Path::new(repo).join(f)).is_ok_and(|c| c.lines().any(|l| l.starts_with("<<<<<<<") || l.starts_with(">>>>>>>"))))
+        .collect();
+    if !left.is_empty() {
+        return Err(format!("Still has conflict markers: {}", left.join(", ")));
+    }
     git(repo, &["add", "-u"])?;
     git(repo, &["commit", "--no-edit"])
 }
@@ -439,6 +448,7 @@ mod tests {
         assert!(merge_state(r).unwrap().is_none());
 
         let _ = merge(r, "other", true);
+        assert!(merge_continue(r).unwrap_err().contains("f.txt"), "markers left → refused");
         std::fs::write(dir.join("f.txt"), "resolved\n").unwrap();
         merge_continue(r).unwrap();
         assert!(merge_state(r).unwrap().is_none());
