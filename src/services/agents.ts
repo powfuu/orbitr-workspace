@@ -24,6 +24,8 @@ export interface TimelineEvent {
   detail: string | null;
   path: string | null;
   error: boolean;
+  /** Pasted images still in Claude's cache. */
+  images?: string[];
 }
 
 export const timelineService = {

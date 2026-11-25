@@ -44,3 +44,10 @@ pub async fn claude_sessions_since(cwd: String, since: String) -> Vec<crate::age
 pub async fn claude_session_with_prompt(cwd: String, since_ms: u64, typed: String) -> Option<String> {
     tauri::async_runtime::spawn_blocking(move || crate::agents::timeline::session_with_prompt(&cwd, since_ms, &typed)).await.ok().flatten()
 }
+
+/// A pasted image Claude Code still has cached, as raw bytes (the UI makes a blob URL).
+#[tauri::command]
+pub async fn claude_cached_image(path: String) -> Result<tauri::ipc::Response, String> {
+    let (_mime, bytes) = tauri::async_runtime::spawn_blocking(move || crate::agents::timeline::cached_image(&path)).await.map_err(|e| e.to_string())??;
+    Ok(tauri::ipc::Response::new(bytes))
+}

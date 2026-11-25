@@ -1,3 +1,4 @@
+import { PromptImages } from "./PromptImages";
 import { motion } from "framer-motion";
 import {
   Bot, CircleStop, FilePen, FileText, GitCommitHorizontal, HelpCircle, MessageSquare, Mic, Play, Search,
@@ -158,6 +159,7 @@ export function TimelinePanel({ agent, cwd, onClose }: { agent: AgentSession; cw
                   >
                     {path ? shortPath(path, cwd) : d.title}
                   </div>
+                  {x.source === "agent" && x.e.images && x.e.images.length > 0 && <PromptImages paths={x.e.images} />}
                   <div className="mt-0.5 flex gap-2 text-[10px] text-faint">
                     <span className="font-mono">{time(x.at)}</span>
                     {d.detail && <span className="truncate">{d.detail}</span>}

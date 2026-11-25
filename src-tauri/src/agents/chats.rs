@@ -18,7 +18,7 @@ pub struct ChatSummary {
 
 const LIMIT: usize = 40;
 
-fn home() -> Option<PathBuf> {
+pub(crate) fn home() -> Option<PathBuf> {
     std::env::var_os(if cfg!(windows) { "USERPROFILE" } else { "HOME" }).map(PathBuf::from)
 }
 

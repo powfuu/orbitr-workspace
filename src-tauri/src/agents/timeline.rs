@@ -32,6 +32,14 @@ pub struct TimelineEvent {
     /// File path for edits/reads.
     pub path: Option<String>,
     pub error: bool,
+    /// Pasted images still in Claude's local cache (~/.claude/image-cache); missing ones are left out.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub images: Vec<String>,
+}
+
+/// "[Image: source: /path]" lines Claude Code writes after a prompt with pasted images.
+fn image_source(text: &str) -> Option<&str> {
+    text.trim().strip_prefix("[Image: source: ")?.strip_suffix(']').map(str::trim)
 }
 
 #[derive(Serialize, Debug)]
@@ -72,7 +80,7 @@ fn tool_event(name: &str, input: &Value, at: &str) -> TimelineEvent {
             (EventKind::Tool, short, None, None)
         }
     };
-    TimelineEvent { at: at.into(), kind, tool: Some(name.into()), title, detail, path, error: false }
+    TimelineEvent { at: at.into(), kind, tool: Some(name.into()), title, detail, path, error: false, images: vec![] }
 }
 
 pub fn parse_timeline(lines: impl Iterator<Item = String>) -> Vec<TimelineEvent> {
@@ -86,14 +94,29 @@ pub fn parse_timeline(lines: impl Iterator<Item = String>) -> Vec<TimelineEvent>
             Some("user") => {
                 if let Some(text) = content.as_str() {
                     let t = text.trim();
-                    if !t.is_empty() && !t.starts_with('<') {
-                        events.push(TimelineEvent { at, kind: EventKind::Prompt, tool: None, title: first_line(t, 240), detail: None, path: None, error: false });
+                    if let Some(src) = image_source(t) {
+                        if let Some(prompt) = events.iter_mut().rev().find(|e| e.kind == EventKind::Prompt) {
+                            if Path::new(src).is_file() {
+                                prompt.images.push(src.to_string());
+                            }
+                        }
+                    } else if !t.is_empty() && !t.starts_with('<') {
+                        events.push(TimelineEvent { at, kind: EventKind::Prompt, tool: None, title: first_line(t, 240), detail: None, path: None, error: false, images: vec![] });
                     }
                 } else if let Some(blocks) = content.as_array() {
+                    // Image references follow the prompt as separate meta entries: attach them to it.
+                    let texts: Vec<&str> = blocks.iter().filter(|b| b["type"] == "text").filter_map(|b| b["text"].as_str()).collect();
+                    let sources: Vec<&str> = texts.iter().filter_map(|t| image_source(t)).collect();
+                    if !sources.is_empty() {
+                        if let Some(prompt) = events.iter_mut().rev().find(|e| e.kind == EventKind::Prompt) {
+                            prompt.images.extend(sources.iter().filter(|p| Path::new(p).is_file()).map(|p| p.to_string()));
+                        }
+                        continue;
+                    }
                     // Prompts with images arrive as blocks: [image, text "…"].
-                    let text: Vec<&str> = blocks.iter().filter(|b| b["type"] == "text").filter_map(|b| b["text"].as_str()).map(str::trim).filter(|t| !t.is_empty() && !t.starts_with('<')).collect();
+                    let text: Vec<&str> = texts.iter().map(|t| t.trim()).filter(|t| !t.is_empty() && !t.starts_with('<')).collect();
                     if !text.is_empty() && !blocks.iter().any(|b| b["type"] == "tool_result") {
-                        events.push(TimelineEvent { at: at.clone(), kind: EventKind::Prompt, tool: None, title: first_line(&text.join(" "), 240), detail: None, path: None, error: false });
+                        events.push(TimelineEvent { at: at.clone(), kind: EventKind::Prompt, tool: None, title: first_line(&text.join(" "), 240), detail: None, path: None, error: false, images: vec![] });
                     }
                     for b in blocks {
                         if b["type"] == "tool_result" && b["is_error"].as_bool() == Some(true) {
@@ -117,7 +140,7 @@ pub fn parse_timeline(lines: impl Iterator<Item = String>) -> Vec<TimelineEvent>
                         Some("text") => {
                             let t = b["text"].as_str().unwrap_or("").trim();
                             if !t.is_empty() {
-                                events.push(TimelineEvent { at: at.clone(), kind: EventKind::Reply, tool: None, title: first_line(t, 200), detail: None, path: None, error: false });
+                                events.push(TimelineEvent { at: at.clone(), kind: EventKind::Reply, tool: None, title: first_line(t, 200), detail: None, path: None, error: false, images: vec![] });
                             }
                         }
                         _ => {}
@@ -240,6 +263,25 @@ mod tests {
     }
 
     #[test]
+    fn attaches_cached_images_and_guards_reads() {
+        let img = std::env::temp_dir().join(format!("orbitr-img-{}.png", std::process::id()));
+        std::fs::write(&img, b"x").unwrap();
+        let src = img.to_string_lossy();
+        let lines = [
+            r#"{"type":"user","timestamp":"t1","message":{"content":"fix the buttons"}}"#.to_string(),
+            format!(r#"{{"type":"user","isMeta":true,"timestamp":"t1","message":{{"content":[{{"type":"text","text":"[Image: source: {src}]"}}]}}}}"#),
+            r#"{"type":"user","isMeta":true,"timestamp":"t1","message":{"content":[{"type":"text","text":"[Image: source: /nope/gone.png]"}]}}"#.to_string(),
+        ];
+        let e = parse_timeline(lines.into_iter());
+        assert_eq!(e.len(), 1, "image refs are not prompts of their own");
+        assert_eq!(e[0].images, vec![src.to_string()], "only images that still exist");
+        // Reads outside ~/.claude/image-cache are refused.
+        assert!(cached_image(&src).is_err());
+        assert!(cached_image("/etc/passwd").is_err());
+        let _ = std::fs::remove_file(img);
+    }
+
+    #[test]
     fn rejects_path_like_ids() {
         assert!(timeline("/tmp", "../../etc/passwd").is_err());
         assert!(valid_id("7b0001da-3f2c-48a1-8c16-3ffd64f6aea1"));
@@ -266,4 +308,26 @@ mod real {
             println!("  {:?} {}", x.kind, x.title.chars().take(70).collect::<String>());
         }
     }
+}
+
+/// A pasted image from Claude's cache: (mime, bytes). Only files inside ~/.claude/image-cache
+/// (no `..` tricks, image types only, ≤ 20 MB) — nothing else on disk can be read this way.
+pub fn cached_image(path: &str) -> Result<(&'static str, Vec<u8>), String> {
+    let cache = super::chats::home().ok_or("no home folder")?.join(".claude").join("image-cache");
+    let cache = fs::canonicalize(&cache).map_err(|_| "no image cache".to_string())?;
+    let real = fs::canonicalize(path).map_err(|_| "image no longer in cache".to_string())?;
+    if !real.starts_with(&cache) {
+        return Err("not a cached image".into());
+    }
+    let mime = match real.extension().and_then(|e| e.to_str()).map(str::to_ascii_lowercase).as_deref() {
+        Some("png") => "image/png",
+        Some("jpg" | "jpeg") => "image/jpeg",
+        Some("gif") => "image/gif",
+        Some("webp") => "image/webp",
+        _ => return Err("not an image".into()),
+    };
+    if fs::metadata(&real).map_err(|e| e.to_string())?.len() > 20 * 1024 * 1024 {
+        return Err("image too large".into());
+    }
+    Ok((mime, fs::read(&real).map_err(|e| e.to_string())?))
 }
