@@ -10,6 +10,13 @@ import { ensureTerminalFont, terminalFontFamily, useFonts } from "./fonts";
 import { useSettings, type Settings } from "../../stores/settingsStore";
 import { isTauri } from "../../lib/platform";
 import type { ID } from "../../types";
+import { useSessions } from "../../stores/sessionStore";
+import { isEditor } from "../agents/registry";
+
+const isEditorSession = (id: ID) => {
+  const a = useSessions.getState().agents.find((x) => x.id === id);
+  return !!a && isEditor(a.kind);
+};
 
 /**
  * Owns xterm.js instances outside React. Each terminal lives in its own DOM node
@@ -90,6 +97,16 @@ export const terminalRegistry = {
         if ((e.metaKey || e.ctrlKey) && /^https?:\/\//i.test(uri) && isTauri) void openUrl(uri);
       }),
     );
+    // Terminals can't tell Ctrl+Shift+F from Ctrl+F. In Vim/Neovim tabs send the CSI u form
+    // (ESC [ <code> ; 6 u) so mappings like <C-S-f> work; shells keep the classic bytes.
+    term.attachCustomKeyEventHandler((e) => {
+      if (e.type !== "keydown" || !e.ctrlKey || !e.shiftKey || e.altKey || e.metaKey) return true;
+      const letter = /^Key([A-Z])$/.exec(e.code)?.[1];
+      if (!letter || !isEditorSession(id)) return true;
+      e.preventDefault();
+      term.input(`\x1b[${letter.toLowerCase().charCodeAt(0)};6u`, true);
+      return false;
+    });
     const host = document.createElement("div");
     host.className = "h-full w-full";
     entries.set(id, { term, fit, serializer, search, host, opened: false });
