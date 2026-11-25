@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Columns2, PanelLeftOpen, PanelRightOpen, Rows2, X } from "lucide-react";
+import { Columns2, Maximize2, PanelLeftOpen, PanelRightOpen, Rows2, X } from "lucide-react";
+import { toggleFocusMode } from "../../features/layout/focusMode";
 import { useState } from "react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { useTabs, type TabGroup } from "../../stores/tabStore";
@@ -36,7 +37,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
   const workspaces = useWorkspaces((s) => s.workspaces);
   const projects = useWorkspaces((s) => s.projects);
   const agents = useSessions((s) => s.agents);
-  const { sidebarOpen, terminalOpen, toggleSidebar, toggleTerminal } = useLayout();
+  const { sidebarOpen, terminalOpen, toggleSidebar, toggleTerminal, focusMode } = useLayout();
   const setDrag = useTabDrag((s) => s.set);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
   const closable = (t: { target: { type: string } }) => t.target.type !== "home" || multi;
@@ -55,6 +56,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
     if (e.dataTransfer.types.includes(TAB_MIME)) e.preventDefault();
   };
 
+  if (focusMode) return null;
   return (
     <div
       {...windowDragProps}
@@ -168,6 +170,8 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
         </AnimatePresence>
       </div>
       <div className="mb-2 flex items-center gap-0.5">
+        <IconButton icon={Maximize2} label="Full screen" shortcut={`${modKey}${isMac ? "⇧↩" : "+Shift+Enter"}`} size="sm" onClick={() => toggleFocusMode(true)} />
+        <IconButton icon={Maximize2} label="Full screen" shortcut={`${modKey}${isMac ? "⇧↩" : "+Shift+Enter"}`} size="sm" onClick={() => toggleFocusMode(true)} />
         <IconButton icon={Columns2} label="Split right" shortcut={`${modKey}\\`} size="sm" onClick={() => split(paneId, "right")} />
         {topRight && <VoiceButton />}
         {topRight && !terminalOpen && (

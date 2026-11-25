@@ -14,11 +14,16 @@ import { WelcomeTour } from "../onboarding/WelcomeTour";
 import { ApprovalsTray } from "../approvals/ApprovalsTray";
 import { VoiceIndicator } from "../voice/VoiceIndicator";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
+import { Minimize2 } from "lucide-react";
+import { toggleFocusMode } from "../../features/layout/focusMode";
+import { modKey, isMac } from "../../lib/platform";
 
 const slide = { type: "spring", stiffness: 420, damping: 42 } as const;
 
 export function AppShell() {
-  const { sidebarOpen, terminalOpen, sidebarWidth, terminalWidth, setSidebarWidth, setTerminalWidth } = useLayout();
+  const { sidebarOpen: sidebarPref, terminalOpen: terminalPref, sidebarWidth, terminalWidth, setSidebarWidth, setTerminalWidth, focusMode } = useLayout();
+  const sidebarOpen = sidebarPref && !focusMode;
+  const terminalOpen = terminalPref && !focusMode;
   return (
     <div className="flex h-full flex-col">
       <div className="flex min-h-0 flex-1">
@@ -42,7 +47,16 @@ export function AppShell() {
           )}
         </AnimatePresence>
       </div>
-      <StatusBar />
+      {!focusMode && <StatusBar />}
+      {focusMode && (
+        <button
+          onClick={() => toggleFocusMode(false)}
+          title={`Exit full screen (${modKey}${isMac ? "⇧↩" : "+Shift+Enter"})`}
+          className="fixed right-3 top-3 z-50 grid h-7 w-7 place-items-center rounded-md bg-surface/80 text-muted opacity-0 ring-1 ring-line backdrop-blur transition-opacity hover:text-fg hover:opacity-100 focus-visible:opacity-100"
+        >
+          <Minimize2 size={13} />
+        </button>
+      )}
       <CommandPalette />
       <Toaster />
       <ErrorBoundary label="Quick open"><QuickOpen /></ErrorBoundary>

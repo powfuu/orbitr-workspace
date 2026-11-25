@@ -1,6 +1,6 @@
 import {
   ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BarChart3, Bot, Columns2, Download, FileCode2, Folder, FolderGit2, FolderPlus,
-  FolderSearch, Gauge, GitBranch, Keyboard, LayoutDashboard, LayoutGrid, ListTree, MessagesSquare, Mic, Palette, PanelLeft,
+  FolderSearch, Gauge, GitBranch, Maximize2, Keyboard, LayoutDashboard, LayoutGrid, ListTree, MessagesSquare, Mic, Palette, PanelLeft,
   PanelRight, Pencil, Plus, RefreshCw, RotateCw, Rows2, Search, Settings, Sparkles, Square, SquareTerminal, TextQuote,
   Trash2, X, type LucideIcon,
 } from "lucide-react";
@@ -13,6 +13,7 @@ import { useSettings } from "../../stores/settingsStore";
 import { toast } from "../../stores/toastStore";
 import { addProjectFromDialog } from "../projects/addProject";
 import { newDefaultTerminal } from "../terminals/newDefaultTerminal";
+import { toggleFocusMode } from "../layout/focusMode";
 import { closeFocused } from "../terminals/closeFocused";
 import { closeTerminal, restartTerminal } from "../terminals/terminalActions";
 import { AGENTS, agentList, isEditor } from "../agents/registry";
@@ -116,6 +117,7 @@ export function useCommands(): Command[] {
     }
     add({ id: "next-tab", title: "Next tab", group: "Navigate", icon: ArrowRight, shortcut: "⌃Tab", run: () => cycleTab(1) });
     add({ id: "prev-tab", title: "Previous tab", group: "Navigate", icon: ArrowLeft, shortcut: "⌃⇧Tab", run: () => cycleTab(-1) });
+    add({ id: "focus-mode", title: "Toggle full screen", group: "Layout", icon: Maximize2, shortcut: `${modKey}⇧↩`, run: () => toggleFocusMode() });
     add({ id: "close-tab", title: "Close tab", group: "Navigate", icon: X, shortcut: `${modKey}W`, run: closeFocused });
 
     // Workspace

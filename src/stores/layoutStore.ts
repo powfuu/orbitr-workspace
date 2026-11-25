@@ -16,6 +16,8 @@ interface LayoutState {
   paletteOpen: boolean;
   timelineOpen: boolean;
   helpOpen: boolean;
+  /** Full-screen focus: only the centre pane (e.g. Vim), no chrome. Not persisted. */
+  focusMode: boolean;
   setHelpOpen: (open: boolean) => void;
   toggleTimeline: () => void;
   paletteQuery: string;
@@ -41,6 +43,7 @@ export const useLayout = create<LayoutState>()(
       paletteOpen: false,
       timelineOpen: false,
       helpOpen: false,
+      focusMode: false,
       setHelpOpen: (helpOpen) => set({ helpOpen }),
       toggleTimeline: () => set((s) => ({ timelineOpen: !s.timelineOpen })),
       paletteQuery: "",
@@ -56,7 +59,7 @@ export const useLayout = create<LayoutState>()(
     {
       ...persistOptions,
       name: "orbitr.layout",
-      partialize: ({ paletteOpen: _p, paletteQuery: _q, helpOpen: _h, ...rest }) => rest,
+      partialize: ({ paletteOpen: _p, paletteQuery: _q, helpOpen: _h, focusMode: _f, ...rest }) => rest,
     },
   ),
 );
