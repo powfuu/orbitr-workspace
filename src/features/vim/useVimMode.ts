@@ -63,6 +63,11 @@ export function useVimMode() {
     };
 
     const onKey = (e: KeyboardEvent) => {
+      // Ctrl+H / Ctrl+L: previous / next tab in the focused area (centre tabs or terminals), always.
+      if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (e.code === "KeyH" || e.code === "KeyL") && focusedRegion() !== "sidebar") {
+        swallow(e);
+        return cycle(e.code === "KeyL" ? 1 : -1);
+      }
       if (!useSettings.getState().vimMode) return;
       const target = e.target as Element | null;
       const { mode, hints, typed, set } = vim();
@@ -97,7 +102,6 @@ export function useVimMode() {
       if (mode !== "normal" || e.metaKey || e.altKey) return;
       if (target?.closest?.(EDITABLE) && !target.closest(".xterm")) return; // focused by hint/click → typing
 
-      if (e.ctrlKey && (e.key === "h" || e.key === "l")) return swallow(e), cycle(e.key === "l" ? 1 : -1);
       if (e.ctrlKey) return;
       const actions: Record<string, () => void> = {
         ":": () => useLayout.getState().setPaletteOpen(true),
