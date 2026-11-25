@@ -1,4 +1,6 @@
+import { invoke } from "@tauri-apps/api/core";
 import { remoteService } from "../../services/git";
+import { toast } from "../../stores/toastStore";
 import { askCredentials } from "../../components/git/CredentialsDialog";
 
 const AUTH = /could not read (password|username)|terminal prompts disabled|authentication failed|invalid username or password|access denied/i;
@@ -20,7 +22,12 @@ export async function withAuth<T>(repo: string, fn: () => Promise<T>): Promise<T
     const user = authority.includes("@") ? authority.split("@")[0]!.split(":")[0]! : "";
     const creds = await askCredentials(host, user);
     if (!creds) throw new Error("Sign-in cancelled.");
-    await remoteService.storeCredential(repo, remote.url, creds.username, creds.password);
+    if (creds === "browser") {
+      toast({ kind: "info", title: `Sign in to ${host} in your browser`, detail: "Orbitr continues when you finish." });
+      await invoke("git_browser_login", { repo, remote: remote.name });
+    } else {
+      await remoteService.storeCredential(repo, remote.url, creds.username, creds.password);
+    }
     return await fn();
   }
 }

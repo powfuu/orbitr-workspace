@@ -22,9 +22,13 @@ pub(crate) fn git(repo: &str, args: &[&str]) -> Result<String, String> {
     if !Path::new(repo).is_dir() {
         return Err(format!("not a folder: {repo}"));
     }
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(repo)
+    let mut cmd = Command::new("git");
+    cmd.arg("-C").arg(repo);
+    // With Git Credential Manager installed, add it as a helper so browser sign-ins are used.
+    if let Some(gcm) = remote::gcm_path() {
+        cmd.arg("-c").arg(format!("credential.helper={}", gcm.display()));
+    }
+    let out = cmd
         .args(args)
         // Never block on an interactive credential prompt; the UI reports the error instead.
         .env("GIT_TERMINAL_PROMPT", "0")

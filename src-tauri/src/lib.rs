@@ -80,6 +80,8 @@ pub fn run() {
             commands::git::git_remote_add,
             commands::git::git_remote_remove,
             commands::git::git_store_credential,
+            commands::git::git_gcm_installed,
+            commands::git::git_browser_login,
             commands::fonts::nerd_fonts,
             commands::fonts::read_font,
         ])

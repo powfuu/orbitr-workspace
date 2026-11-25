@@ -1,5 +1,6 @@
 import { Globe, KeyRound, Pencil, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { remoteService, type Remote } from "../../services/git";
 import { useGitRun } from "../../features/git/gitRun";
 import { askCredentials } from "./CredentialsDialog";
@@ -20,7 +21,8 @@ export function RemotesSection({ repo }: { repo: string }) {
     const authority = r.url.replace(/^https?:\/\//, "").split("/")[0] ?? "";
     const host = authority.split("@").pop() ?? authority;
     const creds = await askCredentials(host, authority.includes("@") ? authority.split("@")[0]!.split(":")[0]! : "");
-    if (creds) void act("save credentials", () => remoteService.storeCredential(repo, r.url, creds.username, creds.password), `Credentials saved for ${host}`);
+    if (creds === "browser") void act("browser sign-in", () => invoke("git_browser_login", { repo, remote: r.name }), `Signed in to ${host}`);
+    else if (creds) void act("save credentials", () => remoteService.storeCredential(repo, r.url, creds.username, creds.password), `Credentials saved for ${host}`);
   };
 
   return (

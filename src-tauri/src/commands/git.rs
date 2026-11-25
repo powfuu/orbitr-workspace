@@ -208,3 +208,13 @@ pub async fn git_remote_remove(repo: String, name: String) -> Result<(), String>
 pub async fn git_store_credential(repo: String, url: String, username: String, password: String) -> Result<(), String> {
     run(move || git::store_credential(&repo, &url, &username, &password)).await
 }
+
+#[tauri::command]
+pub async fn git_gcm_installed() -> bool {
+    git::gcm_path().is_some()
+}
+
+#[tauri::command]
+pub async fn git_browser_login(repo: String, remote: String) -> Result<(), String> {
+    run(move || git::browser_login(&repo, &remote)).await
+}
