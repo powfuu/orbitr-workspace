@@ -46,7 +46,7 @@ interface OpenOptions {
 export async function openInEditor({ projectId = contextProject(), file, line }: OpenOptions = {}) {
   if (!projectId) return toast({ kind: "info", title: "Add a project first", detail: "Vim opens in a project folder." });
   const kind = await preferredEditor();
-  if (!kind) return toast({ kind: "error", title: "No Vim found", detail: "Install Neovim or Vim (Home → Agent integrations) and try again." });
+  if (!kind) return toast({ kind: "error", title: "No Vim found", detail: "Install Neovim (Home → IDE integrations) and try again." });
 
   const args = [...(line ? [`+${line}`] : []), ...(file ? ["--", file] : [])];
   const same = useSessions.getState().agents.find(

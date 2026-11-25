@@ -21,6 +21,8 @@ export interface Settings {
   voiceAutoSubmit: boolean;
   /** Preferred terminal editor; "auto" = first installed of nvim, vim, vi. */
   editor: "auto" | "nvim" | "vim" | "vi";
+  /** NVIM_APPNAME for Neovim (a config in ~/.config/<name>); empty = ~/.config/nvim. */
+  nvimConfig: string;
   /** Close an editor tab when the editor quits cleanly (:q). */
   closeEditorOnQuit: boolean;
   /** Warn as Claude plan limits fill up (and when they reset). */
@@ -47,6 +49,7 @@ export const DEFAULT_SETTINGS: Settings = {
   voiceAutoSubmit: true,
   editor: "auto",
   closeEditorOnQuit: true,
+  nvimConfig: "",
   limitAlerts: true,
   limitThresholds: "80,95",
   vimMode: false,

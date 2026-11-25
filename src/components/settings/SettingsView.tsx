@@ -11,6 +11,7 @@ import { UpdatesSection } from "./UpdatesSection";
 import { ThemePicker } from "./ThemePicker";
 import { Select } from "../ui/Select";
 import { SnippetsSection } from "./SnippetsSection";
+import { NVIM_CONFIGS } from "../../features/editors/nvimConfigs";
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
@@ -78,9 +79,31 @@ export function SettingsView() {
         </button>
       </ViewHeader>
 
-      <Section title="Keyboard">
-        <Row label="Vim mode" hint="Esc leaves the input (NORMAL; double Esc inside an editor). Then f shows hints to click anything, Ctrl+H/L switch tabs, : opens the palette, i returns to typing.">
+      <Section title="Vim">
+        <Row label="Vim mode" hint="Esc leaves the input (NORMAL; Esc Esc inside an editor tab). Then f shows hints to click anything, Ctrl+H/L switch tabs, : opens the palette, i goes back to typing.">
           <Toggle k="vimMode" />
+        </Row>
+        <Row label="Vim flavour" hint={`Used by ${modKey}E, ${modKey}P and every “Open in Vim”. Auto picks the first installed of Neovim, Vim, vi.`}>
+          <Segmented k="editor" options={[{ value: "auto", label: "Auto" }, { value: "nvim", label: "Neovim" }, { value: "vim", label: "Vim" }, { value: "vi", label: "vi" }]} />
+        </Row>
+        <Row label="Neovim config" hint="Which ~/.config folder Neovim uses (NVIM_APPNAME). Install ready-made ones from Home → Neovim configs.">
+          <Select
+            ariaLabel="Neovim config"
+            className="w-56 font-mono"
+            value={s.nvimConfig}
+            onChange={(v) => s.set("nvimConfig", v)}
+            options={[{ value: "", label: "Your own", hint: "~/.config/nvim" }, ...NVIM_CONFIGS.map((c) => ({ value: c.app, label: c.name, hint: `~/.config/${c.app}` }))]}
+          />
+        </Row>
+        <Row label="Installed" hint="Detected through your login shell PATH. Install Neovim from Home → IDE integrations.">
+          <span className="flex gap-3 font-mono text-[11px]">
+            {(["nvim", "vim", "vi"] as const).map((k) => (
+              <span key={k} className={editorPaths[k] ? "text-success" : "text-faint"} title={editorPaths[k] ?? "not installed"}>{k} {editorPaths[k] ? "✓" : "—"}</span>
+            ))}
+          </span>
+        </Row>
+        <Row label="Close tab on :q" hint="When the editor quits cleanly, close its tab. Off = keep it with the exit status.">
+          <Toggle k="closeEditorOnQuit" />
         </Row>
       </Section>
 
@@ -157,22 +180,6 @@ export function SettingsView() {
 
       <Section title="Snippets">
         <SnippetsSection />
-      </Section>
-
-      <Section title="Editor">
-        <Row label="Vim flavour" hint={`Used by ${modKey}E, ${modKey}P and every “Open in Vim”. Auto picks the first installed of Neovim, Vim, vi.`}>
-          <Segmented k="editor" options={[{ value: "auto", label: "Auto" }, { value: "nvim", label: "Neovim" }, { value: "vim", label: "Vim" }, { value: "vi", label: "vi" }]} />
-        </Row>
-        <Row label="Installed" hint="Detected through your login shell PATH.">
-          <span className="flex gap-3 font-mono text-[11px]">
-            {(["nvim", "vim", "vi"] as const).map((k) => (
-              <span key={k} className={editorPaths[k] ? "text-success" : "text-faint"} title={editorPaths[k] ?? "not installed"}>{k} {editorPaths[k] ? "✓" : "—"}</span>
-            ))}
-          </span>
-        </Row>
-        <Row label="Close tab on :q" hint="When the editor quits cleanly, close its tab. Off = keep it with the exit status.">
-          <Toggle k="closeEditorOnQuit" />
-        </Row>
       </Section>
 
       <Section title="Updates">

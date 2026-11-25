@@ -52,7 +52,7 @@ export const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
     ],
   },
   {
-    group: "Vim mode (Settings → Keyboard)",
+    group: "Vim mode (Settings → Vim)",
     items: [
       { keys: ["Esc"], label: "NORMAL mode (Esc Esc inside an editor)" },
       { keys: ["i"], label: "Back to typing (INSERT)" },

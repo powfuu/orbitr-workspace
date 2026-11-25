@@ -2,6 +2,7 @@ import type { SpawnOptions } from "../../services/pty";
 import { resolveDefaultShell } from "../terminals/defaultShell";
 import { isMac } from "../../lib/platform";
 import type { AgentDefinition } from "./registry";
+import { useSettings } from "../../stores/settingsStore";
 
 export const isWindows = navigator.userAgent.includes("Windows");
 const quote = (a: string) => (/^[\w@%+=:,./-]+$/.test(a) ? a : `'${a.replace(/'/g, `'\\''`)}'`);
@@ -27,5 +28,6 @@ export async function agentSpawnOptions(agent: AgentDefinition, cwd: string, res
         ? agent.resumeArgs
         : agent.defaultArgs;
   const opts = await shellCommand([agent.executable, ...args, ...extraArgs].map(quote).join(" "), cwd);
-  return { ...opts, env: agent.env };
+  const nvimConfig = agent.kind === "nvim" ? useSettings.getState().nvimConfig : "";
+  return { ...opts, env: nvimConfig ? { ...agent.env, NVIM_APPNAME: nvimConfig } : agent.env };
 }
