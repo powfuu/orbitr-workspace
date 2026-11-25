@@ -25,7 +25,9 @@ export function evaluateAlerts(limits: PlanLimit[], memory: AlertMemory, thresho
   for (const l of limits) {
     const window = l.resets ?? "";
     const prev = memory[l.label];
-    const reset = prev && prev.announced > 0 && (prev.window !== window || l.percent + 30 < prev.announced);
+    // The reset text is re-rendered by Claude Code and changes wording/format between reads,
+    // so on its own it isn't proof of a reset: usage must also have gone down.
+    const reset = prev && prev.announced > 0 && (l.percent + 30 < prev.announced || (prev.window !== window && l.percent < 20));
     if (reset) {
       alerts.push({ key: `${l.label}|reset|${window}`, level: "reset", title: `${label(l)} reset`, body: `Back to ${l.percent}% used.` });
     }

@@ -25,3 +25,11 @@ test("jumping straight past several thresholds raises only the highest", () => {
   const { alerts } = evaluateAlerts(L(96), {}, [80, 95]);
   assert.deepEqual(alerts.map((a) => a.level), ["critical"]);
 });
+
+test("a reworded reset time is not a reset (no 'Back to 90% used' while still at 90%)", () => {
+  let memory = evaluateAlerts(L(91), {}, [80, 95]).memory;
+  const r = evaluateAlerts(L(90, "2:40pm (Europe/Madrid)"), memory, [80, 95]);
+  assert.deepEqual(r.alerts, []);
+  memory = r.memory;
+  assert.deepEqual(evaluateAlerts(L(92, "Resets 2:40pm"), memory, [80, 95]).alerts, []);
+});

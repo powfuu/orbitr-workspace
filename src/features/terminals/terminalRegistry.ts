@@ -123,6 +123,12 @@ export const terminalRegistry = {
     container.appendChild(e.host);
     if (!e.opened) {
       await fontsReady;
+      // At startup the window (or a sliding pane) can still be 0×0. Opening xterm — and the
+      // WebGL renderer — into a zero-size box leaves a canvas that never paints until the
+      // terminal is re-attached (the "black until you switch tabs" bug). Wait for a real size.
+      for (let i = 0; i < 120 && e.host.isConnected && (e.host.clientWidth === 0 || e.host.clientHeight === 0); i++) {
+        await new Promise((r) => requestAnimationFrame(r));
+      }
       // Rapid tab switching: another attach may have opened it, or the view is already gone.
       if (entries.get(id) !== e || !e.host.isConnected) return;
       if (!e.opened) {
