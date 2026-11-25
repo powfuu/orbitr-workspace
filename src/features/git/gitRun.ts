@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "../../stores/toastStore";
 import { useGit } from "./gitStore";
-import { withAuth } from "./withAuth";
+import { SilentError, withAuth } from "./withAuth";
 
 /** Runs a git action with a busy flag, a toast on success/failure and a status refresh after. */
 export function useGitRun(repo: string) {
@@ -13,7 +13,7 @@ export function useGitRun(repo: string) {
       if (ok) toast({ kind: "success", title: typeof ok === "function" ? ok(r) : ok });
       return r;
     } catch (e) {
-      toast({ kind: "error", title: `${label} failed`, detail: String(e) });
+      if (!(e instanceof SilentError)) toast({ kind: "error", title: `${label} failed`, detail: String(e) });
       return undefined;
     } finally {
       setBusy(null);

@@ -13,7 +13,7 @@ import { useSettings } from "../../stores/settingsStore";
 import { toast } from "../../stores/toastStore";
 import { addProjectFromDialog } from "../projects/addProject";
 import { newDefaultTerminal } from "../terminals/newDefaultTerminal";
-import { withAuth } from "../git/withAuth";
+import { SilentError, withAuth } from "../git/withAuth";
 import { toggleFloating } from "../floating/floatingTerminal";
 import { toggleFocusMode } from "../layout/focusMode";
 import { closeFocused } from "../terminals/closeFocused";
@@ -66,7 +66,7 @@ async function gitAction(kind: "pull" | "push", path: string, name: string) {
     await withAuth(path, () => (kind === "pull" ? gitService.pull(path) : gitService.push(path)));
     toast({ kind: "success", title: `${kind === "pull" ? "Pulled" : "Pushed"} ${name}` });
   } catch (e) {
-    toast({ kind: "error", title: `git ${kind} failed in ${name}`, detail: String(e) });
+    if (!(e instanceof SilentError)) toast({ kind: "error", title: `git ${kind} failed in ${name}`, detail: String(e) });
   }
 }
 

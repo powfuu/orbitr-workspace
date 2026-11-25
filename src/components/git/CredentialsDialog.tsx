@@ -2,10 +2,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, KeyRound, Loader2 } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { newDefaultTerminal } from "../../features/terminals/newDefaultTerminal";
+import { terminalRegistry } from "../../features/terminals/terminalRegistry";
+import { useSessions } from "../../stores/sessionStore";
+import { toast } from "../../stores/toastStore";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 
-export type CredentialChoice = { username: string; password: string } | "browser" | null;
+export type CredentialChoice = { username: string; password: string } | "browser" | "installing" | null;
 
 interface Request {
   host: string;
@@ -35,14 +38,12 @@ export function CredentialsDialog() {
   const [password, setPassword] = useState("");
   const [manual, setManual] = useState(false);
   const [gcm, setGcm] = useState<boolean | null>(null);
-  const [installing, setInstalling] = useState(false);
   const checkGcm = () => void invoke<boolean>("git_gcm_installed").then(setGcm).catch(() => setGcm(false));
   useEffect(() => {
     if (!req) return;
     setUsername(req.username);
     setPassword("");
     setManual(false);
-    setInstalling(false);
     checkGcm();
   }, [req]);
   // After installing in the terminal, notice it as soon as the user comes back.
@@ -101,14 +102,18 @@ export function CredentialsDialog() {
                 Browser sign-in uses Git Credential Manager (by Microsoft, the same one Sourcetree and Visual Studio use). Install it once:
                 <button
                   type="button"
-                  disabled={installing}
                   onClick={() => {
-                    setInstalling(true);
-                    void newDefaultTerminal(undefined, "install Git Credential Manager", "brew install --cask git-credential-manager");
+                    // Get out of the way: Homebrew asks for the Mac password in that terminal.
+                    close("installing");
+                    void newDefaultTerminal(undefined, "install Git Credential Manager", "brew install --cask git-credential-manager").then(() => {
+                      const id = useSessions.getState().activeTerminalId;
+                      if (id) window.setTimeout(() => terminalRegistry.focus(id), 150);
+                    });
+                    toast({ kind: "info", title: "Installing Git Credential Manager", detail: "Type your Mac password in the terminal if asked, then press Push again." });
                   }}
                   className="mt-2 flex h-8 w-full items-center justify-center gap-2 rounded-md bg-fg text-[12px] font-medium text-bg hover:bg-fg/85 disabled:opacity-60"
                 >
-                  {installing ? <><Loader2 size={12} className="animate-spin" /> Installing in the terminal… (you may be asked for your Mac password)</> : "Install (Homebrew)"}
+                  Install (Homebrew)
                 </button>
               </div>
             ) : (

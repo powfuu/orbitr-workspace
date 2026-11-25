@@ -18,7 +18,7 @@ import { HistoryView } from "./HistoryView";
 import { BranchesView } from "./BranchesView";
 import { StashView } from "./StashView";
 import { RefChips } from "./ui";
-import { withAuth } from "../../features/git/withAuth";
+import { SilentError, withAuth } from "../../features/git/withAuth";
 
 const TABS = ["changes", "history", "branches", "stash"] as const;
 type Tab = (typeof TABS)[number];
@@ -74,7 +74,7 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
       await withAuth(path, fn);
       if (ok) toast({ kind: "success", title: ok });
     } catch (e) {
-      toast({ kind: "error", title: `git ${label} failed`, detail: String(e) });
+      if (!(e instanceof SilentError)) toast({ kind: "error", title: `git ${label} failed`, detail: String(e) });
     } finally {
       setBusy(null);
       void refresh(path);
