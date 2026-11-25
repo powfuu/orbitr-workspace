@@ -42,7 +42,7 @@ export const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
     group: "Layout",
     items: [
       { keys: [m, "B"], label: "Toggle sidebar" },
-      { keys: [m, shift, isMac ? "↩" : "Enter"], label: "Full screen (Vim, agent, any tab)" },
+      { keys: [m, shift, isMac ? "↩" : "Enter"], label: "Full screen on / off (Vim, agent, any tab) — same keys exit" },
       { keys: [m, "J"], label: "Toggle terminal panel" },
       { keys: [m, "\\"], label: "Split pane right" },
       { keys: [m, shift, "\\"], label: "Split pane down" },

@@ -1,15 +1,28 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Keyboard, X } from "lucide-react";
+import { Keyboard, Search, X } from "lucide-react";
 import { SHORTCUTS } from "../../features/shortcuts/shortcuts";
 import { useLayout } from "../../stores/layoutStore";
 import { Kbd } from "../ui/Kbd";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { isMac } from "../../lib/platform";
 
 /** Keyboard cheat sheet (? or Mod+/). */
 export function ShortcutSheet() {
   const open = useLayout((s) => s.helpOpen);
   const setOpen = useLayout((s) => s.setHelpOpen);
+  const [q, setQ] = useState("");
+  useEffect(() => {
+    if (open) setQ("");
+  }, [open]);
+  // Matches the label, the group or the keys ("vim", "split", "⌘ k", "tab").
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const groups = SHORTCUTS.map((g) => ({
+    ...g,
+    items: g.items.filter((s) => {
+      const hay = `${g.group} ${s.label} ${s.keys.join(" ")}`.toLowerCase();
+      return words.every((w) => hay.includes(w));
+    }),
+  })).filter((g) => g.items.length > 0);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -44,8 +57,19 @@ export function ShortcutSheet() {
                 <X size={14} />
               </button>
             </div>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-x-8 gap-y-5 p-5">
-              {SHORTCUTS.map((g) => (
+            <label className="flex h-10 items-center gap-2 border-b border-line px-5">
+              <Search size={13} className="text-faint" />
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="search shortcuts — full screen, vim, split…"
+                className="min-w-0 flex-1 bg-transparent font-mono text-[12.5px] text-fg outline-none placeholder:text-faint"
+              />
+            </label>
+            <div className="grid max-h-[70vh] grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-x-8 gap-y-5 overflow-y-auto p-5">
+              {groups.length === 0 && <div className="text-[12px] text-muted">No shortcut matches “{q}”.</div>}
+              {groups.map((g) => (
                 <section key={g.group}>
                   <div className="mb-2 term-heading">{g.group}</div>
                   <ul className="space-y-1.5">
