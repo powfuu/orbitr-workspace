@@ -34,6 +34,8 @@ pub struct Commit {
     pub author: String,
     pub time: u64,
     pub subject: String,
+    /// Branch/tag decorations (`%D`), e.g. "HEAD -> main, origin/main, tag: v1".
+    pub refs: String,
 }
 
 /// Parses `git status --porcelain=v2 --branch -z`.
@@ -83,12 +85,13 @@ pub fn parse_log(raw: &str) -> Vec<Commit> {
     raw.split('\u{1e}')
         .filter_map(|rec| {
             let f: Vec<&str> = rec.trim_matches('\n').split('\u{1f}').collect();
-            (f.len() == 5).then(|| Commit {
+            (f.len() >= 5).then(|| Commit {
                 hash: f[0].into(),
                 short: f[1].into(),
                 author: f[2].into(),
                 time: f[3].parse::<u64>().unwrap_or(0) * 1000,
                 subject: f[4].into(),
+                refs: f.get(5).map(|s| s.to_string()).unwrap_or_default(),
             })
         })
         .collect()

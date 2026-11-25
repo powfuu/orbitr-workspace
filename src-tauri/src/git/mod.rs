@@ -1,7 +1,10 @@
 //! Thin, safe wrapper over the system `git` CLI. No shell is involved: arguments are
 //! passed directly and user-supplied paths always follow `--`.
 mod branches;
+mod extra;
 mod parse;
+
+pub use extra::*;
 
 pub use branches::{add_worktree, branches, create as create_branch, remove_worktree, switch as switch_branch, worktrees, Branch, Worktree};
 
@@ -45,8 +48,19 @@ pub fn status(repo: &str) -> Result<Option<GitStatus>, String> {
 }
 
 pub fn log(repo: &str, n: u32) -> Result<Vec<Commit>, String> {
-    let n = n.clamp(1, 200).to_string();
-    match git(repo, &["log", "-n", &n, "--format=%H%x1f%h%x1f%an%x1f%at%x1f%s%x1e"]) {
+    log_page(repo, 0, n, None)
+}
+
+/// One page of history (`skip` for "load more"), optionally of another branch/ref.
+pub fn log_page(repo: &str, skip: u32, n: u32, rev: Option<&str>) -> Result<Vec<Commit>, String> {
+    let n = n.clamp(1, 500).to_string();
+    let skip = format!("--skip={skip}");
+    let mut args = vec!["log", "-n", &n, &skip, "--format=%H%x1f%h%x1f%an%x1f%at%x1f%s%x1f%D%x1e"];
+    if let Some(r) = rev {
+        extra::validate_ref(repo, r)?;
+        args.push(r);
+    }
+    match git(repo, &args) {
         Ok(raw) => Ok(parse_log(&raw)),
         // Fresh repo without commits.
         Err(e) if e.contains("does not have any commits") => Ok(vec![]),

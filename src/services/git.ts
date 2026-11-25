@@ -17,7 +17,36 @@ export interface Commit {
   author: string;
   time: number;
   subject: string;
+  /** Decorations, e.g. "HEAD -> main, origin/main, tag: v1". */
+  refs: string;
 }
+
+export interface CommitFile {
+  path: string;
+  status: string;
+  additions: number | null;
+  deletions: number | null;
+}
+
+export interface CommitDetail extends Commit {
+  email: string;
+  parents: string[];
+  body: string;
+  files: CommitFile[];
+}
+
+export interface Stash {
+  index: number;
+  message: string;
+  time: number;
+}
+
+export interface FlowConfig {
+  main: string;
+  develop: string | null;
+}
+
+export type FlowKind = "feature" | "bugfix" | "release" | "hotfix";
 
 export interface GitStatus {
   branch: string | null;
@@ -65,3 +94,27 @@ export const branchService = {
 };
 
 export const listFiles = (repo: string) => invoke<string[]>("list_files", { repo });
+
+/** History, branch management, stash and git flow (src-tauri/src/git/extra.rs). */
+export const gitMore = {
+  logPage: (repo: string, skip: number, limit: number, rev?: string) => invoke<Commit[]>("git_log_page", { repo, skip, limit, rev: rev || null }),
+  commitDetail: (repo: string, hash: string) => invoke<CommitDetail>("git_commit_detail", { repo, hash }),
+  commitDiff: (repo: string, hash: string, file: string) => invoke<string>("git_commit_diff", { repo, hash, file }),
+  remoteBranches: (repo: string) => invoke<string[]>("git_remote_branches", { repo }),
+  createBranch: (repo: string, name: string, base: string | null, checkout: boolean) => invoke<void>("git_branch_create", { repo, name, base, checkout }),
+  checkoutRemote: (repo: string, remote: string) => invoke<string>("git_checkout_remote", { repo, remote }),
+  deleteBranch: (repo: string, name: string, force: boolean) => invoke<void>("git_branch_delete", { repo, name, force }),
+  renameBranch: (repo: string, old: string, name: string) => invoke<void>("git_branch_rename", { repo, old, new: name }),
+  merge: (repo: string, branch: string, noFf: boolean) => invoke<string>("git_merge", { repo, branch, noFf }),
+  mergeAbort: (repo: string) => invoke<void>("git_merge_abort", { repo }),
+  fetch: (repo: string) => invoke<string>("git_fetch", { repo }),
+  cherryPick: (repo: string, hash: string) => invoke<string>("git_cherry_pick", { repo, hash }),
+  revert: (repo: string, hash: string) => invoke<string>("git_revert", { repo, hash }),
+  tag: (repo: string, name: string, hash?: string) => invoke<void>("git_tag_create", { repo, name, hash: hash ?? null }),
+  stashList: (repo: string) => invoke<Stash[]>("git_stash_list", { repo }),
+  stashPush: (repo: string, message: string, untracked: boolean) => invoke<void>("git_stash_push", { repo, message, untracked }),
+  stashOp: (repo: string, op: "apply" | "pop" | "drop", index: number) => invoke<void>("git_stash_op", { repo, op, index }),
+  flowConfig: (repo: string) => invoke<FlowConfig>("git_flow_config", { repo }),
+  flowStart: (repo: string, kind: FlowKind, name: string) => invoke<string>("git_flow_start", { repo, kind, name }),
+  flowFinish: (repo: string, branch: string, tag: boolean) => invoke<string>("git_flow_finish", { repo, branch, tag }),
+};

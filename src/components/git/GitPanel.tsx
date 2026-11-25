@@ -14,6 +14,13 @@ import { DiffView } from "./DiffView";
 import { BranchMenu } from "./BranchMenu";
 import { WorktreesSection } from "./WorktreesSection";
 import { EmptyLine } from "../workspace/primitives";
+import { HistoryView } from "./HistoryView";
+import { BranchesView } from "./BranchesView";
+import { StashView } from "./StashView";
+import { RefChips } from "./ui";
+
+const TABS = ["changes", "history", "branches", "stash"] as const;
+type Tab = (typeof TABS)[number];
 
 type Selected = { path: string; staged: boolean; untracked: boolean };
 
@@ -30,6 +37,12 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState<null | "commit" | "push" | "pull">(null);
   const [log, setLog] = useState<Commit[]>([]);
+  const [tab, setTab] = useState<Tab>("changes");
+  const [openCommit, setOpenCommit] = useState<string | null>(null);
+  const showCommit = (hash: string | null) => {
+    setOpenCommit(hash);
+    setTab("history");
+  };
 
   useEffect(() => {
     void refresh(path);
@@ -162,6 +175,27 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
         </div>
       </div>
 
+      {full && (
+        <div role="tablist" className="flex shrink-0 items-stretch gap-1 border-b border-line-soft px-3">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              role="tab"
+              aria-selected={tab === t}
+              onClick={() => setTab(t)}
+              className={cn("relative h-8 px-2.5 font-mono text-[11.5px] transition-colors", tab === t ? "text-fg" : "text-muted hover:text-fg-2")}
+            >
+              {t}
+              {t === "changes" && status.files.length > 0 && <span className="ml-1.5 text-faint">{status.files.length}</span>}
+              {tab === t && <motion.span layoutId={`git-tab-${path}`} className="absolute inset-x-1 bottom-0 h-[2px] bg-accent" transition={{ duration: 0.12 }} />}
+            </button>
+          ))}
+        </div>
+      )}
+      {full && tab === "history" && <div className="min-h-0 flex-1"><HistoryView key={openCommit ?? "none"} repo={path} initial={openCommit} /></div>}
+      {full && tab === "branches" && <div className="min-h-0 flex-1"><BranchesView repo={path} /></div>}
+      {full && tab === "stash" && <div className="min-h-0 flex-1"><StashView repo={path} /></div>}
+      {(!full || tab === "changes") && (<>
       <div className={cn("grid grid-cols-[minmax(min(260px,100%),1fr)_2fr] @max-2xl:grid-cols-1", full ? "min-h-0 flex-1" : "min-h-[280px]")}>
         {/* Changes + commit */}
         <div className="flex min-w-0 flex-col border-r border-line-soft @max-2xl:border-r-0 @max-2xl:border-b">
@@ -229,20 +263,24 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
                 <div className="px-4 pb-1 term-heading">Recent commits</div>
                 {log.length === 0 && <div className="px-4 py-3 text-[12px] text-muted">No commits yet.</div>}
                 {log.map((c) => (
-                  <div key={c.hash} className="flex h-7 items-center gap-3 px-4 text-[12px]">
-                    <span className="selectable font-mono text-[11px] text-faint">{c.short}</span>
-                    <span className="min-w-0 flex-1 truncate text-fg-2" title={c.subject}>{c.subject}</span>
+                  <button key={c.hash} onClick={() => (full ? showCommit(c.hash) : undefined)} className={cn("flex h-7 w-full items-center gap-3 px-4 text-left text-[12px]", full && "hover:bg-surface/50")}>
+                    <span className="font-mono text-[11px] text-faint">{c.short}</span>
+                    <span className="flex min-w-0 flex-1 items-center gap-1.5"><span className="truncate text-fg-2" title={c.subject}>{c.subject}</span><RefChips refs={c.refs} /></span>
                     <span className="truncate text-[11px] text-faint">{c.author}</span>
                     <span className="w-16 text-right font-mono text-[10.5px] text-faint">{timeAgo(c.time)}</span>
-                  </div>
+                  </button>
                 ))}
-                <div className="px-4 pt-2 text-[11px] text-faint">Select a file to see its diff.</div>
+                <div className="flex items-center gap-3 px-4 pt-2 text-[11px] text-faint">
+                  {full && <button onClick={() => showCommit(null)} className="text-fg-2 underline-offset-2 hover:text-fg hover:underline">view full history →</button>}
+                  <span>Select a file to see its diff.</span>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
       <WorktreesSection repo={path} />
+      </>)}
     </div>
   );
 }

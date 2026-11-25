@@ -79,3 +79,105 @@ pub async fn git_remove_worktree(repo: String, path: String, force: bool) -> Res
 pub async fn list_files(repo: String) -> Result<Vec<String>, String> {
     run(move || git::list_files(&repo)).await
 }
+
+/* ── history, branches, stash, git flow ─────────────────────────────────── */
+
+#[tauri::command]
+pub async fn git_log_page(repo: String, skip: u32, limit: u32, rev: Option<String>) -> Result<Vec<Commit>, String> {
+    run(move || git::log_page(&repo, skip, limit, rev.as_deref())).await
+}
+
+#[tauri::command]
+pub async fn git_commit_detail(repo: String, hash: String) -> Result<git::CommitDetail, String> {
+    run(move || git::commit_detail(&repo, &hash)).await
+}
+
+#[tauri::command]
+pub async fn git_commit_diff(repo: String, hash: String, file: String) -> Result<String, String> {
+    run(move || git::commit_diff(&repo, &hash, &file)).await
+}
+
+#[tauri::command]
+pub async fn git_remote_branches(repo: String) -> Result<Vec<String>, String> {
+    run(move || git::remote_branches(&repo)).await
+}
+
+#[tauri::command]
+pub async fn git_branch_create(repo: String, name: String, base: Option<String>, checkout: bool) -> Result<(), String> {
+    run(move || git::branch_create(&repo, &name, base.as_deref(), checkout)).await
+}
+
+#[tauri::command]
+pub async fn git_checkout_remote(repo: String, remote: String) -> Result<String, String> {
+    run(move || git::checkout_remote(&repo, &remote)).await
+}
+
+#[tauri::command]
+pub async fn git_branch_delete(repo: String, name: String, force: bool) -> Result<(), String> {
+    run(move || git::branch_delete(&repo, &name, force)).await
+}
+
+#[tauri::command]
+pub async fn git_branch_rename(repo: String, old: String, new: String) -> Result<(), String> {
+    run(move || git::branch_rename(&repo, &old, &new)).await
+}
+
+#[tauri::command]
+pub async fn git_merge(repo: String, branch: String, no_ff: bool) -> Result<String, String> {
+    run(move || git::merge(&repo, &branch, no_ff)).await
+}
+
+#[tauri::command]
+pub async fn git_merge_abort(repo: String) -> Result<(), String> {
+    run(move || git::merge_abort(&repo)).await
+}
+
+#[tauri::command]
+pub async fn git_fetch(repo: String) -> Result<String, String> {
+    run(move || git::fetch(&repo)).await
+}
+
+#[tauri::command]
+pub async fn git_cherry_pick(repo: String, hash: String) -> Result<String, String> {
+    run(move || git::cherry_pick(&repo, &hash)).await
+}
+
+#[tauri::command]
+pub async fn git_revert(repo: String, hash: String) -> Result<String, String> {
+    run(move || git::revert(&repo, &hash)).await
+}
+
+#[tauri::command]
+pub async fn git_tag_create(repo: String, name: String, hash: Option<String>) -> Result<(), String> {
+    run(move || git::tag_create(&repo, &name, hash.as_deref())).await
+}
+
+#[tauri::command]
+pub async fn git_stash_list(repo: String) -> Result<Vec<git::Stash>, String> {
+    run(move || git::stash_list(&repo)).await
+}
+
+#[tauri::command]
+pub async fn git_stash_push(repo: String, message: String, untracked: bool) -> Result<(), String> {
+    run(move || git::stash_push(&repo, &message, untracked)).await
+}
+
+#[tauri::command]
+pub async fn git_stash_op(repo: String, op: String, index: u32) -> Result<(), String> {
+    run(move || git::stash_op(&repo, &op, index)).await
+}
+
+#[tauri::command]
+pub async fn git_flow_config(repo: String) -> Result<git::FlowConfig, String> {
+    run(move || git::flow_config(&repo)).await
+}
+
+#[tauri::command]
+pub async fn git_flow_start(repo: String, kind: String, name: String) -> Result<String, String> {
+    run(move || git::flow_start(&repo, &kind, &name)).await
+}
+
+#[tauri::command]
+pub async fn git_flow_finish(repo: String, branch: String, tag: bool) -> Result<String, String> {
+    run(move || git::flow_finish(&repo, &branch, tag)).await
+}
