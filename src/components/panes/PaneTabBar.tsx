@@ -171,7 +171,6 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
       </div>
       <div className="mb-2 flex items-center gap-0.5">
         <IconButton icon={Maximize2} label="Full screen" shortcut={`${modKey}${isMac ? "⇧↩" : "+Shift+Enter"}`} size="sm" onClick={() => toggleFocusMode(true)} />
-        <IconButton icon={Maximize2} label="Full screen" shortcut={`${modKey}${isMac ? "⇧↩" : "+Shift+Enter"}`} size="sm" onClick={() => toggleFocusMode(true)} />
         <IconButton icon={Columns2} label="Split right" shortcut={`${modKey}\\`} size="sm" onClick={() => split(paneId, "right")} />
         {topRight && <VoiceButton />}
         {topRight && !terminalOpen && (
