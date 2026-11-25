@@ -97,7 +97,7 @@ const STEPS: { key: string; body: () => ReactNode }[] = [
           {[
             [[modKey, "K"], "Do anything: open, start, switch"],
             [[modKey, "⇧", "V"], "Speak to the focused agent or terminal"],
-            [[modKey, "N"], "Start an agent"],
+            [[modKey, "N"], "Pop-up terminal"],
             [[modKey, "\\"], "Split the view"],
             [["?"], "All shortcuts"],
           ].map(([keys, label]) => (

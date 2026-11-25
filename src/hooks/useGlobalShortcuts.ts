@@ -11,6 +11,7 @@ import { useQuickOpen } from "../components/editors/QuickOpen";
 import { useSnippetPicker } from "../components/snippets/SnippetPicker";
 import { useVoice } from "../features/voice/voiceStore";
 import { useTerminalSearch } from "../features/search/searchStore";
+import { toggleFloating } from "../features/floating/floatingTerminal";
 import { toggleFocusMode } from "../features/layout/focusMode";
 import { closeFocused } from "../features/terminals/closeFocused";
 import { searchTarget } from "../features/search/searchTarget";
@@ -107,13 +108,13 @@ export function useGlobalShortcuts() {
       const key = e.key.toLowerCase();
 
       const actions: Record<string, () => void> = e.shiftKey
-        ? { "[": () => cycleTab(-1), "]": () => cycleTab(1), "{": () => cycleTab(-1), "}": () => cycleTab(1), enter: () => toggleFocusMode() }
+        ? { "[": () => cycleTab(-1), "]": () => cycleTab(1), "{": () => cycleTab(-1), "}": () => cycleTab(1), enter: () => toggleFocusMode(), n: () => toggleFloating(true) }
         : {
             k: () => layout.setPaletteOpen(!layout.paletteOpen),
             b: layout.toggleSidebar,
             j: layout.toggleTerminal,
             t: () => void newDefaultTerminal(),
-            n: () => layout.setPaletteOpen(true, "Start "),
+            n: () => toggleFloating(),
             w: closeFocused,
             ",": () => useTabs.getState().open({ type: "settings" }),
             e: () => void openInEditor(),

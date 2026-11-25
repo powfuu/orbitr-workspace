@@ -1,4 +1,4 @@
-export type Region = "sidebar" | "terminal" | "main";
+export type Region = "sidebar" | "terminal" | "main" | "floating";
 
 let last: Region = "main";
 const regionOf = (el: Element | null): Region =>

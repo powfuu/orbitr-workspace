@@ -64,7 +64,7 @@ export function useVimMode() {
 
     const onKey = (e: KeyboardEvent) => {
       // Ctrl+H / Ctrl+L: previous / next tab in the focused area (centre tabs or terminals), always.
-      if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (e.code === "KeyH" || e.code === "KeyL") && focusedRegion() !== "sidebar") {
+      if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (e.code === "KeyH" || e.code === "KeyL") && focusedRegion() !== "sidebar" && focusedRegion() !== "floating") {
         swallow(e);
         return cycle(e.code === "KeyL" ? 1 : -1);
       }

@@ -13,6 +13,7 @@ import { useSettings } from "../../stores/settingsStore";
 import { toast } from "../../stores/toastStore";
 import { addProjectFromDialog } from "../projects/addProject";
 import { newDefaultTerminal } from "../terminals/newDefaultTerminal";
+import { toggleFloating } from "../floating/floatingTerminal";
 import { toggleFocusMode } from "../layout/focusMode";
 import { closeFocused } from "../terminals/closeFocused";
 import { closeTerminal, restartTerminal } from "../terminals/terminalActions";
@@ -117,6 +118,8 @@ export function useCommands(): Command[] {
     }
     add({ id: "next-tab", title: "Next tab", group: "Navigate", icon: ArrowRight, shortcut: "⌃Tab", run: () => cycleTab(1) });
     add({ id: "prev-tab", title: "Previous tab", group: "Navigate", icon: ArrowLeft, shortcut: "⌃⇧Tab", run: () => cycleTab(-1) });
+    add({ id: "floating-terminal", title: "Pop-up terminal", group: "Terminal", icon: SquareTerminal, shortcut: `${modKey}N`, run: () => toggleFloating() });
+    add({ id: "floating-terminal-full", title: "Full-screen terminal", group: "Terminal", icon: Maximize2, shortcut: `${modKey}⇧N`, run: () => toggleFloating(true) });
     add({ id: "focus-mode", title: "Toggle full screen", group: "Layout", icon: Maximize2, shortcut: `${modKey}⇧↩`, run: () => toggleFocusMode() });
     add({ id: "close-tab", title: "Close tab", group: "Navigate", icon: X, shortcut: `${modKey}W`, run: closeFocused });
 

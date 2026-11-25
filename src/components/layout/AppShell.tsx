@@ -14,6 +14,7 @@ import { WelcomeTour } from "../onboarding/WelcomeTour";
 import { ApprovalsTray } from "../approvals/ApprovalsTray";
 import { VoiceIndicator } from "../voice/VoiceIndicator";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
+import { FloatingTerminal } from "../floating/FloatingTerminal";
 import { Minimize2 } from "lucide-react";
 import { toggleFocusMode } from "../../features/layout/focusMode";
 import { modKey, isMac } from "../../lib/platform";
@@ -65,6 +66,7 @@ export function AppShell() {
       <ErrorBoundary label="Welcome"><WelcomeTour /></ErrorBoundary>
       <ErrorBoundary label="Voice"><VoiceIndicator /></ErrorBoundary>
       <ErrorBoundary label="Approvals"><ApprovalsTray /></ErrorBoundary>
+      <ErrorBoundary label="Floating terminal"><FloatingTerminal /></ErrorBoundary>
     </div>
   );
 }
