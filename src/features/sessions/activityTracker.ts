@@ -38,8 +38,9 @@ export function trackActivity(id: ID, term: Terminal, isFocused: () => boolean, 
     const rows: string[] = [];
     for (let y = buf.baseY; y < buf.baseY + term.rows; y++) rows.push(buf.getLine(y)?.translateToString(true) ?? "");
     const found = detectPrompt(rows);
-    // A trailing "?" only means "waiting for you" once the agent has stopped writing.
-    const prompt = found?.kind === "question" && workingSince ? null : found;
+    // Only real blocking prompts (approval menus, numbered choices). A reply that merely ends
+    // in "?" isn't waiting on anything: the input box is right there, so no banner for it.
+    const prompt = found?.kind === "question" ? null : found;
     patch(id, { prompt: prompt ?? undefined });
     if (prompt && prompt.signature !== lastSignature) {
       logEvent(id, "waiting", `${{ approval: "Asked for approval", choice: "Asked you to choose", question: "Asked you" }[prompt.kind]}: ${prompt.question}`);

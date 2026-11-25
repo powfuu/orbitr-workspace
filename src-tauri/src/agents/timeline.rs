@@ -90,6 +90,11 @@ pub fn parse_timeline(lines: impl Iterator<Item = String>) -> Vec<TimelineEvent>
                         events.push(TimelineEvent { at, kind: EventKind::Prompt, tool: None, title: first_line(t, 240), detail: None, path: None, error: false });
                     }
                 } else if let Some(blocks) = content.as_array() {
+                    // Prompts with images arrive as blocks: [image, text "…"].
+                    let text: Vec<&str> = blocks.iter().filter(|b| b["type"] == "text").filter_map(|b| b["text"].as_str()).map(str::trim).filter(|t| !t.is_empty() && !t.starts_with('<')).collect();
+                    if !text.is_empty() && !blocks.iter().any(|b| b["type"] == "tool_result") {
+                        events.push(TimelineEvent { at: at.clone(), kind: EventKind::Prompt, tool: None, title: first_line(&text.join(" "), 240), detail: None, path: None, error: false });
+                    }
                     for b in blocks {
                         if b["type"] == "tool_result" && b["is_error"].as_bool() == Some(true) {
                             if let Some(&i) = b["tool_use_id"].as_str().and_then(|id| by_tool_id.get(id)) {
@@ -185,7 +190,11 @@ pub fn session_with_prompt(cwd: &str, since_ms: u64, typed: &str) -> Option<Stri
         let hit = BufReader::new(File::open(&p).ok()?).lines().map_while(Result::ok).any(|l| {
             l.contains("\"type\":\"user\"")
                 && serde_json::from_str::<Value>(&l).ok().is_some_and(|v| {
-                    v["message"]["content"].as_str().is_some_and(|t| t.split_whitespace().collect::<Vec<_>>().join(" ").contains(&needle))
+                    let c = &v["message"]["content"];
+                    let text = c.as_str().map(String::from).unwrap_or_else(|| {
+                        c.as_array().into_iter().flatten().filter(|b| b["type"] == "text").filter_map(|b| b["text"].as_str()).collect::<Vec<_>>().join(" ")
+                    });
+                    text.split_whitespace().collect::<Vec<_>>().join(" ").contains(&needle)
                 })
         });
         if hit { p.file_stem().map(|s| s.to_string_lossy().into_owned()) } else { None }
@@ -214,8 +223,11 @@ mod tests {
             r#"{"type":"user","timestamp":"t5","message":{"content":[{"type":"tool_result","tool_use_id":"b","is_error":true,"content":"1 failing"}]}}"#,
             r#"{"type":"assistant","timestamp":"t6","message":{"content":[{"type":"tool_use","id":"c","name":"Edit","input":{"file_path":"/app/login.ts"}},{"type":"tool_use","id":"d","name":"mcp__github__create_pr","input":{}}]}}"#,
             "not json",
+            r#"{"type":"user","timestamp":"t7","message":{"content":[{"type":"text","text":"[Image #2] nowrap please"},{"type":"image","source":{}}]}}"#,
         ];
         let e = parse_timeline(lines.iter().map(|s| s.to_string()));
+        assert_eq!(e.last().map(|x| (x.kind.clone(), x.title.as_str())), Some((EventKind::Prompt, "[Image #2] nowrap please")));
+        let e: Vec<_> = e[..e.len() - 1].to_vec();
         let kinds: Vec<_> = e.iter().map(|x| x.kind.clone()).collect();
         assert_eq!(kinds, vec![EventKind::Prompt, EventKind::Reply, EventKind::Read, EventKind::Command, EventKind::Edit, EventKind::Tool]);
         assert_eq!(e[0].title, "Fix the login bug");
