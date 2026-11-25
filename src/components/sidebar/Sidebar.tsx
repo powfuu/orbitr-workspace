@@ -25,6 +25,7 @@ import { ContextMenu } from "../ui/ContextMenu";
 import { PromptChip } from "../approvals/PromptChip";
 import { GitBadge } from "../git/GitBadge";
 import { GitOverview } from "../git/GitOverview";
+import { cwdFull } from "../../features/terminals/terminalContext";
 import { useGit } from "../../features/git/gitStore";
 import { ActivityIconFor } from "../agents/ActivityBadge";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -224,6 +225,7 @@ export function Sidebar() {
                 <SidebarItem
                   icon={<SquareTerminal size={14} className="text-muted" />}
                   label={t.name}
+                  tooltip={`${cwdFull(t.cwd)}${t.pid ? `  ·  pid ${t.pid}` : ""}`}
                   meta={t.pid ? String(t.pid) : undefined}
                   trailing={<span className="flex items-center gap-1.5"><PromptChip id={t.id} /><StatusDot status={t.status} /></span>}
                   active={t.id === activeTerminalId}

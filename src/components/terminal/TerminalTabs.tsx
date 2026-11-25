@@ -6,6 +6,8 @@ import { closeTerminal } from "../../features/terminals/terminalActions";
 import { cn } from "../../lib/cn";
 import { StatusDot } from "../ui/StatusDot";
 import { PromptChip } from "../approvals/PromptChip";
+import { Tooltip } from "../ui/Tooltip";
+import { cwdFull } from "../../features/terminals/terminalContext";
 
 export function TerminalTabs() {
   const { terminals, activeTerminalId, setActiveTerminal, updateTerminal } = useSessions();
@@ -17,6 +19,7 @@ export function TerminalTabs() {
         {terminals.map((t) => {
           const active = t.id === activeTerminalId;
           return (
+            <Tooltip key={t.id} label={`${cwdFull(t.cwd)}${t.pid ? `  ·  pid ${t.pid}` : ""}`}>
             <motion.div
               key={t.id}
               layout
@@ -29,9 +32,8 @@ export function TerminalTabs() {
               onClick={() => setActiveTerminal(t.id)}
               onDoubleClick={() => setEditing(t.id)}
               onAuxClick={(e) => e.button === 1 && void closeTerminal(t.id)}
-              title={`${t.shell} — ${t.cwd}${t.pid ? ` (pid ${t.pid})` : ""}`}
               className={cn(
-                "group relative flex h-6 max-w-40 shrink-0 cursor-default items-center gap-1.5 rounded-md pl-2 pr-1 font-mono text-[11px]",
+                "group relative flex h-6 max-w-56 shrink-0 cursor-default items-center gap-1.5 rounded-md pl-2 pr-1 font-mono text-[11px]",
                 active ? "text-fg" : "text-muted hover:text-fg-2",
               )}
             >
@@ -63,6 +65,7 @@ export function TerminalTabs() {
                 <X size={10} />
               </button>
             </motion.div>
+            </Tooltip>
           );
         })}
       </AnimatePresence>

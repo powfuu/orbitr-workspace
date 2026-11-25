@@ -4,6 +4,7 @@ import { uid } from "../../lib/id";
 import { basename, isTauri } from "../../lib/platform";
 import { disposePty, resetScreen, spawnPty } from "../sessions/ptySession";
 import { shellCommand } from "../agents/launch";
+import { cwdLabel } from "./terminalContext";
 import { useAvailability } from "../agents/availabilityStore";
 import type { ID, TerminalSession } from "../../types";
 
@@ -20,7 +21,9 @@ export async function launchTerminal(t: TerminalSession) {
 /** Spawns a real shell in a PTY and shows it in the terminal panel. */
 export async function createTerminal({ shell, cwd, name, command }: { shell: string; cwd?: string; name?: string; command?: string }) {
   if (!isTauri) return null;
-  const t: TerminalSession = { id: uid(), name: name ?? basename(shell), shell, cwd: cwd ?? "~", status: "starting", command };
+  // Plain shells are named "zsh - <project or path>"; one-off commands (installers) keep their name.
+  const label = command && name ? name : `${basename(shell)} - ${cwdLabel(cwd)}`;
+  const t: TerminalSession = { id: uid(), name: label, shell, cwd: cwd ?? "~", status: "starting", command };
   useSessions.getState().addTerminal(t);
   useLayout.getState().openTerminalPanel();
   await launchTerminal(t);

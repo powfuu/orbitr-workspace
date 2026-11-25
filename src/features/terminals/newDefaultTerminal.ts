@@ -1,10 +1,13 @@
 import { isTauri } from "../../lib/platform";
+import { platformInfo } from "../../hooks/usePlatformInfo";
 import { createTerminal } from "./terminalActions";
 import { resolveDefaultShell } from "./defaultShell";
+import { contextCwd } from "./terminalContext";
 
-/** Opens the preferred shell, optionally in a given folder. */
+/** Opens the preferred shell in `cwd`, or in the folder of whatever you're looking at. */
 export async function newDefaultTerminal(cwd?: string, name?: string) {
   if (!isTauri) return;
-  const shell = await resolveDefaultShell();
-  if (shell) await createTerminal({ shell, cwd, name });
+  const where = cwd ?? contextCwd();
+  const [shell] = await Promise.all([resolveDefaultShell(), platformInfo()]);
+  if (shell) await createTerminal({ shell, cwd: where, name });
 }

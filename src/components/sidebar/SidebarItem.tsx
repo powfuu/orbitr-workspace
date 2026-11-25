@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "../../lib/cn";
+import { Tooltip } from "../ui/Tooltip";
 
 interface Props {
   icon: ReactNode;
@@ -13,11 +14,13 @@ interface Props {
   /** Shows a trash button on hover/focus that replaces the trailing info. */
   onClose?: () => void;
   closeLabel?: string;
+  /** Hover tooltip (e.g. a terminal's full path). */
+  tooltip?: string;
 }
 
-export function SidebarItem({ icon, label, meta, trailing, active, onClick, onClose, closeLabel = "Close" }: Props) {
-  return (
-    <div className="group relative">
+export function SidebarItem({ icon, label, meta, trailing, active, onClick, onClose, closeLabel = "Close", tooltip }: Props) {
+  const row = (
+    <div className="group relative w-full">
       <button
         onClick={onClick}
         className={cn(
@@ -54,5 +57,12 @@ export function SidebarItem({ icon, label, meta, trailing, active, onClick, onCl
         </button>
       )}
     </div>
+  );
+  return tooltip ? (
+    <Tooltip label={tooltip} side="right" block>
+      {row}
+    </Tooltip>
+  ) : (
+    row
   );
 }

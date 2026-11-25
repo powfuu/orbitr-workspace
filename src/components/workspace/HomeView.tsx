@@ -20,9 +20,8 @@ export function HomeView() {
   return (
     <div className="relative mx-auto flex min-h-full max-w-3xl flex-col justify-center px-5 py-10 @lg:px-10 @lg:py-14">
       <motion.div {...fade(0)} className="mb-10">
-        <div className="relative mb-6 inline-grid h-14 w-14 place-items-center rounded-2xl bg-surface ring-1 ring-line">
-          <div className="absolute inset-0 rounded-2xl bg-fg/10 blur-xl" />
-          <LogoMark size={30} />
+        <div className="relative mb-6 inline-grid place-items-center">
+          <LogoMark size={44} />
         </div>
         <div className="mb-3 font-mono text-[12px] text-muted">
           <span className="text-success">❯</span> orbitr <span className="text-faint">--welcome</span>

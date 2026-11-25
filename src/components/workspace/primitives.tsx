@@ -37,8 +37,8 @@ export function ActionCard({ icon: Icon, title, description, shortcut, onClick, 
       )}
     >
       <div className="flex w-full items-center justify-between">
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-surface text-fg-2 ring-1 ring-line transition-colors group-hover:text-accent">
-          <Icon size={15} strokeWidth={1.75} />
+        <span className="flex h-8 items-center text-fg-2 transition-colors group-hover:text-accent">
+          <Icon size={20} strokeWidth={1.6} />
         </span>
         {shortcut && <Kbd>{shortcut}</Kbd>}
         {badge && <span className="whitespace-nowrap rounded-full border border-line px-2 py-0.5 font-mono text-[10px] text-faint">{badge}</span>}
