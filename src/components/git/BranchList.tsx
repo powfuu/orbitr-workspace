@@ -32,6 +32,17 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
   const switchTo = (b: Branch) => !b.current && void act("switch", () => branchService.switch(repo, b.name), `Switched to ${b.name}`);
   const pull = (b: Branch) => void act("pull", () => gitMore.pullBranch(repo, b.name), `Pulled ${b.behind || ""} ${b.behind === 1 ? "commit" : b.behind ? "commits" : ""} into ${b.name}`.replace(/\s+/g, " "));
   const push = (b: Branch) => void act("push", () => gitMore.pushBranch(repo, b.name), b.upstream ? `Pushed ${b.ahead} commit${b.ahead === 1 ? "" : "s"} to ${b.upstream}` : `Published ${b.name} to origin`);
+  // Merges the row's branch INTO the branch you're on, and says plainly what happened.
+  const merge = (b: Branch) =>
+    void act(
+      "merge",
+      () =>
+        gitMore.merge(repo, b.name, true).catch((e: unknown) => {
+          const msg = String(e);
+          throw new Error(/conflict/i.test(msg) ? `Conflicts merging ${b.name} into ${current}. Resolve them in "changes" and commit, or abort the merge from a terminal (git merge --abort).` : msg);
+        }),
+      (out) => (/already up.to.date/i.test(String(out)) ? `Nothing to merge: ${current} already has everything from ${b.name}` : `Merged ${b.name} into ${current}`),
+    );
   const remove = async (b: Branch) => {
     const ok = await confirmDialog({ title: "Delete branch", message: `Delete the local branch ${b.name}? Its remote branch (if any) is kept.`, okLabel: "Delete" });
     if (ok) void act("delete", () => gitMore.deleteBranch(repo, b.name, false), `Deleted ${b.name}`);
@@ -82,10 +93,9 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
       {hot === b.name && !renaming ? (
         <span className="flex shrink-0 items-center gap-1">
           {b.upstream && b.behind === 0 && <GitButton disabled={busy} onClick={() => pull(b)}><ArrowDown size={11} /> pull</GitButton>}
-          {!b.current && <GitButton disabled={busy} onClick={() => switchTo(b)}><GitBranch size={11} /> switch</GitButton>}
           {!b.current && current && (
-            <GitButton disabled={busy} title={`Merge ${b.name} into ${current}`} onClick={() => void act("merge", () => gitMore.merge(repo, b.name, true), `Merged ${b.name} into ${current}`)}>
-              <GitMerge size={11} /> merge
+            <GitButton disabled={busy} title={`Merge ${b.name} into ${current} (the branch you're on)`} onClick={() => merge(b)}>
+              <GitMerge size={11} /> merge into {current}
             </GitButton>
           )}
           <GitButton disabled={busy} onClick={() => setRenaming({ from: b.name, to: b.name })}><Pencil size={11} /> rename</GitButton>
