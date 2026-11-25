@@ -57,7 +57,7 @@ export const DEFAULT_SETTINGS: Settings = {
   nvimConfig: "",
   limitAlerts: true,
   limitThresholds: "80,95",
-  vimMode: false,
+  vimMode: true,
   onboarded: false,
 };
 

@@ -15,6 +15,7 @@ import { ApprovalsTray } from "../approvals/ApprovalsTray";
 import { VoiceIndicator } from "../voice/VoiceIndicator";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
 import { FloatingTerminal } from "../floating/FloatingTerminal";
+import { windowDragProps } from "../../hooks/useWindowDrag";
 import { Minimize2 } from "lucide-react";
 import { toggleFocusMode } from "../../features/layout/focusMode";
 import { modKey, isMac } from "../../lib/platform";
@@ -27,6 +28,8 @@ export function AppShell() {
   const terminalOpen = terminalPref && !focusMode;
   return (
     <div className="flex h-full flex-col">
+      {/* Full screen hides every bar, so keep a strip to drag the window by (and clear the traffic lights). */}
+      {focusMode && <div {...windowDragProps} className="h-7 shrink-0 bg-bg" />}
       <div className="flex min-h-0 flex-1">
         <AnimatePresence initial={false}>
           {sidebarOpen && (
