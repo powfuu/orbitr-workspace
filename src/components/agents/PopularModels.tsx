@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Flame, RefreshCw, Sparkles } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { popularModels, type ModelView } from "../../features/agents/models";
 import { formatContext, formatPrice, type ModelInfo } from "../../features/agents/modelsParse";
 import { isTauri } from "../../lib/platform";
@@ -21,6 +21,13 @@ export function PopularModels() {
   const [data, setData] = useState<{ models: ModelInfo[]; at: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Switching views must not shorten the page (that yanks the scroll up): keep the tallest height seen.
+  const box = useRef<HTMLDivElement>(null);
+  const [minH, setMinH] = useState(0);
+  useLayoutEffect(() => {
+    const h = box.current?.offsetHeight ?? 0;
+    if (h > minH) setMinH(h);
+  }, [data, minH]);
 
   const load = (force: boolean) => {
     if (!isTauri) return;
@@ -54,42 +61,44 @@ export function PopularModels() {
           <IconButton icon={RefreshCw} size="sm" label="Check now" onClick={() => load(true)} disabled={loading} />
         </span>
       </div>
-      {!isTauri ? (
-        <div className="text-[12px] text-muted">Model rankings are loaded in the desktop app.</div>
-      ) : error ? (
-        <div className="text-[12px] text-error">{error}</div>
-      ) : !data ? (
-        <div className="text-[12px] text-muted">Loading models…</div>
-      ) : (
-        <div className="divide-y divide-line-soft overflow-hidden rounded-xl border border-line-soft bg-bg-2">
-          {data.models.map((m, i) => (
-            <motion.button
-              key={`${view}-${m.id}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: i * 0.02 }}
-              onClick={() => void openUrl(`https://openrouter.ai/${m.id}`)}
-              title={m.blurb || m.name}
-              className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface/50"
-            >
-              <span className="w-5 shrink-0 text-right font-mono text-[11px] text-faint">{i + 1}</span>
-              <LabIcon id={m.id} lab={m.lab} size={20} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-2">
-                  <span className="truncate text-[13px] text-fg">{m.name}</span>
-                  <span className="shrink-0 text-[11px] text-faint">{m.lab}</span>
+      <div ref={box} style={{ minHeight: minH || undefined }}>
+        {!isTauri ? (
+          <div className="text-[12px] text-muted">Model rankings are loaded in the desktop app.</div>
+        ) : error ? (
+          <div className="text-[12px] text-error">{error}</div>
+        ) : !data ? (
+          <div className="text-[12px] text-muted">Loading models…</div>
+        ) : (
+          <div className="divide-y divide-line-soft overflow-hidden rounded-xl border border-line-soft bg-bg-2">
+            {data.models.map((m, i) => (
+              <motion.button
+                key={`${view}-${m.id}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: i * 0.02 }}
+                onClick={() => void openUrl(`https://openrouter.ai/${m.id}`)}
+                title={m.blurb || m.name}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface/50"
+              >
+                <span className="w-5 shrink-0 text-right font-mono text-[11px] text-faint">{i + 1}</span>
+                <LabIcon id={m.id} lab={m.lab} size={20} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="truncate text-[13px] text-fg">{m.name}</span>
+                    <span className="shrink-0 text-[11px] text-faint">{m.lab}</span>
+                  </div>
+                  {m.blurb && <div className="truncate text-[11px] text-muted">{m.blurb}</div>}
                 </div>
-                {m.blurb && <div className="truncate text-[11px] text-muted">{m.blurb}</div>}
-              </div>
-              <span className="hidden shrink-0 font-mono text-[10.5px] text-faint @md:block" title="Context window">{formatContext(m.context)} ctx</span>
-              <span className="hidden w-28 shrink-0 text-right font-mono text-[10.5px] text-faint @lg:block" title="USD per 1M tokens, input / output">
-                {formatPrice(m.priceIn)} / {formatPrice(m.priceOut)}
-              </span>
-              <span className="w-16 shrink-0 text-right font-mono text-[10.5px] text-faint">{m.created ? timeAgo(m.created) : ""}</span>
-            </motion.button>
-          ))}
-        </div>
-      )}
+                <span className="hidden shrink-0 font-mono text-[10.5px] text-faint @md:block" title="Context window">{formatContext(m.context)} ctx</span>
+                <span className="hidden w-28 shrink-0 text-right font-mono text-[10.5px] text-faint @lg:block" title="USD per 1M tokens, input / output">
+                  {formatPrice(m.priceIn)} / {formatPrice(m.priceOut)}
+                </span>
+                <span className="w-16 shrink-0 text-right font-mono text-[10.5px] text-faint">{m.created ? timeAgo(m.created) : ""}</span>
+              </motion.button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
