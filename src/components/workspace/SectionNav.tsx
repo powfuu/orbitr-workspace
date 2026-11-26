@@ -29,6 +29,7 @@ export function SectionNav({ page, icon: PageIcon, sections }: { page: string; i
   const [scroller, setScroller] = useState<HTMLElement | null>(null);
   const [lifted, setLifted] = useState(false);
   const bar = useRef<HTMLDivElement>(null);
+  const lockUntil = useRef(0);
   const ids = sections.map((s) => s.id).join(",");
 
   useEffect(() => setScroller(scrollParent(bar.current)), []);
@@ -36,24 +37,31 @@ export function SectionNav({ page, icon: PageIcon, sections }: { page: string; i
   const progress = useSpring(scrollYProgress, { stiffness: 260, damping: 40, mass: 0.4 });
   useEffect(() => scrollY.on("change", (y) => setLifted(y > 8)), [scrollY]);
 
+  // Current section from the real scroll position: the last one whose top has passed the
+  // upper third of the view — and at the very bottom the last section, even if it's short.
   useEffect(() => {
-    const els = sections.map((s) => document.getElementById(s.id)).filter((e): e is HTMLElement => !!e);
-    if (!els.length) return;
-    // A section counts as "current" while it crosses the upper third of the view.
-    const io = new IntersectionObserver(
-      (entries) => {
-        const hit = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-        if (hit) setActive(hit.target.id);
-      },
-      { rootMargin: "-15% 0px -60% 0px" },
-    );
-    els.forEach((e) => io.observe(e));
-    return () => io.disconnect();
+    if (!scroller) return;
+    const update = () => {
+      if (Date.now() < lockUntil.current) return;
+      const view = scroller.getBoundingClientRect();
+      const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4;
+      let current = sections[0]?.id;
+      for (const s of sections) {
+        const el = document.getElementById(s.id);
+        if (el && el.getBoundingClientRect().top <= view.top + view.height * 0.3) current = s.id;
+      }
+      setActive(atBottom ? sections[sections.length - 1]?.id : current);
+    };
+    update();
+    scroller.addEventListener("scroll", update, { passive: true });
+    return () => scroller.removeEventListener("scroll", update);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ids]);
+  }, [scroller, ids]);
 
   const go = (id: string) => {
     setActive(id);
+    // Keep the clicked section highlighted while the smooth scroll passes the others.
+    lockUntil.current = Date.now() + 700;
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
