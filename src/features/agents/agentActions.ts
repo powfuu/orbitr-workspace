@@ -1,6 +1,7 @@
 import { useSessions } from "../../stores/sessionStore";
 import { useWorkspaces } from "../../stores/workspaceStore";
-import { useTabs } from "../../stores/tabStore";
+import { closeTab } from "../tabs/closeTab";
+import { getActiveTabs, useTabs } from "../../stores/tabStore";
 import { useHistory } from "../../stores/historyStore";
 import { uid } from "../../lib/id";
 import { toast } from "../../stores/toastStore";
@@ -116,6 +117,9 @@ export async function restartAgent(id: ID) {
 
 /** Explicit removal: kills the process, frees the terminal, closes its tab. */
 export async function removeAgent(id: ID) {
+  // Close its tab the same way as the tab's ✕: if you were on it, land on its project.
+  const mine = getActiveTabs().tabs.find((t) => t.target.type === "agent" && t.target.id === id);
+  if (mine) closeTab(mine.id);
   useTabs.getState().closeWhere((t) => t.type === "agent" && t.id === id);
   await disposePty(id);
   useSessions.getState().removeAgent(id);
