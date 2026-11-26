@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Columns2, Maximize2, PanelLeftOpen, PanelRightOpen, Rows2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Columns2, Folder, Maximize2, PanelLeftOpen, PanelRightOpen, Rows2, X } from "lucide-react";
 import { toggleFocusMode } from "../../features/layout/focusMode";
 import { useEffect, useRef, useState } from "react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
@@ -21,6 +21,7 @@ import { AgentGlyph } from "../ui/AgentGlyph";
 import { AGENTS } from "../../features/agents/registry";
 import { PromptChip } from "../approvals/PromptChip";
 import { useActivity } from "../../features/sessions/activityStore";
+import { isSidebarTab, lastInProject, projectOfTarget } from "../../features/tabs/projectGroups";
 
 interface Props {
   paneId: ID;
@@ -107,11 +108,24 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
         {/* popLayout: a closing tab leaves the layout immediately so neighbours slide in with no gap. */}
         <AnimatePresence initial={false} mode="popLayout">
           {group.tabs.map((tab, i) => {
-            // The Dashboard can't be closed, so it lives in the sidebar instead of the tab strip.
-            if (tab.target.type === "home") return null;
-            const { title, icon: Icon } = describeTab(tab.target, { workspaces, projects, agents });
-            const active = tab.id === group.activeTabId;
-            const agent = tab.target.type === "agent" ? agents.find((a) => a.id === (tab.target as { id: string }).id) : undefined;
+            // Dashboard and Git views live in the sidebar instead of the tab strip.
+            if (isSidebarTab(tab.target)) return null;
+            // One tab per project: its overview and its agents share it (sub-tabs inside).
+            const projectId = projectOfTarget(tab.target, agents);
+            const members = projectId ? group.tabs.filter((t) => projectOfTarget(t.target, agents) === projectId) : [tab];
+            if (projectId && members[0]!.id !== tab.id) return null;
+            const described = describeTab(tab.target, { workspaces, projects, agents });
+            const title = projectId ? (projects[projectId]?.name ?? described.title) : described.title;
+            const Icon = projectId ? Folder : described.icon;
+            const active = members.some((t) => t.id === group.activeTabId);
+            const groupAgents = members.flatMap((t) => (t.target.type === "agent" ? agents.filter((a) => a.id === (t.target as { id: string }).id) : []));
+            const agent = projectId ? undefined : tab.target.type === "agent" ? agents.find((a) => a.id === (tab.target as { id: string }).id) : undefined;
+            const anyWaiting = groupAgents.some((a) => waiting.has(a.id));
+            const goTo = () => {
+              const last = projectId ? lastInProject.get(projectId) : undefined;
+              activate(members.find((t) => t.id === last)?.id ?? members[0]!.id);
+            };
+            const closeAll = () => members.forEach((t) => close(t.id));
             return (
               <motion.div
                 key={tab.id}
@@ -127,7 +141,7 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                   items={[
                     { label: "Split right", icon: Columns2, onSelect: () => split(paneId, "right", tab.id) },
                     { label: "Split down", icon: Rows2, onSelect: () => split(paneId, "bottom", tab.id) },
-                    ...(closable(tab) ? [{ label: "Close tab", icon: X, onSelect: () => close(tab.id) }] : []),
+                    ...(closable(tab) ? [{ label: members.length > 1 ? `Close ${title} (${members.length} tabs)` : "Close tab", icon: X, onSelect: closeAll }] : []),
                   ]}
                 >
                   <div
@@ -146,13 +160,13 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                       setDropIndex(i);
                     }}
                     onDrop={(e) => onDrop(e, i)}
-                    onClick={() => activate(tab.id)}
-                    onAuxClick={(e) => e.button === 1 && closable(tab) && close(tab.id)}
-                    onKeyDown={(e) => e.key === "Enter" && activate(tab.id)}
+                    onClick={goTo}
+                    onAuxClick={(e) => e.button === 1 && closable(tab) && closeAll()}
+                    onKeyDown={(e) => e.key === "Enter" && goTo()}
                     className={cn(
                       "group relative flex h-8 min-w-0 max-w-56 cursor-default items-center gap-2 rounded-t-md pl-3 pr-1.5 font-mono text-[12px] transition-colors duration-150",
                       active ? "text-fg" : "text-muted hover:text-fg-2",
-                      agent && waiting.has(agent.id) && "bg-warning/10 text-fg ring-1 ring-inset ring-warning/40",
+                      ((agent && waiting.has(agent.id)) || anyWaiting) && "bg-warning/10 text-fg ring-1 ring-inset ring-warning/40",
                     )}
                   >
                     {/* One shared background per pane that glides between tabs; merges into the content below. */}
@@ -178,13 +192,19 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                       <Icon size={13} strokeWidth={1.75} className={active && focused ? "text-accent" : ""} />
                     )}
                     <span className="truncate">{title}</span>
+                    {groupAgents.length > 0 && (
+                      <span className="flex shrink-0 items-center -space-x-1">
+                        {groupAgents.slice(0, 3).map((a) => <AgentGlyph key={a.id} agent={AGENTS[a.kind]} size={12} status={a.status} />)}
+                        {groupAgents.length > 3 && <span className="pl-1.5 font-mono text-[10px] text-faint">+{groupAgents.length - 3}</span>}
+                      </span>
+                    )}
                     {agent && <ActivityIconFor id={agent.id} status={agent.status} size={10} />}
                     {agent && <PromptChip id={agent.id} />}
                     {closable(tab) && <button
                       aria-label={`Close ${title}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        close(tab.id);
+                        closeAll();
                       }}
                       className={cn(
                         "grid h-5 w-5 place-items-center rounded text-faint hover:bg-surface hover:text-fg",

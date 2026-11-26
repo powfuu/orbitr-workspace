@@ -4,6 +4,7 @@ import { useLayout } from "../stores/layoutStore";
 import { getActiveTabs, useTabs } from "../stores/tabStore";
 import { useWorkspaces } from "../stores/workspaceStore";
 import { useSessions } from "../stores/sessionStore";
+import { isSidebarTab, lastInProject, projectOfTarget } from "../features/tabs/projectGroups";
 import { terminalRegistry } from "../features/terminals/terminalRegistry";
 import { newDefaultTerminal } from "../features/terminals/newDefaultTerminal";
 import { openInEditor } from "../features/editors/openInEditor";
@@ -17,15 +18,34 @@ import { toggleFocusMode } from "../features/layout/focusMode";
 import { closeFocused } from "../features/terminals/closeFocused";
 import { searchTarget } from "../features/search/searchTarget";
 
-/** Tabs shown in the strip (the Dashboard lives in the sidebar). */
+/**
+ * What the tab strip shows: no Dashboard/Git (sidebar), one entry per project. Each entry's
+ * id is the tab to activate (the last one you used in that project).
+ */
 const stripTabs = () => {
   const { tabs, activeTabId } = getActiveTabs();
-  return { tabs: tabs.filter((t) => t.target.type !== "home"), activeTabId };
+  const agents = useSessions.getState().agents;
+  const seen = new Set<string>();
+  const entries: { id: string; members: string[] }[] = [];
+  for (const t of tabs) {
+    if (isSidebarTab(t.target)) continue;
+    const p = projectOfTarget(t.target, agents);
+    if (!p) {
+      entries.push({ id: t.id, members: [t.id] });
+      continue;
+    }
+    if (seen.has(p)) continue;
+    seen.add(p);
+    const members = tabs.filter((x) => projectOfTarget(x.target, agents) === p).map((x) => x.id);
+    const last = lastInProject.get(p);
+    entries.push({ id: last && members.includes(last) ? last : members[0]!, members });
+  }
+  return { tabs: entries, activeTabId };
 };
 
 export function cycleTab(step: 1 | -1) {
   const { tabs, activeTabId } = stripTabs();
-  const i = tabs.findIndex((t) => t.id === activeTabId);
+  const i = tabs.findIndex((t) => t.members.includes(activeTabId ?? ""));
   const next = tabs[(i + step + tabs.length) % tabs.length];
   if (next) useTabs.getState().activate(next.id);
 }

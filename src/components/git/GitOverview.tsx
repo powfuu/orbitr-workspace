@@ -22,7 +22,7 @@ function openGit(projectId: string) {
   useTabs.getState().open({ type: "git", id: projectId });
 }
 
-function Card({ project }: { project: Project }) {
+function Card({ project, active }: { project: Project; active?: boolean }) {
   const s = useGit((g) => g.byPath[project.path]);
   if (s === null) return null; // not a git repo
   const c = s ? summarize(s) : null;
@@ -40,7 +40,8 @@ function Card({ project }: { project: Project }) {
     <button
       onClick={() => openGit(project.id)}
       className={cn(
-        "w-full rounded-lg px-2.5 py-2 text-left ring-1 ring-line-soft transition-colors hover:bg-surface/60 hover:ring-line",
+        "w-full rounded-lg px-2.5 py-2 text-left ring-1 transition-colors hover:bg-surface/60 hover:ring-line",
+        active ? "bg-surface ring-accent/60" : "ring-line-soft",
         !!c?.conflicts && "ring-error/40",
       )}
     >
@@ -69,11 +70,11 @@ function Card({ project }: { project: Project }) {
 }
 
 /** Sidebar section: git state of every project in the workspace. */
-export function GitOverview({ projects }: { projects: Project[] }) {
+export function GitOverview({ projects, activeId }: { projects: Project[]; activeId?: string }) {
   return (
     <div className="space-y-1.5 px-1">
       {projects.map((p) => (
-        <Card key={p.id} project={p} />
+        <Card key={p.id} project={p} active={p.id === activeId} />
       ))}
     </div>
   );

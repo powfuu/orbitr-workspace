@@ -80,6 +80,15 @@ export function Sidebar() {
           onClick={() => useTabs.getState().open({ type: "home" })}
         />
       </div>
+      <div className="-mx-0 [&>section]:pt-1">
+          <SidebarSection id="git" icon={GitBranch} title="Git" count={gitProjects.length}>
+          {gitProjects.length === 0 ? (
+            <SidebarHint>{q ? "No matching projects." : "Git status of each project appears here."}</SidebarHint>
+          ) : (
+            <GitOverview projects={gitProjects} activeId={activeTarget?.type === "git" ? activeTarget.id : undefined} />
+          )}
+        </SidebarSection>
+      </div>
 
       <div className="px-3 pt-2">
         <label className="flex h-7 items-center gap-2 rounded-md bg-bg px-2 ring-1 ring-line-soft transition focus-within:ring-accent/50">
@@ -144,13 +153,6 @@ export function Sidebar() {
           )}
         </SidebarSection>
 
-        <SidebarSection id="git" icon={GitBranch} defaultCollapsed title="Git" count={gitProjects.length}>
-          {gitProjects.length === 0 ? (
-            <SidebarHint>{q ? "No matching projects." : "Git status of each project appears here."}</SidebarHint>
-          ) : (
-            <GitOverview projects={gitProjects} />
-          )}
-        </SidebarSection>
 
         <SidebarSection id="agents" icon={Bot} title="Agents" count={agents.length} addLabel="Start agent" onAdd={() => setPaletteOpen(true, "Start ")} actions={<IconButton icon={FolderPlus} label="New folder" size="sm" side="right" onClick={() => useRenaming.getState().set(useFolders.getState().add("agents"))} />}>
           {agents.length === 0 ? (

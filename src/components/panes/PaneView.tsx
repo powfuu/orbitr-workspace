@@ -5,6 +5,7 @@ import { cn } from "../../lib/cn";
 import type { ID } from "../../types";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
 import { PaneTabBar } from "./PaneTabBar";
+import { ProjectSubTabs } from "./ProjectSubTabs";
 import { DropZones } from "./DropZones";
 import { PaneFocusContext } from "../../features/panes/paneFocus";
 
@@ -26,6 +27,7 @@ export function PaneView({ paneId, group, focused, multi, topLeft, topRight }: P
       className="flex h-full min-h-0 min-w-0 flex-col bg-bg"
     >
       <PaneTabBar paneId={paneId} group={group} focused={focused} multi={multi} topLeft={topLeft} topRight={topRight} />
+      <ProjectSubTabs group={group} />
       <div className={cn("@container relative min-h-0 flex-1 overflow-hidden bg-bg-2 transition-opacity", multi && !focused && "opacity-[0.88]")}>
         <div className="bg-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" />
         <PaneFocusContext.Provider value={focused}>
