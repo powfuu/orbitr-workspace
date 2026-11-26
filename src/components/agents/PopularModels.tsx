@@ -8,6 +8,7 @@ import { isTauri } from "../../lib/platform";
 import { timeAgo } from "../../lib/time";
 import { cn } from "../../lib/cn";
 import { IconButton } from "../ui/IconButton";
+import { LabIcon } from "./LabIcon";
 
 const VIEWS: { id: ModelView; label: string; icon: typeof Flame; hint: string }[] = [
   { id: "trending", label: "trending this week", icon: Flame, hint: "Most used models this week across OpenRouter" },
@@ -34,9 +35,9 @@ export function PopularModels() {
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-center gap-3">
-        <div className="term-heading">popular models</div>
-        <div className="flex rounded-md bg-bg p-0.5 ring-1 ring-line-soft">
+      <div className="mb-3 flex items-center gap-3">
+        <div className="shrink-0 term-heading">popular models</div>
+        <div className="flex shrink-0 rounded-md bg-bg p-0.5 ring-1 ring-line-soft">
           {VIEWS.map((v) => (
             <button
               key={v.id}
@@ -48,9 +49,8 @@ export function PopularModels() {
             </button>
           ))}
         </div>
-        {data && <span className="font-mono text-2xs text-faint">updated {timeAgo(data.at)} · via OpenRouter</span>}
-        <div className="flex-1" />
-        <span className={cn(loading && "animate-spin")}>
+        <span className="min-w-0 flex-1 truncate font-mono text-2xs text-faint">{data && `updated ${timeAgo(data.at)} · via OpenRouter`}</span>
+        <span className={cn("shrink-0", loading && "animate-spin")}>
           <IconButton icon={RefreshCw} size="sm" label="Check now" onClick={() => load(true)} disabled={loading} />
         </span>
       </div>
@@ -73,6 +73,7 @@ export function PopularModels() {
               className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface/50"
             >
               <span className="w-5 shrink-0 text-right font-mono text-[11px] text-faint">{i + 1}</span>
+              <LabIcon id={m.id} lab={m.lab} size={20} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
                   <span className="truncate text-[13px] text-fg">{m.name}</span>
