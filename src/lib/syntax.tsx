@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 
 /** One Dark palette for code (diff viewers). */
 export const ONE_DARK = {
-  bg: "#16181d",
+  // The background follows the app theme (Midnight → black, Ocean → navy…); only the code colours are One Dark.
+  bg: "var(--color-term)",
   text: "#abb2bf",
   comment: "#7f848e",
   keyword: "#c678dd",
