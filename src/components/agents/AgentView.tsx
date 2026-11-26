@@ -99,7 +99,7 @@ export function AgentView({ id }: { id: ID }) {
         )}
       </AnimatePresence>
       {/* The terminal stays mounted while reviewing, so the agent keeps running and redraws instantly. */}
-      <div className={reviewing ? "hidden" : "relative flex min-h-0 flex-1"}>
+      <div className={reviewing ? "hidden" : "relative flex min-h-0 flex-1 overflow-clip"}>
         {/* The timeline slides over the right edge without resizing the terminal: any resize makes
             the agent re-flow its whole screen, which looks like a jump. */}
         <div className="relative min-w-0 flex-1 bg-term py-2 pl-4 pr-1">
