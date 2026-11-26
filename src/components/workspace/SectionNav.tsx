@@ -2,6 +2,7 @@ import { motion, useScroll, useSpring } from "framer-motion";
 import { ChevronRight, type LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/cn";
+import { LogoMark } from "../ui/Logo";
 
 export interface NavSection {
   id: string;
@@ -65,32 +66,37 @@ export function SectionNav({ page, icon: PageIcon, sections }: { page: string; i
       )}
     >
       <nav aria-label={`${page} sections`} className="no-scrollbar flex h-11 items-stretch gap-1 overflow-x-auto font-mono text-[11.5px]">
-        <span className="flex shrink-0 items-center gap-1.5 text-faint">orbitr</span>
+        <span className="flex shrink-0 items-center gap-1.5 text-faint">
+          <LogoMark size={13} /> orbitr
+        </span>
         <span className="flex shrink-0 items-center"><ChevronRight size={11} className="text-faint" /></span>
         <span className="mr-2 flex shrink-0 items-center gap-1.5 text-fg">
           <PageIcon size={13} className="text-muted" /> {page}
         </span>
         <span className="mx-2 my-auto h-4 w-px shrink-0 bg-line" />
-        {sections.map((s) => {
-          const on = active === s.id;
-          return (
-            <button
-              key={s.id}
-              onClick={() => go(s.id)}
-              className={cn("group relative flex shrink-0 items-center gap-1.5 px-2.5 transition-colors", on ? "text-fg" : "text-muted hover:text-fg-2")}
-            >
-              <s.icon size={12} className={cn("transition-colors", on ? "text-accent" : "text-faint group-hover:text-muted")} />
-              {s.label}
-              {on && (
-                <motion.span
-                  layoutId={`section-nav-${page}`}
-                  className="absolute inset-x-1.5 -bottom-px h-[2px] rounded-full bg-accent"
-                  transition={{ type: "spring", stiffness: 520, damping: 40 }}
-                />
-              )}
-            </button>
-          );
-        })}
+        {/* Sections as a pill control (not tabs): the filled pill slides to the current one. */}
+        <div className="my-auto flex shrink-0 items-center gap-0.5 rounded-full bg-bg p-0.5 ring-1 ring-line-soft">
+          {sections.map((s) => {
+            const on = active === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => go(s.id)}
+                className={cn("relative flex h-7 shrink-0 items-center gap-1.5 rounded-full px-3 transition-colors duration-150", on ? "text-bg" : "text-muted hover:text-fg")}
+              >
+                {on && (
+                  <motion.span
+                    layoutId={`section-nav-${page}`}
+                    className="absolute inset-0 rounded-full bg-fg"
+                    transition={{ type: "spring", stiffness: 520, damping: 40 }}
+                  />
+                )}
+                <s.icon size={12} className="relative" />
+                <span className="relative">{s.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </nav>
       {/* How far down the page you are. */}
       <motion.div aria-hidden className="absolute inset-x-0 -bottom-px h-px origin-left bg-accent/50" style={{ scaleX: progress }} />

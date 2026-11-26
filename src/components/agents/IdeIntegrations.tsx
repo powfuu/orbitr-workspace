@@ -4,6 +4,7 @@ import { AGENTS } from "../../features/agents/registry";
 import { NVIM_CONFIGS, installConfigCommand } from "../../features/editors/nvimConfigs";
 import { useSettings } from "../../stores/settingsStore";
 import { cn } from "../../lib/cn";
+import { LogoMark } from "../ui/Logo";
 import { newDefaultTerminal } from "../../features/terminals/newDefaultTerminal";
 import { AgentIntegrations } from "./AgentIntegrations";
 import { IconButton } from "../ui/IconButton";
@@ -27,8 +28,16 @@ export function IdeIntegrations() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2 font-mono text-[12.5px] text-fg">
                 {d.name}
-                {d.badge && <span className="rounded-full bg-accent/15 px-1.5 text-[9.5px] uppercase tracking-[0.08em] text-accent">{d.badge}</span>}
-                {active === d.app && <span className="rounded-full border border-success/30 bg-success/10 px-1.5 text-[9.5px] uppercase tracking-[0.08em] text-success">in use</span>}
+                {d.badge && (
+                  <span title={d.badge} className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-surface-2 px-2 py-px text-[10px] text-fg ring-1 ring-line">
+                    <LogoMark size={10} /> by Orbitr
+                  </span>
+                )}
+                {active === d.app && (
+                  <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-success/15 px-2 py-px text-[10px] text-success">
+                    <span className="h-1.5 w-1.5 rounded-full bg-success" /> in use
+                  </span>
+                )}
               </div>
               <div className="mt-0.5 text-[11.5px] text-muted">{d.blurb}</div>
             </div>
