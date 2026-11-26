@@ -67,7 +67,7 @@ export function AgentView({ id }: { id: ID }) {
           {/* Views */}
           {!editing && <IconButton size="lg" icon={GitCompareArrows} label={reviewing ? "Back to the agent" : "Review changes (what each prompt changed)"} active={reviewing} onClick={() => setReviewing((r) => !r)} />}
           {!editing && <IconButton size="lg" icon={ListTree} label={timelineOpen ? "Hide timeline" : "Timeline"} shortcut={`${modKey}⇧L`} active={timelineOpen} onClick={toggleTimeline} />}
-          {!editing && <span aria-hidden className="mx-1 h-5 w-px bg-line" />}
+          {!editing && <span aria-hidden className="ml-3 mr-2 h-5 w-px bg-line" />}
           {/* Session control, on the right */}
           {alive ? (
             <IconButton size="lg" icon={Square} label={editing ? "Kill editor" : "Stop agent"} onClick={() => void stopAgent(id)} />
