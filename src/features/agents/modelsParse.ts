@@ -24,6 +24,10 @@ const LAB_NAMES: Record<string, string> = {
   qwen: "Qwen",
   moonshotai: "Moonshot",
   "z-ai": "Z.ai",
+  meta: "Meta",
+  minimax: "MiniMax",
+  nvidia: "NVIDIA",
+  stepfun: "StepFun",
 };
 
 interface Raw {
