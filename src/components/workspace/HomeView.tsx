@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Bot, Command, FolderPlus, SquareTerminal } from "lucide-react";
+import { Bot, Command, FolderPlus, Gauge, LayoutDashboard, Orbit, SquareTerminal, Zap } from "lucide-react";
 import { UsageOverview } from "../usage/UsageOverview";
 import { addProjectFromDialog } from "../../features/projects/addProject";
 import { newDefaultTerminal } from "../../features/terminals/newDefaultTerminal";
@@ -21,10 +21,11 @@ export function HomeView() {
     <div className="relative mx-auto flex min-h-full max-w-3xl flex-col px-5 pb-10 @lg:px-10 @lg:pb-14">
       <SectionNav
         page="dashboard"
+        icon={LayoutDashboard}
         sections={[
-          { id: "dash-welcome", label: "welcome" },
-          { id: "dash-actions", label: "quick actions" },
-          { id: "dashboard-usage", label: "usage & limits" },
+          { id: "dash-welcome", label: "welcome", icon: Orbit },
+          { id: "dash-actions", label: "quick actions", icon: Zap },
+          { id: "dashboard-usage", label: "usage & limits", icon: Gauge },
         ]}
       />
       <motion.div {...fade(0)} id="dash-welcome" className="mb-10 mt-4 scroll-mt-14">
