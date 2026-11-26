@@ -39,19 +39,22 @@ export function RecentSessions({ filter, limit = 8 }: { filter: Filter; limit?: 
         const o = outcome(e, live);
         const def = AGENTS[e.kind];
         return (
-          <div key={e.id} className="group flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-surface/60">
+          // The whole row acts: open the session if it's still there, otherwise start a new one.
+          <div
+            key={e.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => (session ? open({ type: "agent", id: session.id }) : def && projects[e.projectId] && void startAgent(e.kind, e.projectId))}
+            onKeyDown={(ev) => ev.key === "Enter" && (session ? open({ type: "agent", id: session.id }) : def && projects[e.projectId] && void startAgent(e.kind, e.projectId))}
+            title={session ? `Open ${e.name}` : def ? `Start a new ${def.displayName} session` : undefined}
+            className="group flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-surface/60"
+          >
             {def && <AgentGlyph agent={def} size={18} />}
-            <button
-              className="min-w-0 flex-1 truncate text-left text-[12.5px] text-fg-2 disabled:cursor-default"
-              disabled={!session}
-              onClick={() => session && open({ type: "agent", id: session.id })}
-            >
-              {e.name}
-            </button>
+            <span className="min-w-0 flex-1 truncate text-left text-[12.5px] text-fg-2">{e.name}</span>
             <span className={`font-mono text-[10.5px] ${o.tone}`}>{o.text}</span>
             <span className="w-20 text-right font-mono text-[10.5px] text-faint">{timeAgo(e.startedAt)}</span>
             {def && projects[e.projectId] && (
-              <span className="opacity-0 transition-opacity group-hover:opacity-100">
+              <span className="ml-2 opacity-0 transition-opacity group-hover:opacity-100" onClick={(ev) => ev.stopPropagation()}>
                 <IconButton icon={Play} label={`Start new ${def.displayName} session`} size="sm" onClick={() => void startAgent(e.kind, e.projectId)} />
               </span>
             )}
