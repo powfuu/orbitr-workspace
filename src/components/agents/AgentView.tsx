@@ -17,9 +17,7 @@ import type { ID } from "../../types";
 import { AgentGlyph } from "../ui/AgentGlyph";
 import { IconButton } from "../ui/IconButton";
 import { TerminalView } from "../terminal/TerminalView";
-import { cn } from "../../lib/cn";
 import { ReviewView } from "../review/ReviewView";
-import { TIMELINE_W } from "../timeline/TimelinePanel";
 import { MissingView } from "../workspace/ProjectView";
 import { ActivityBadge, useActivitySubtitle } from "./ActivityBadge";
 import { markSeen } from "../../features/sessions/activityStore";
@@ -35,15 +33,7 @@ export function AgentView({ id }: { id: ID }) {
   const timelineOpen = useLayout((s) => s.timelineOpen);
   const toggleTimeline = useLayout((s) => s.toggleTimeline);
   const [reviewing, setReviewing] = useState(false);
-  // Opening the timeline shrinks the terminal and the agent redraws itself; soften the
-  // terminal for that moment so the redraw reads as part of the transition, not a glitch.
-  const [settling, setSettling] = useState(false);
-  useEffect(() => {
-    if (!timelineOpen) return;
-    setSettling(true);
-    const t = window.setTimeout(() => setSettling(false), 320);
-    return () => window.clearTimeout(t);
-  }, [timelineOpen]);
+
   useEffect(() => {
     markSeen(id);
   }, [id]);
@@ -107,12 +97,10 @@ export function AgentView({ id }: { id: ID }) {
       </AnimatePresence>
       {/* The terminal stays mounted while reviewing, so the agent keeps running and redraws instantly. */}
       <div className={reviewing ? "hidden" : "relative flex min-h-0 flex-1"}>
-        {/* The timeline slides over the right edge; the terminal makes room for it in one step
-            (padding changes at once), so it doesn't reflow again when the animation ends. */}
-        <div className="relative min-w-0 flex-1 bg-term py-2 pl-4 pr-1" style={{ paddingRight: timelineOpen && !editing ? TIMELINE_W + 4 : undefined }}>
-          <div className={cn("h-full transition-opacity ease-out", settling ? "opacity-0 duration-75" : "opacity-100 duration-200")}>
-            <TerminalView id={id} focused={paneFocused} />
-          </div>
+        {/* The timeline slides over the right edge without resizing the terminal: any resize makes
+            the agent re-flow its whole screen, which looks like a jump. */}
+        <div className="relative min-w-0 flex-1 bg-term py-2 pl-4 pr-1">
+          <TerminalView id={id} focused={paneFocused} />
         </div>
         <AnimatePresence initial={false}>
           {timelineOpen && !editing && <TimelinePanel agent={agent} cwd={agent.cwd ?? project?.path} onClose={toggleTimeline} />}
