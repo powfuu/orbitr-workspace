@@ -3,6 +3,7 @@ import { Bot, Command, FolderPlus, SquareTerminal } from "lucide-react";
 import { UsageOverview } from "../usage/UsageOverview";
 import { AgentIntegrations } from "../agents/AgentIntegrations";
 import { IdeIntegrations } from "../agents/IdeIntegrations";
+import { AgentNews } from "../agents/AgentNews";
 import { addProjectFromDialog } from "../../features/projects/addProject";
 import { newDefaultTerminal } from "../../features/terminals/newDefaultTerminal";
 import { useLayout } from "../../stores/layoutStore";
@@ -53,6 +54,10 @@ export function HomeView() {
 
       <motion.div {...fade(2)} className="mt-10">
         <AgentIntegrations />
+      </motion.div>
+
+      <motion.div {...fade(2)} className="mt-10">
+        <AgentNews />
       </motion.div>
 
       <motion.div {...fade(3)} className="mt-10">

@@ -63,3 +63,53 @@ pub async fn agent_changes(cwd: String, session_id: String) -> Result<Vec<crate:
 pub async fn claude_sessions_touched(cwd: String, since_ms: u64) -> Vec<String> {
     tauri::async_runtime::spawn_blocking(move || crate::agents::timeline::sessions_touched_since(&cwd, since_ms)).await.unwrap_or_default()
 }
+
+/* ── agent news: versions and changelogs ─────────────────────────────────── */
+
+/// Fetches public release info. Only these hosts are allowed, so the app can't be made to
+/// request arbitrary URLs.
+const NEWS_HOSTS: [&str; 3] = ["https://registry.npmjs.org/", "https://api.github.com/repos/", "https://raw.githubusercontent.com/"];
+
+#[tauri::command]
+pub async fn agent_news_fetch(url: String) -> Result<String, String> {
+    if !NEWS_HOSTS.iter().any(|h| url.starts_with(h)) || url.contains("..") {
+        return Err("host not allowed".into());
+    }
+    let res = reqwest::Client::new()
+        .get(&url)
+        .header("User-Agent", "orbitr-workspace")
+        .header("Accept", "application/vnd.github+json, application/json, text/plain")
+        .timeout(std::time::Duration::from_secs(12))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    if !res.status().is_success() {
+        return Err(format!("{} for {url}", res.status()));
+    }
+    let text = res.text().await.map_err(|e| e.to_string())?;
+    Ok(text.chars().take(400_000).collect())
+}
+
+/// `<cli> --version` through the login shell (so nvm/Homebrew PATHs apply). Name is checked.
+#[tauri::command]
+pub async fn agent_cli_version(executable: String) -> Result<String, String> {
+    if executable.is_empty() || !executable.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        return Err("invalid executable".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/zsh".into());
+        let out = std::process::Command::new(shell)
+            .args(["-l", "-c", &format!("{executable} --version")])
+            .stdin(std::process::Stdio::null())
+            .output()
+            .map_err(|e| e.to_string())?;
+        let text = String::from_utf8_lossy(&out.stdout).to_string() + &String::from_utf8_lossy(&out.stderr);
+        // First "1.2.3"-like token in the output.
+        text.split(|c: char| !(c.is_ascii_digit() || c == '.'))
+            .find(|t| t.matches('.').count() >= 1 && t.split('.').all(|p| !p.is_empty()))
+            .map(String::from)
+            .ok_or_else(|| "no version".into())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
