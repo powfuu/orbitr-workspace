@@ -68,7 +68,7 @@ pub async fn claude_sessions_touched(cwd: String, since_ms: u64) -> Vec<String> 
 
 /// Fetches public release info. Only these hosts are allowed, so the app can't be made to
 /// request arbitrary URLs.
-const NEWS_HOSTS: [&str; 3] = ["https://registry.npmjs.org/", "https://api.github.com/repos/", "https://raw.githubusercontent.com/"];
+const NEWS_HOSTS: [&str; 4] = ["https://registry.npmjs.org/", "https://api.github.com/repos/", "https://raw.githubusercontent.com/", "https://openrouter.ai/api/v1/models"];
 
 #[tauri::command]
 pub async fn agent_news_fetch(url: String) -> Result<String, String> {
@@ -87,7 +87,7 @@ pub async fn agent_news_fetch(url: String) -> Result<String, String> {
         return Err(format!("{} for {url}", res.status()));
     }
     let text = res.text().await.map_err(|e| e.to_string())?;
-    Ok(text.chars().take(400_000).collect())
+    Ok(text.chars().take(3_000_000).collect())
 }
 
 /// `<cli> --version` through the login shell (so nvm/Homebrew PATHs apply). Name is checked.
