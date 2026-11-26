@@ -63,15 +63,18 @@ export function AgentView({ id }: { id: ID }) {
           </div>
         </div>
         {!editing && <ActivityBadge id={id} status={agent.status} />}
-        <div className="ml-1 flex items-center gap-0.5">
+        <div className="ml-1 flex items-center gap-1">
+          {/* Views */}
+          {!editing && <IconButton size="lg" icon={GitCompareArrows} label={reviewing ? "Back to the agent" : "Review changes (what each prompt changed)"} active={reviewing} onClick={() => setReviewing((r) => !r)} />}
+          {!editing && <IconButton size="lg" icon={ListTree} label={timelineOpen ? "Hide timeline" : "Timeline"} shortcut={`${modKey}⇧L`} active={timelineOpen} onClick={toggleTimeline} />}
+          {!editing && <span aria-hidden className="mx-1 h-5 w-px bg-line" />}
+          {/* Session control, on the right */}
           {alive ? (
-            <IconButton icon={Square} label={editing ? "Kill editor" : "Stop agent"} onClick={() => void stopAgent(id)} />
+            <IconButton size="lg" icon={Square} label={editing ? "Kill editor" : "Stop agent"} onClick={() => void stopAgent(id)} />
           ) : (
-            <IconButton icon={RotateCw} label="Restart agent" onClick={() => void restartAgent(id)} disabled={!project} />
+            <IconButton size="lg" icon={RotateCw} label="Restart agent" onClick={() => void restartAgent(id)} disabled={!project} />
           )}
-          {!editing && <IconButton icon={GitCompareArrows} label={reviewing ? "Back to the agent" : "Review changes (what each prompt changed)"} active={reviewing} onClick={() => setReviewing((r) => !r)} />}
-          {!editing && <IconButton icon={ListTree} label={timelineOpen ? "Hide timeline" : "Timeline"} shortcut={`${modKey}⇧L`} active={timelineOpen} onClick={toggleTimeline} />}
-          <IconButton icon={Trash2} label="End session" onClick={() => void removeAgent(id)} />
+          <IconButton size="lg" icon={Trash2} label="End session" onClick={() => void removeAgent(id)} />
         </div>
       </div>
       <AnimatePresence>

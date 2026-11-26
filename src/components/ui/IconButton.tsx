@@ -9,12 +9,12 @@ interface Props {
   onClick?: () => void;
   active?: boolean;
   disabled?: boolean;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
   side?: "top" | "bottom" | "right" | "left";
 }
 
 export function IconButton({ icon: Icon, label, shortcut, onClick, active, disabled, size = "md", side }: Props) {
-  const box = size === "sm" ? "h-6 w-6" : "h-7 w-7";
+  const box = size === "sm" ? "h-6 w-6" : size === "lg" ? "h-8 w-8" : "h-7 w-7";
   return (
     <Tooltip label={label} shortcut={shortcut} side={side}>
       <button
@@ -29,7 +29,7 @@ export function IconButton({ icon: Icon, label, shortcut, onClick, active, disab
           box,
         )}
       >
-        <Icon size={size === "sm" ? 14 : 15} strokeWidth={1.75} />
+        <Icon size={size === "sm" ? 14 : size === "lg" ? 17 : 15} strokeWidth={1.75} />
       </button>
     </Tooltip>
   );
