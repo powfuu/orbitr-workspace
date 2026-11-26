@@ -6,6 +6,7 @@ import { useLayout } from "../../stores/layoutStore";
 import { lastInProject, projectOfTarget } from "../../features/tabs/projectGroups";
 import { AGENTS } from "../../features/agents/registry";
 import { cn } from "../../lib/cn";
+import { closeTab } from "../../features/tabs/closeTab";
 import { AgentGlyph } from "../ui/AgentGlyph";
 import { ActivityIconFor } from "../agents/ActivityBadge";
 import { PromptChip } from "../approvals/PromptChip";
@@ -13,7 +14,7 @@ import { PromptChip } from "../approvals/PromptChip";
 /** The project's agents/editors, shown inline right after its tab in the strip. */
 export function ProjectSubTabs({ group, projectId }: { group: TabGroup; projectId: string }) {
   const agents = useSessions((s) => s.agents);
-  const { activate, close } = useTabs.getState();
+  const { activate } = useTabs.getState();
   const active = group.tabs.find((t) => t.id === group.activeTabId);
   const activeProject = active ? projectOfTarget(active.target, agents) : undefined;
 
@@ -22,10 +23,11 @@ export function ProjectSubTabs({ group, projectId }: { group: TabGroup; projectI
   }, [projectId, activeProject, active]);
 
   const members = group.tabs.filter((t) => projectOfTarget(t.target, agents) === projectId);
-  const chip = "group relative flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2 font-mono text-[11.5px] transition-colors";
+  // Same shape as the main tabs, so agents read as tabs of their project.
+  const chip = "group relative mb-[-1px] flex h-8 shrink-0 cursor-default items-center gap-2 rounded-t-md pl-3 pr-1.5 font-mono text-[12px] transition-colors";
 
   return (
-    <div className="mb-1 flex shrink-0 items-center gap-0.5 self-end">
+    <div className="flex shrink-0 items-end gap-0.5 self-stretch">
       {members
         .filter((t) => t.target.type === "agent")
         .map((t) => {
@@ -38,9 +40,10 @@ export function ProjectSubTabs({ group, projectId }: { group: TabGroup; projectI
               role="tab"
               aria-selected={on}
               onClick={() => activate(t.id)}
-              onAuxClick={(e) => e.button === 1 && close(t.id)}
-              className={cn(chip, "cursor-default pr-1", on ? "bg-surface text-fg ring-1 ring-line" : "text-muted hover:bg-surface/60 hover:text-fg-2")}
+              onAuxClick={(e) => e.button === 1 && closeTab(t.id)}
+              className={cn(chip, on ? "bg-bg-2 text-fg shadow-[inset_0_1px_0_0_#ffffff0f,0_0_0_1px_var(--color-line-soft)]" : "text-muted hover:bg-bg-2/60 hover:text-fg-2")}
             >
+              {on && <span className="absolute left-1/2 top-0 h-[2px] w-6 -translate-x-1/2 rounded-b-full bg-accent" />}
               <AgentGlyph agent={AGENTS[a.kind]} size={13} status={a.status} />
               <span className="max-w-44 truncate">{a.name.replace(/\s·\s.*$/, "")}</span>
               <ActivityIconFor id={a.id} status={a.status} size={10} />
@@ -50,9 +53,9 @@ export function ProjectSubTabs({ group, projectId }: { group: TabGroup; projectI
                 title="Close tab (the agent keeps running)"
                 onClick={(e) => {
                   e.stopPropagation();
-                  close(t.id);
+                  closeTab(t.id);
                 }}
-                className={cn("grid h-5 w-5 place-items-center rounded text-faint hover:bg-surface-2 hover:text-fg", on ? "opacity-100" : "opacity-0 group-hover:opacity-100")}
+                className={cn("grid h-5 w-5 place-items-center rounded text-faint hover:bg-surface hover:text-fg", on ? "opacity-100" : "opacity-0 group-hover:opacity-100")}
               >
                 <X size={11} />
               </button>
@@ -62,7 +65,7 @@ export function ProjectSubTabs({ group, projectId }: { group: TabGroup; projectI
       <button
         onClick={() => useLayout.getState().setPaletteOpen(true, "Start ")}
         title="Start an agent"
-        className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-faint hover:bg-surface/60 hover:text-fg"
+        className="mb-1.5 grid h-6 w-6 shrink-0 place-items-center rounded-md text-faint hover:bg-surface/60 hover:text-fg"
       >
         <Plus size={13} />
       </button>
