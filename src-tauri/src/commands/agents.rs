@@ -51,3 +51,9 @@ pub async fn claude_cached_image(path: String) -> Result<tauri::ipc::Response, S
     let (_mime, bytes) = tauri::async_runtime::spawn_blocking(move || crate::agents::timeline::cached_image(&path)).await.map_err(|e| e.to_string())??;
     Ok(tauri::ipc::Response::new(bytes))
 }
+
+/// Every file edit of a Claude Code session, grouped under the prompt that caused it.
+#[tauri::command]
+pub async fn agent_changes(cwd: String, session_id: String) -> Result<Vec<crate::agents::changes::PromptChanges>, String> {
+    tauri::async_runtime::spawn_blocking(move || crate::agents::changes::session_changes(&cwd, &session_id)).await.map_err(|e| e.to_string())?
+}

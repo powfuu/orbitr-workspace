@@ -31,6 +31,7 @@ pub fn run() {
             commands::agents::usage_project,
             commands::agents::usage_overview,
             commands::agents::agent_timeline,
+            commands::agents::agent_changes,
             commands::agents::claude_sessions_since,
             commands::agents::claude_session_with_prompt,
             commands::agents::claude_cached_image,

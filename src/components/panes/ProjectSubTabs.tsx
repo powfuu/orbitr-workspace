@@ -1,4 +1,4 @@
-import { LayoutGrid, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useEffect } from "react";
 import { useTabs, type TabGroup } from "../../stores/tabStore";
 import { useSessions } from "../../stores/sessionStore";
@@ -10,31 +10,22 @@ import { AgentGlyph } from "../ui/AgentGlyph";
 import { ActivityIconFor } from "../agents/ActivityBadge";
 import { PromptChip } from "../approvals/PromptChip";
 
-/** Inside a project's tab: switch between its overview and its agents/editors. */
-export function ProjectSubTabs({ group }: { group: TabGroup }) {
+/** The project's agents/editors, shown inline right after its tab in the strip. */
+export function ProjectSubTabs({ group, projectId }: { group: TabGroup; projectId: string }) {
   const agents = useSessions((s) => s.agents);
-  const { activate, close, open } = useTabs.getState();
+  const { activate, close } = useTabs.getState();
   const active = group.tabs.find((t) => t.id === group.activeTabId);
-  const projectId = active ? projectOfTarget(active.target, agents) : undefined;
+  const activeProject = active ? projectOfTarget(active.target, agents) : undefined;
 
   useEffect(() => {
-    if (projectId && active) lastInProject.set(projectId, active.id);
-  }, [projectId, active]);
+    if (activeProject === projectId && active) lastInProject.set(projectId, active.id);
+  }, [projectId, activeProject, active]);
 
-  if (!projectId) return null;
   const members = group.tabs.filter((t) => projectOfTarget(t.target, agents) === projectId);
-  const overview = members.find((t) => t.target.type === "project");
-  const chip = "group relative flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 font-mono text-[11.5px] transition-colors";
+  const chip = "group relative flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2 font-mono text-[11.5px] transition-colors";
 
   return (
-    <div className="no-scrollbar flex h-9 shrink-0 items-center gap-1 overflow-x-auto border-b border-line-soft bg-bg-2 px-2">
-      <button
-        onClick={() => (overview ? activate(overview.id) : open({ type: "project", id: projectId }))}
-        className={cn(chip, active?.target.type === "project" ? "bg-surface text-fg ring-1 ring-line" : "text-muted hover:bg-surface/60 hover:text-fg-2")}
-      >
-        <LayoutGrid size={12} /> overview
-      </button>
-      <span className="mx-1 h-4 w-px shrink-0 bg-line-soft" />
+    <div className="mb-1 flex shrink-0 items-center gap-0.5 self-end">
       {members
         .filter((t) => t.target.type === "agent")
         .map((t) => {
@@ -71,7 +62,7 @@ export function ProjectSubTabs({ group }: { group: TabGroup }) {
       <button
         onClick={() => useLayout.getState().setPaletteOpen(true, "Start ")}
         title="Start an agent"
-        className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-faint hover:bg-surface/60 hover:text-fg"
+        className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-faint hover:bg-surface/60 hover:text-fg"
       >
         <Plus size={13} />
       </button>

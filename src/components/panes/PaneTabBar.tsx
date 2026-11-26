@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Columns2, Folder, Maximize2, PanelLeftOpen, PanelRightOpen, Rows2, X } from "lucide-react";
 import { toggleFocusMode } from "../../features/layout/focusMode";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { useTabs, type TabGroup } from "../../stores/tabStore";
 import { useWorkspaces } from "../../stores/workspaceStore";
@@ -21,7 +21,8 @@ import { AgentGlyph } from "../ui/AgentGlyph";
 import { AGENTS } from "../../features/agents/registry";
 import { PromptChip } from "../approvals/PromptChip";
 import { useActivity } from "../../features/sessions/activityStore";
-import { isSidebarTab, lastInProject, projectOfTarget } from "../../features/tabs/projectGroups";
+import { isSidebarTab, projectOfTarget } from "../../features/tabs/projectGroups";
+import { ProjectSubTabs } from "./ProjectSubTabs";
 
 interface Props {
   paneId: ID;
@@ -117,16 +118,20 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
             const described = describeTab(tab.target, { workspaces, projects, agents });
             const title = projectId ? (projects[projectId]?.name ?? described.title) : described.title;
             const Icon = projectId ? Folder : described.icon;
-            const active = members.some((t) => t.id === group.activeTabId);
+            const inGroup = members.some((t) => t.id === group.activeTabId);
+            const active = projectId ? inGroup && group.tabs.find((t) => t.id === group.activeTabId)?.target.type === "project" : inGroup;
             const groupAgents = members.flatMap((t) => (t.target.type === "agent" ? agents.filter((a) => a.id === (t.target as { id: string }).id) : []));
             const agent = projectId ? undefined : tab.target.type === "agent" ? agents.find((a) => a.id === (tab.target as { id: string }).id) : undefined;
             const anyWaiting = groupAgents.some((a) => waiting.has(a.id));
+            // Clicking a project's tab shows its overview; its agents sit right next to it.
             const goTo = () => {
-              const last = projectId ? lastInProject.get(projectId) : undefined;
-              activate(members.find((t) => t.id === last)?.id ?? members[0]!.id);
+              if (!projectId) return activate(tab.id);
+              const overview = members.find((t) => t.target.type === "project");
+              if (overview) activate(overview.id);
+              else useTabs.getState().open({ type: "project", id: projectId });
             };
             const closeAll = () => members.forEach((t) => close(t.id));
-            return (
+            const tabEl = (
               <motion.div
                 key={tab.id}
                 layout="position"
@@ -192,12 +197,6 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                       <Icon size={13} strokeWidth={1.75} className={active && focused ? "text-accent" : ""} />
                     )}
                     <span className="truncate">{title}</span>
-                    {groupAgents.length > 0 && (
-                      <span className="flex shrink-0 items-center -space-x-1">
-                        {groupAgents.slice(0, 3).map((a) => <AgentGlyph key={a.id} agent={AGENTS[a.kind]} size={12} status={a.status} />)}
-                        {groupAgents.length > 3 && <span className="pl-1.5 font-mono text-[10px] text-faint">+{groupAgents.length - 3}</span>}
-                      </span>
-                    )}
                     {agent && <ActivityIconFor id={agent.id} status={agent.status} size={10} />}
                     {agent && <PromptChip id={agent.id} />}
                     {closable(tab) && <button
@@ -217,6 +216,12 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                   </div>
                 </ContextMenu>
               </motion.div>
+            );
+            return (
+              <Fragment key={tab.id}>
+                {tabEl}
+                {projectId && members.some((t) => t.target.type === "agent") && <ProjectSubTabs group={group} projectId={projectId} />}
+              </Fragment>
             );
           })}
         </AnimatePresence>

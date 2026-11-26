@@ -1,4 +1,4 @@
-import { GitBranch, ListTree, RotateCw, Square, Trash2 } from "lucide-react";
+import { GitBranch, GitCompareArrows, ListTree, RotateCw, Square, Trash2 } from "lucide-react";
 import { useLayout } from "../../stores/layoutStore";
 import { isEditor } from "../../features/agents/registry";
 import { modKey, tildify } from "../../lib/platform";
@@ -17,10 +17,11 @@ import type { ID } from "../../types";
 import { AgentGlyph } from "../ui/AgentGlyph";
 import { IconButton } from "../ui/IconButton";
 import { TerminalView } from "../terminal/TerminalView";
+import { ReviewView } from "../review/ReviewView";
 import { MissingView } from "../workspace/ProjectView";
 import { ActivityBadge, useActivitySubtitle } from "./ActivityBadge";
 import { markSeen } from "../../features/sessions/activityStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function AgentView({ id }: { id: ID }) {
   const agent = useSessions((s) => s.agents.find((a) => a.id === id));
@@ -31,6 +32,7 @@ export function AgentView({ id }: { id: ID }) {
   const prompt = useActivity((s) => s.byId[id]?.prompt);
   const timelineOpen = useLayout((s) => s.timelineOpen);
   const toggleTimeline = useLayout((s) => s.toggleTimeline);
+  const [reviewing, setReviewing] = useState(false);
   useEffect(() => {
     markSeen(id);
   }, [id]);
@@ -66,6 +68,7 @@ export function AgentView({ id }: { id: ID }) {
           ) : (
             <IconButton icon={RotateCw} label="Restart agent" onClick={() => void restartAgent(id)} disabled={!project} />
           )}
+          {!editing && <IconButton icon={GitCompareArrows} label={reviewing ? "Back to the agent" : "Review changes (what each prompt changed)"} active={reviewing} onClick={() => setReviewing((r) => !r)} />}
           {!editing && <IconButton icon={ListTree} label={timelineOpen ? "Hide timeline" : "Timeline"} shortcut={`${modKey}⇧L`} active={timelineOpen} onClick={toggleTimeline} />}
           <IconButton icon={Trash2} label="End session" onClick={() => void removeAgent(id)} />
         </div>
@@ -77,7 +80,13 @@ export function AgentView({ id }: { id: ID }) {
           </div>
         )}
       </AnimatePresence>
-      <div className="flex min-h-0 flex-1">
+      {reviewing && (
+        <div className="min-h-0 flex-1">
+          <ReviewView agent={agent} cwd={agent.cwd ?? project?.path} onClose={() => setReviewing(false)} />
+        </div>
+      )}
+      {/* The terminal stays mounted while reviewing, so the agent keeps running and redraws instantly. */}
+      <div className={reviewing ? "hidden" : "flex min-h-0 flex-1"}>
         <div className="relative min-w-0 flex-1 bg-term py-2 pl-4 pr-1">
           <TerminalView id={id} focused={paneFocused} />
         </div>
