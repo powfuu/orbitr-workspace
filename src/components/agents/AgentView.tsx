@@ -4,7 +4,7 @@ import { isEditor } from "../../features/agents/registry";
 import { modKey, tildify } from "../../lib/platform";
 import { TimelinePanel } from "../timeline/TimelinePanel";
 import { windowDragProps } from "../../hooks/useWindowDrag";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useActivity } from "../../features/sessions/activityStore";
 import { ApprovalCard } from "../approvals/ApprovalCard";
 import { usePaneFocused } from "../../features/panes/paneFocus";
@@ -18,6 +18,7 @@ import { AgentGlyph } from "../ui/AgentGlyph";
 import { IconButton } from "../ui/IconButton";
 import { TerminalView } from "../terminal/TerminalView";
 import { ReviewView } from "../review/ReviewView";
+import { TIMELINE_W } from "../timeline/TimelinePanel";
 import { MissingView } from "../workspace/ProjectView";
 import { ActivityBadge, useActivitySubtitle } from "./ActivityBadge";
 import { markSeen } from "../../features/sessions/activityStore";
@@ -80,14 +81,25 @@ export function AgentView({ id }: { id: ID }) {
           </div>
         )}
       </AnimatePresence>
-      {reviewing && (
-        <div className="min-h-0 flex-1">
-          <ReviewView agent={agent} cwd={agent.cwd ?? project?.path} onClose={() => setReviewing(false)} />
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {reviewing && (
+          <motion.div
+            key="review"
+            className="min-h-0 flex-1"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8, transition: { duration: 0.1 } }}
+            transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
+          >
+            <ReviewView agent={agent} cwd={agent.cwd ?? project?.path} onClose={() => setReviewing(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* The terminal stays mounted while reviewing, so the agent keeps running and redraws instantly. */}
-      <div className={reviewing ? "hidden" : "flex min-h-0 flex-1"}>
-        <div className="relative min-w-0 flex-1 bg-term py-2 pl-4 pr-1">
+      <div className={reviewing ? "hidden" : "relative flex min-h-0 flex-1"}>
+        {/* The timeline slides over the right edge; the terminal makes room for it in one step
+            (padding changes at once), so it doesn't reflow again when the animation ends. */}
+        <div className="relative min-w-0 flex-1 bg-term py-2 pl-4 pr-1" style={{ paddingRight: timelineOpen && !editing ? TIMELINE_W + 4 : undefined }}>
           <TerminalView id={id} focused={paneFocused} />
         </div>
         <AnimatePresence initial={false}>

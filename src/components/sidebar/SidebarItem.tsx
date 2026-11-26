@@ -76,7 +76,7 @@ export function SidebarItem({ icon, label, meta, trailing, active, onClick, onCl
           <span className="relative min-w-0 flex-1 truncate">{label}</span>
         )}
         <span className={cn("relative flex items-center gap-2", onClose && "group-hover:invisible group-focus-within:invisible")}>
-          {meta && <span className="truncate font-mono text-[10.5px] text-faint">{meta}</span>}
+          {meta && <span className="max-w-24 truncate font-mono text-[10.5px] text-faint">{meta}</span>}
           {trailing}
         </span>
       </button>

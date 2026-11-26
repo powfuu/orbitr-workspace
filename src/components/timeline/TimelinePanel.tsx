@@ -63,6 +63,9 @@ const time = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: "2-digi
 const shortPath = (p: string, cwd?: string) => (cwd && p.startsWith(cwd + "/") ? p.slice(cwd.length + 1) : p);
 
 /** What the agent did, in order: your prompts, its commands and edits, approvals, commits. */
+/** Width of the timeline panel (the terminal reserves this much space while it's open). */
+export const TIMELINE_W = 340;
+
 export function TimelinePanel({ agent, cwd, onClose }: { agent: AgentSession; cwd?: string; onClose: () => void }) {
   const entries = useTimeline(agent, cwd);
   const [filter, setFilter] = useState<Filter>("all");
@@ -88,11 +91,12 @@ export function TimelinePanel({ agent, cwd, onClose }: { agent: AgentSession; cw
 
   return (
     <motion.aside
-      initial={{ width: 0, opacity: 0 }}
-      animate={{ width: 340, opacity: 1 }}
-      exit={{ width: 0, opacity: 0 }}
-      transition={{ type: "spring", stiffness: 420, damping: 40 }}
-      className="flex h-full max-w-[60%] shrink-0 flex-col overflow-hidden border-l border-line-soft bg-bg"
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
+      style={{ width: TIMELINE_W }}
+      className="absolute inset-y-0 right-0 z-10 flex max-w-[60%] flex-col overflow-hidden border-l border-line-soft bg-bg shadow-pop"
     >
       <div className="flex h-10 shrink-0 items-center gap-2 border-b border-line-soft px-3">
         <ListTree size={13} className="text-muted" />

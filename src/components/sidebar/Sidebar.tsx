@@ -61,6 +61,12 @@ export function Sidebar() {
   const gitProjects = projects.filter((p) => gitByPath[p.path] !== null);
 
   const { updateAgent, updateTerminal } = useSessions.getState();
+  // Which project each session belongs to, shown next to it so long lists stay readable.
+  // The icon already says which agent it is; show just the part after "Claude Code · ".
+  const shortName = (name: string) => name.replace(/^[^·]+·\s*/, "") || name;
+  const projectName = (id?: string) => (id ? allProjects[id]?.name : undefined);
+  const projectOfPath = (path: string) =>
+    Object.values(allProjects).filter((p) => p && (path === p.path || path.startsWith(p.path + "/"))).sort((a, b) => b!.path.length - a!.path.length)[0]?.name;
   const onDashboard = tabs.find((t) => t.id === activeTabId)?.target.type === "home";
 
   return (
@@ -189,10 +195,11 @@ export function Sidebar() {
                     >
                       <SidebarItem
                         icon={<AgentGlyph agent={AGENTS[a.kind]} size={16} status={a.status} />}
-                        label={a.name}
+                        label={shortName(a.name)}
                         renameId={a.id}
                         onRename={(name) => updateAgent(a.id, { name })}
                         dragId={a.id}
+                        meta={projectName(a.projectId)}
                         trailing={<span className="flex items-center gap-1.5"><PromptChip id={a.id} /><ActivityIconFor id={a.id} status={a.status} /></span>}
                         active={activeTarget?.type === "agent" && activeTarget.id === a.id}
                         onClick={() => open({ type: "agent", id: a.id })}
@@ -225,9 +232,10 @@ export function Sidebar() {
               <ContextMenu key={a.id} items={[{ label: "Rename", icon: Pencil, onSelect: () => useRenaming.getState().set(a.id) }, { label: "Close (kills the editor)", icon: Trash2, danger: true, onSelect: () => void removeAgent(a.id) }]}>
                 <SidebarItem
                   icon={<AgentGlyph agent={AGENTS[a.kind]} size={16} />}
-                  label={a.name}
+                  label={shortName(a.name)}
                   renameId={a.id}
                   onRename={(name) => updateAgent(a.id, { name })}
+                  meta={projectName(a.projectId)}
                   active={activeTarget?.type === "agent" && activeTarget.id === a.id}
                   onClick={() => open({ type: "agent", id: a.id })}
                     onClose={() => void removeAgent(a.id)}
@@ -261,7 +269,7 @@ export function Sidebar() {
                       onRename={(name) => updateTerminal(t.id, { name })}
                       dragId={t.id}
                       tooltip={`${cwdFull(t.cwd)}${t.pid ? `  ·  pid ${t.pid}` : ""}`}
-                      meta={t.pid ? String(t.pid) : undefined}
+                      meta={projectOfPath(t.cwd) ?? (t.cwd === "~" ? "~" : undefined)}
                       trailing={<span className="flex items-center gap-1.5"><PromptChip id={t.id} /><StatusDot status={t.status} /></span>}
                       active={t.id === activeTerminalId}
                       onClick={() => { setActiveTerminal(t.id); openTerminalPanel(); }}

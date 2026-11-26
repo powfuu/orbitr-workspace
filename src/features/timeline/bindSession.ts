@@ -12,6 +12,7 @@ const watching = new Set<string>();
  * the timeline reads it, and restores resume exactly that conversation.
  */
 export function bindClaudeSession(agent: AgentSession, cwd: string) {
+  // ponytail: polls every 4s until linked; stops when the agent exits.
   if (agent.kind !== "claude-code" || agent.chatId || watching.has(agent.id)) return;
   watching.add(agent.id);
   const since = new Date(agent.startedAt - 5000).toISOString();
@@ -22,9 +23,13 @@ export function bindClaudeSession(agent: AgentSession, cwd: string) {
       return;
     }
     const claimed = new Set(useSessions.getState().agents.map((a) => a.chatId).filter(Boolean));
-    const found = (await timelineService.sessionsSince(cwd, since).catch(() => [])).find((s) => !claimed.has(s.id));
+    // A new conversation (first entry after launch), or else a continued one: the newest
+    // transcript written since launch that no other agent owns.
+    const fresh = (await timelineService.sessionsSince(cwd, since).catch(() => [])).find((s) => !claimed.has(s.id))?.id;
+    const touched = fresh ? undefined : (await timelineService.sessionsTouched(cwd, agent.startedAt - 5000).catch(() => [])).find((id) => !claimed.has(id));
+    const found = fresh ?? touched;
     if (found) {
-      useSessions.getState().updateAgent(agent.id, { chatId: found.id });
+      useSessions.getState().updateAgent(agent.id, { chatId: found });
       watching.delete(agent.id);
     } else window.setTimeout(() => void tick(), 4000);
   };

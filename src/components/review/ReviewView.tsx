@@ -1,5 +1,6 @@
 import { AlertTriangle, ChevronDown, FileCode2, FilePlus2, GitCompareArrows, MessageSquare, X } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
+import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { openInEditor } from "../../features/editors/openInEditor";
 import { lineDiff } from "../../lib/lineDiff";
@@ -141,7 +142,7 @@ export function ReviewView({ agent, cwd, onClose }: { agent: AgentSession; cwd?:
           {/* The prompt and every change it made */}
           <div className="min-h-0 overflow-y-auto">
             {prompt && (
-              <div className="p-4">
+              <motion.div key={`${current}-${file ?? ""}`} className="p-4" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}>
                 <div className="mb-4 rounded-lg border border-line-soft bg-bg p-3">
                   <div className="mb-1 flex items-center gap-1.5 font-mono text-[10.5px] text-faint">
                     <MessageSquare size={11} /> your prompt · {time(prompt.at)}
@@ -152,10 +153,12 @@ export function ReviewView({ agent, cwd, onClose }: { agent: AgentSession; cwd?:
                   {prompt.edits
                     .filter((e) => !file || e.path === file)
                     .map((e, k) => (
-                      <EditCard key={k} edit={e} cwd={cwd} projectId={agent.projectId} />
+                      <motion.div key={k} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, delay: Math.min(k, 8) * 0.03 }}>
+                        <EditCard edit={e} cwd={cwd} projectId={agent.projectId} />
+                      </motion.div>
                     ))}
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
         </div>

@@ -224,6 +224,26 @@ pub fn session_with_prompt(cwd: &str, since_ms: u64, typed: &str) -> Option<Stri
     })
 }
 
+/// Transcripts in the folder written to at or after `since_ms`, most recently written first.
+/// Catches conversations that were *continued* (they started before the agent launched).
+pub fn sessions_touched_since(cwd: &str, since_ms: u64) -> Vec<String> {
+    let Some(dir) = super::chats::claude_dir(cwd) else { return vec![] };
+    let since = std::time::UNIX_EPOCH + std::time::Duration::from_millis(since_ms);
+    let mut files: Vec<(std::time::SystemTime, String)> = fs::read_dir(&dir)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter_map(|e| {
+            let p = e.path();
+            let m = e.metadata().ok()?.modified().ok()?;
+            let id = p.file_stem()?.to_string_lossy().into_owned();
+            (p.extension()? == "jsonl" && m >= since).then_some((m, id))
+        })
+        .collect();
+    files.sort_by(|a, b| b.0.cmp(&a.0));
+    files.into_iter().map(|(_, id)| id).collect()
+}
+
 fn first_timestamp(p: &Path) -> Option<String> {
     BufReader::new(File::open(p).ok()?)
         .lines()

@@ -57,3 +57,9 @@ pub async fn claude_cached_image(path: String) -> Result<tauri::ipc::Response, S
 pub async fn agent_changes(cwd: String, session_id: String) -> Result<Vec<crate::agents::changes::PromptChanges>, String> {
     tauri::async_runtime::spawn_blocking(move || crate::agents::changes::session_changes(&cwd, &session_id)).await.map_err(|e| e.to_string())?
 }
+
+/// Claude Code transcripts in `cwd` written since `since_ms`, newest first.
+#[tauri::command]
+pub async fn claude_sessions_touched(cwd: String, since_ms: u64) -> Vec<String> {
+    tauri::async_runtime::spawn_blocking(move || crate::agents::timeline::sessions_touched_since(&cwd, since_ms)).await.unwrap_or_default()
+}

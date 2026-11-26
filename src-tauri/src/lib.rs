@@ -34,6 +34,7 @@ pub fn run() {
             commands::agents::agent_changes,
             commands::agents::claude_sessions_since,
             commands::agents::claude_session_with_prompt,
+            commands::agents::claude_sessions_touched,
             commands::agents::claude_cached_image,
             commands::state::state_load,
             commands::state::state_save,
