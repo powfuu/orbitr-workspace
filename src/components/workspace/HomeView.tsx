@@ -7,6 +7,7 @@ import { useLayout } from "../../stores/layoutStore";
 import { modKey } from "../../lib/platform";
 import { LogoMark } from "../ui/Logo";
 import { ActionCard } from "./primitives";
+import { SectionNav } from "./SectionNav";
 
 const fade = (i: number) => ({
   initial: { opacity: 0, y: 8 },
@@ -17,8 +18,16 @@ const fade = (i: number) => ({
 export function HomeView() {
   const setPaletteOpen = useLayout((s) => s.setPaletteOpen);
   return (
-    <div className="relative mx-auto flex min-h-full max-w-3xl flex-col justify-center px-5 py-10 @lg:px-10 @lg:py-14">
-      <motion.div {...fade(0)} className="mb-10">
+    <div className="relative mx-auto flex min-h-full max-w-3xl flex-col px-5 pb-10 @lg:px-10 @lg:pb-14">
+      <SectionNav
+        page="dashboard"
+        sections={[
+          { id: "dash-welcome", label: "welcome" },
+          { id: "dash-actions", label: "quick actions" },
+          { id: "dashboard-usage", label: "usage & limits" },
+        ]}
+      />
+      <motion.div {...fade(0)} id="dash-welcome" className="mb-10 mt-4 scroll-mt-14">
         <div className="relative mb-6 inline-grid place-items-center">
           <LogoMark size={44} />
         </div>
@@ -38,7 +47,7 @@ export function HomeView() {
         </h1>
       </motion.div>
 
-      <motion.div {...fade(1)} className="grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-3">
+      <motion.div {...fade(1)} id="dash-actions" className="scroll-mt-14 grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-3">
         <ActionCard icon={FolderPlus} title="Add project" description="Anchor sessions to a folder on disk." onClick={addProjectFromDialog} />
         <ActionCard icon={Command} title="Command palette" description="Jump anywhere, run any action." shortcut={`${modKey}K`} onClick={() => setPaletteOpen(true)} />
         <ActionCard icon={Bot} title="Start an agent" description="Claude Code, Codex, Gemini and more, in a real terminal." onClick={() => setPaletteOpen(true, "Start ")} />

@@ -16,7 +16,7 @@ export function IdeIntegrations() {
   return (
     <div>
       {nvim && <AgentIntegrations title="IDE integrations" list={[nvim]} />}
-      <div className="mb-2 mt-6 term-heading">Neovim configs</div>
+      <div id="int-configs" className="mb-2 mt-6 scroll-mt-14 term-heading">Neovim configs</div>
       <p className="mb-3 text-[11.5px] text-faint">
         Prefer a ready-made setup over plain Vim? Each one installs into its own <span className="font-mono">~/.config/&lt;name&gt;</span> and runs with{" "}
         <span className="font-mono">NVIM_APPNAME</span>, so your current config stays untouched. ▶ installs it and makes it the one Orbitr opens (switch back in Settings → Vim). Needs Neovim.

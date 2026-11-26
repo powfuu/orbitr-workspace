@@ -19,7 +19,7 @@ export function UsageOverview() {
   const byFolder = new Map(Object.values(projects).map((p) => [claudeFolder(p.path), p]));
 
   return (
-    <div id="dashboard-usage" className="scroll-mt-6">
+    <div id="dashboard-usage" className="scroll-mt-14">
       <div className="mb-3 flex items-center gap-3">
         <div className="term-heading">Usage</div>
         <div className="flex-1" />
