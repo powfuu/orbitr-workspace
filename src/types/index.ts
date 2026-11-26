@@ -60,6 +60,8 @@ export type TabTarget =
   | { type: "project"; id: ID }
   | { type: "agent"; id: ID }
   | { type: "settings" }
+  | { type: "integrations" }
+  | { type: "news" }
   | { type: "git"; id: ID };
 
 export interface Tab {

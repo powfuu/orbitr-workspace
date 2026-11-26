@@ -1,5 +1,5 @@
 import {
-  ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BarChart3, Bot, Columns2, Download, FileCode2, Folder, FolderGit2, FolderPlus,
+  ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BarChart3, Blocks, Bot, Newspaper, Columns2, Download, FileCode2, Folder, FolderGit2, FolderPlus,
   FolderSearch, Gauge, GitBranch, Maximize2, Keyboard, LayoutDashboard, LayoutGrid, ListTree, MessagesSquare, Mic, Palette, PanelLeft,
   PanelRight, Pencil, Plus, RefreshCw, RotateCw, Rows2, Search, Settings, Sparkles, Square, SquareTerminal, TextQuote,
   Trash2, X, type LucideIcon,
@@ -110,6 +110,8 @@ export function useCommands(): Command[] {
     const add = (cmd: Command) => c.push(cmd);
 
     // Navigate
+    add({ id: "integrations", title: "Integrations (install agents and editors)", group: "Navigate", icon: Blocks, keywords: "install agents editors neovim", run: () => tabs.open({ type: "integrations" }) });
+    add({ id: "news", title: "News (agent updates, popular models)", group: "Navigate", icon: Newspaper, keywords: "models trending updates changelog", run: () => tabs.open({ type: "news" }) });
     add({ id: "dashboard", title: "Go to Dashboard", group: "Navigate", icon: LayoutDashboard, keywords: "home inicio", run: () => tabs.open({ type: "home" }) });
     add({ id: "usage", title: "Show usage and plan limits", group: "Navigate", icon: BarChart3, keywords: "cost tokens limits uso", run: () => { tabs.open({ type: "home" }); scrollTo("dashboard-usage"); } });
     add({ id: "limits-refresh", title: "Refresh plan limits", group: "Navigate", icon: Gauge, keywords: "usage 5h weekly", run: () => void usePlanLimits.getState().refresh() });

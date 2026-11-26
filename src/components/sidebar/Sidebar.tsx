@@ -1,5 +1,5 @@
 import { Reorder } from "framer-motion";
-import { Bot, FileCode2, FolderPlus, GitBranch, LayoutDashboard, Pencil } from "lucide-react";
+import { Blocks, Bot, FileCode2, FolderPlus, GitBranch, LayoutDashboard, Newspaper, Pencil } from "lucide-react";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { removeProject, revealProject } from "../../features/workspaces/manageActions";
 import { Folder, FolderOpen, FolderSearch, PanelLeftClose, RotateCw, Settings, Square, SquareTerminal, Trash2, Command } from "lucide-react";
@@ -84,6 +84,18 @@ export function Sidebar() {
           label="Dashboard"
           active={onDashboard}
           onClick={() => useTabs.getState().open({ type: "home" })}
+        />
+        <SidebarItem
+          icon={<Blocks size={14} strokeWidth={1.75} />}
+          label="Integrations"
+          active={activeTarget?.type === "integrations"}
+          onClick={() => useTabs.getState().open({ type: "integrations" })}
+        />
+        <SidebarItem
+          icon={<Newspaper size={14} strokeWidth={1.75} />}
+          label="News"
+          active={activeTarget?.type === "news"}
+          onClick={() => useTabs.getState().open({ type: "news" })}
         />
       </div>
       <div className="-mx-0 [&>section]:pt-1">

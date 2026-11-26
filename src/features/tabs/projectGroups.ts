@@ -7,8 +7,8 @@ export function projectOfTarget(t: TabTarget, agents: AgentSession[]): ID | unde
   return undefined;
 }
 
-/** Tabs that never show in the strip: they live in the sidebar (Dashboard, Git views). */
-export const isSidebarTab = (t: TabTarget) => t.type === "home" || t.type === "git";
+/** Tabs that never show in the strip: they live in the sidebar (Dashboard, Integrations, News, Git views). */
+export const isSidebarTab = (t: TabTarget) => t.type === "home" || t.type === "git" || t.type === "integrations" || t.type === "news";
 
 /** Last tab you were on inside each project, so clicking the project tab goes back there. */
 export const lastInProject = new Map<ID, string>();

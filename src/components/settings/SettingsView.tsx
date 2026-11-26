@@ -133,7 +133,7 @@ export function SettingsView() {
         <Row label="Vim flavour" hint={`Used by ${modKey}E, ${modKey}P and every “Open in Vim”. Auto picks the first installed of Neovim, Vim, vi.`}>
           <Segmented k="editor" options={[{ value: "auto", label: "Auto" }, { value: "nvim", label: "Neovim" }, { value: "vim", label: "Vim" }, { value: "vi", label: "vi" }]} />
         </Row>
-        <Row label="Neovim config" hint="Which ~/.config folder Neovim uses (NVIM_APPNAME). Install ready-made ones from Home → Neovim configs.">
+        <Row label="Neovim config" hint="Which ~/.config folder Neovim uses (NVIM_APPNAME). Install ready-made ones from Integrations → Neovim configs.">
           <Select
             ariaLabel="Neovim config"
             className="w-56 font-mono"
@@ -142,7 +142,7 @@ export function SettingsView() {
             options={[{ value: "", label: "Your own", hint: "~/.config/nvim" }, ...NVIM_CONFIGS.map((c) => ({ value: c.app, label: c.name, hint: `~/.config/${c.app}` }))]}
           />
         </Row>
-        <Row label="Installed" hint="Detected through your login shell PATH. Install Neovim from Home → IDE integrations.">
+        <Row label="Installed" hint="Detected through your login shell PATH. Install Neovim from Integrations → IDE integrations.">
           <span className="flex gap-3 font-mono text-[11px]">
             {(["nvim", "vim", "vi"] as const).map((k) => (
               <span key={k} className={editorPaths[k] ? "text-success" : "text-faint"} title={editorPaths[k] ?? "not installed"}>{k} {editorPaths[k] ? "✓" : "—"}</span>
