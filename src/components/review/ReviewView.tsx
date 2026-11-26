@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useMemo, useState } from "react";
 import { openInEditor } from "../../features/editors/openInEditor";
 import { lineDiff } from "../../lib/lineDiff";
+import { ONE_DARK, extOf, highlight } from "../../lib/syntax";
 import { cn } from "../../lib/cn";
 import type { AgentSession } from "../../types";
 import { IconButton } from "../ui/IconButton";
@@ -165,6 +166,7 @@ export function ReviewView({ agent, cwd, onClose }: { agent: AgentSession; cwd?:
 
 function EditCard({ edit, cwd, projectId }: { edit: FileEdit; cwd?: string; projectId: string }) {
   const lines = useMemo(() => lineDiff(edit.old, edit.new), [edit.old, edit.new]);
+  const ext = extOf(edit.path);
   const long = lines.length > 60;
   const [open, setOpen] = useState(!long);
   const added = lines.filter((l) => l.kind === "add").length;
@@ -187,11 +189,13 @@ function EditCard({ edit, cwd, projectId }: { edit: FileEdit; cwd?: string; proj
           open in Vim
         </button>
       </div>
-      <pre className="selectable overflow-x-auto font-mono text-[11.5px] leading-[1.55]">
+      <pre className="selectable overflow-x-auto py-1 font-mono text-[11.5px] leading-[1.55]" style={{ background: ONE_DARK.bg, color: ONE_DARK.text }}>
         {shown.map((l, i) => (
-          <div key={i} className={cn("px-3", l.kind === "add" ? "bg-success/10 text-success" : l.kind === "del" ? "bg-error/10 text-error" : "text-fg-2")}>
-            <span className="mr-2 select-none text-faint">{l.kind === "add" ? "+" : l.kind === "del" ? "−" : " "}</span>
-            {l.text || " "}
+          <div key={i} className="flex px-3" style={{ background: l.kind === "add" ? ONE_DARK.addBg : l.kind === "del" ? ONE_DARK.delBg : undefined }}>
+            <span className="w-4 shrink-0 select-none" style={{ color: l.kind === "add" ? ONE_DARK.add : l.kind === "del" ? ONE_DARK.del : ONE_DARK.gutter }}>
+              {l.kind === "add" ? "+" : l.kind === "del" ? "−" : " "}
+            </span>
+            <span className="whitespace-pre">{l.text ? highlight(l.text, ext) : " "}</span>
           </div>
         ))}
       </pre>
