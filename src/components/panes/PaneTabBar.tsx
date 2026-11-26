@@ -217,8 +217,11 @@ export function PaneTabBar({ paneId, group, focused, multi, topLeft, topRight }:
                 </ContextMenu>
               </motion.div>
             );
+            const first = !group.tabs.slice(0, i).some((t) => !isSidebarTab(t.target));
             return (
               <Fragment key={tab.id}>
+                {/* A divider between projects (and other tabs) so groups read apart. */}
+                {!first && <span aria-hidden className="mx-1.5 mb-2 h-4 w-px shrink-0 self-end bg-line" />}
                 {tabEl}
                 {projectId && members.some((t) => t.target.type === "agent") && <ProjectSubTabs group={group} projectId={projectId} />}
               </Fragment>

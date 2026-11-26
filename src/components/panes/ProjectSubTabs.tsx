@@ -1,4 +1,4 @@
-import { Plus, X } from "lucide-react";
+import { ChevronRight, Plus, X } from "lucide-react";
 import { useEffect } from "react";
 import { useTabs, type TabGroup } from "../../stores/tabStore";
 import { useSessions } from "../../stores/sessionStore";
@@ -28,6 +28,8 @@ export function ProjectSubTabs({ group, projectId }: { group: TabGroup; projectI
 
   return (
     <div className="flex shrink-0 items-end gap-0.5 self-stretch">
+      {/* project › its tabs */}
+      <ChevronRight size={13} className="mb-2.5 shrink-0 text-faint" />
       {members
         .filter((t) => t.target.type === "agent")
         .map((t) => {
