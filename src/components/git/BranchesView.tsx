@@ -1,4 +1,4 @@
-import { ChevronDown, CloudDownload, Workflow } from "lucide-react";
+import { ChevronLeft, ChevronRight, CloudDownload, Workflow } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { branchService, gitMore, type Branch, type FlowConfig, type FlowKind } from "../../services/git";
@@ -13,7 +13,7 @@ import { BranchList } from "./BranchList";
 /** QA / testing branches (release/QA-USER, qa_user, test-qa…) aren't meant to be "finished". */
 export const isQaBranch = (b: string) => /(^|[/_.-])(qa|uat|test(ing)?)([/_.-]|$)|qa[-_ ]?user/i.test(b);
 
-const REMOTE_PAGE = 8;
+const REMOTE_PAGE = 25;
 
 const FLOW: { kind: FlowKind; from: "develop" | "main"; hint: string }[] = [
   { kind: "feature", from: "develop", hint: "New work" },
@@ -35,7 +35,9 @@ export function BranchesView({ repo }: { repo: string }) {
   const { busy, run } = useGitRun(repo);
   // One row's actions at a time: CSS :hover can stick on several rows in WebKit after scrolling.
   const [hot, setHot] = useState<string | null>(null);
-  const [remoteLimit, setRemoteLimit] = useState(REMOTE_PAGE);
+  const [page, setPage] = useState(0);
+  // A new filter starts from the first page.
+  useEffect(() => setPage(0), [q]);
 
   const reload = () => {
     void branchService.list(repo).then(setLocal).catch(() => setLocal([]));
@@ -53,6 +55,7 @@ export function BranchesView({ repo }: { repo: string }) {
   const localShown = local.filter((b) => b.name.toLowerCase().includes(needle));
   const localNames = new Set(local.map((b) => b.name));
   const remoteShown = remote.filter((r) => r.toLowerCase().includes(needle) && !localNames.has(r.split("/").slice(1).join("/")));
+  const remotePage = Math.min(page, Math.max(0, Math.ceil(remoteShown.length / REMOTE_PAGE) - 1));
   const create = () => name.trim() && void act("create branch", () => gitMore.createBranch(repo, name.trim(), base || null, true), `Created ${name.trim()}`).then(() => setName(""));
 
   return (
@@ -101,7 +104,7 @@ export function BranchesView({ repo }: { repo: string }) {
         <div onMouseLeave={() => setHot(null)} className="mt-3 divide-y divide-line-soft rounded-lg border border-line-soft empty:hidden">
           {remoteShown.length > 0 && <div className="bg-bg px-3 py-1 term-heading">remote only</div>}
           <AnimatePresence initial={false}>
-          {remoteShown.slice(0, needle ? undefined : remoteLimit).map((r) => (
+          {remoteShown.slice(remotePage * REMOTE_PAGE, (remotePage + 1) * REMOTE_PAGE).map((r) => (
             <motion.div
               key={r}
               initial={{ opacity: 0, height: 0 }}
@@ -120,18 +123,28 @@ export function BranchesView({ repo }: { repo: string }) {
             </motion.div>
           ))}
           </AnimatePresence>
-          {!needle && remoteShown.length > REMOTE_PAGE && (
-            <div className="flex items-center justify-center gap-3 py-1.5 font-mono text-[11px]">
-              {remoteLimit < remoteShown.length && (
-                <button onClick={() => setRemoteLimit((n) => n + REMOTE_PAGE * 2)} className="flex items-center gap-1 text-muted hover:text-fg">
-                  <ChevronDown size={11} /> show more <span className="text-faint">({remoteShown.length - remoteLimit} left)</span>
-                </button>
-              )}
-              {remoteLimit > REMOTE_PAGE && (
-                <button onClick={() => setRemoteLimit(REMOTE_PAGE)} className="text-faint hover:text-fg">show less</button>
-              )}
-            </div>
-          )}
+          {remoteShown.length > REMOTE_PAGE && (() => {
+            const pages = Math.ceil(remoteShown.length / REMOTE_PAGE);
+            const at = remotePage;
+            const btn = "grid h-6 min-w-6 place-items-center rounded px-1.5 disabled:opacity-30";
+            return (
+              <div className="flex items-center justify-between gap-3 px-3 py-1.5 font-mono text-[11px] text-faint">
+                <span>{at * REMOTE_PAGE + 1}–{Math.min((at + 1) * REMOTE_PAGE, remoteShown.length)} of {remoteShown.length}</span>
+                <span className="flex items-center gap-0.5">
+                  <button disabled={at === 0} onClick={() => setPage(at - 1)} title="Previous page" className={cn(btn, "hover:bg-surface hover:text-fg")}><ChevronLeft size={12} /></button>
+                  {Array.from({ length: pages }, (_, i) => i)
+                    .filter((i) => i === 0 || i === pages - 1 || Math.abs(i - at) <= 1)
+                    .map((i, k, list) => (
+                      <span key={i} className="flex items-center">
+                        {k > 0 && i - list[k - 1]! > 1 && <span className="px-1">…</span>}
+                        <button onClick={() => setPage(i)} className={cn(btn, i === at ? "bg-surface-2 text-fg" : "hover:bg-surface hover:text-fg")}>{i + 1}</button>
+                      </span>
+                    ))}
+                  <button disabled={at >= pages - 1} onClick={() => setPage(at + 1)} title="Next page" className={cn(btn, "hover:bg-surface hover:text-fg")}><ChevronRight size={12} /></button>
+                </span>
+              </div>
+            );
+          })()}
         </div>
       </section>
     </div>
