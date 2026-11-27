@@ -108,6 +108,7 @@ export const gitMore = {
   remoteBranches: (repo: string) => invoke<string[]>("git_remote_branches", { repo }),
   createBranch: (repo: string, name: string, base: string | null, checkout: boolean) => invoke<void>("git_branch_create", { repo, name, base, checkout }),
   checkoutRemote: (repo: string, remote: string) => invoke<string>("git_checkout_remote", { repo, remote }),
+  deleteRemoteBranch: (repo: string, branch: string) => invoke<string>("git_remote_branch_delete", { repo, branch }),
   deleteBranch: (repo: string, name: string, force: boolean) => invoke<void>("git_branch_delete", { repo, name, force }),
   renameBranch: (repo: string, old: string, name: string) => invoke<void>("git_branch_rename", { repo, old, new: name }),
   merge: (repo: string, branch: string, noFf: boolean) => invoke<string>("git_merge", { repo, branch, noFf }),

@@ -242,10 +242,10 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
       {full && tab === "branches" && <div className="min-h-0 flex-1"><BranchesView repo={path} /></div>}
       {full && tab === "stash" && <div className="min-h-0 flex-1"><StashView repo={path} /></div>}
       {(!full || tab === "changes") && (<>
-      <div className={cn("grid grid-cols-[minmax(min(260px,100%),1fr)_2fr] @max-2xl:grid-cols-1", full ? "min-h-0 flex-1" : "min-h-[280px]")}>
+      <div className={cn("grid grid-cols-[minmax(min(260px,100%),1fr)_2fr] @max-2xl:grid-cols-1", full ? "min-h-0 flex-1 grid-rows-[minmax(0,1fr)] @max-2xl:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]" : "min-h-[280px]")}>
         {/* Changes + commit */}
-        <div className="flex min-w-0 flex-col border-r border-line-soft @max-2xl:border-r-0 @max-2xl:border-b">
-          <div className={cn("flex-1 overflow-y-auto py-1", !full && "max-h-80")}>
+        <div className="flex min-h-0 min-w-0 flex-col border-r border-line-soft @max-2xl:border-r-0 @max-2xl:border-b">
+          <div className={cn("min-h-0 flex-1 overflow-y-auto py-1", !full && "max-h-80")}>
             {status.files.length === 0 ? (
               <div className="flex items-center gap-2 px-4 py-6 text-[12px] text-muted"><Check size={13} className="text-success" /> Working tree clean</div>
             ) : (
@@ -256,7 +256,7 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
               </>
             )}
           </div>
-          <div className="border-t border-line-soft p-3">
+          <div className="shrink-0 border-t border-line-soft p-3">
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -283,7 +283,7 @@ export function GitPanel({ path, full = false }: { path: string; full?: boolean 
         </div>
 
         {/* Diff / history */}
-        <div className="min-w-0">
+        <div className={cn("min-w-0", full && "min-h-0 overflow-y-auto")}>
           <AnimatePresence mode="wait">
             {selected && diff !== null ? (
               <motion.div key={selected.path + selected.staged} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>

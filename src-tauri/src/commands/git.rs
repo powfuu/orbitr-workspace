@@ -118,6 +118,11 @@ pub async fn git_branch_delete(repo: String, name: String, force: bool) -> Resul
 }
 
 #[tauri::command]
+pub async fn git_remote_branch_delete(repo: String, branch: String) -> Result<String, String> {
+    run(move || git::remote_branch_delete(&repo, &branch)).await
+}
+
+#[tauri::command]
 pub async fn git_branch_rename(repo: String, old: String, new: String) -> Result<(), String> {
     run(move || git::branch_rename(&repo, &old, &new)).await
 }

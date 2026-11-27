@@ -1,4 +1,5 @@
-import { CloudDownload, Workflow } from "lucide-react";
+import { ChevronDown, CloudDownload, Workflow } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { branchService, gitMore, type Branch, type FlowConfig, type FlowKind } from "../../services/git";
 import { useGitRun } from "../../features/git/gitRun";
@@ -8,6 +9,11 @@ import { Select } from "../ui/Select";
 import { GitButton, TextInput } from "./ui";
 import { RemotesSection } from "./RemotesSection";
 import { BranchList } from "./BranchList";
+
+/** QA / testing branches (release/QA-USER, qa_user, test-qa…) aren't meant to be "finished". */
+export const isQaBranch = (b: string) => /(^|[/_.-])(qa|uat|test(ing)?)([/_.-]|$)|qa[-_ ]?user/i.test(b);
+
+const REMOTE_PAGE = 8;
 
 const FLOW: { kind: FlowKind; from: "develop" | "main"; hint: string }[] = [
   { kind: "feature", from: "develop", hint: "New work" },
@@ -29,6 +35,7 @@ export function BranchesView({ repo }: { repo: string }) {
   const { busy, run } = useGitRun(repo);
   // One row's actions at a time: CSS :hover can stick on several rows in WebKit after scrolling.
   const [hot, setHot] = useState<string | null>(null);
+  const [remoteLimit, setRemoteLimit] = useState(REMOTE_PAGE);
 
   const reload = () => {
     void branchService.list(repo).then(setLocal).catch(() => setLocal([]));
@@ -74,7 +81,7 @@ export function BranchesView({ repo }: { repo: string }) {
           {flow && <span className="font-mono normal-case tracking-normal text-faint">main: {flow.main} · develop: {flow.develop ?? "— (created on first start)"}</span>}
         </div>
         <FlowStart repo={repo} busy={!!busy} onStart={(kind, n) => act(`start ${kind}`, () => gitMore.flowStart(repo, kind, n), (b) => `Started ${b}`)} flow={flow} />
-        {current && /^(feature|bugfix|release|hotfix)\//.test(current) && (
+        {current && /^(feature|bugfix|release|hotfix)\//.test(current) && !isQaBranch(current) && (
           <FlowFinish branch={current} busy={!!busy} flow={flow} onFinish={(tag) => act("finish", () => gitMore.flowFinish(repo, current, tag), (into) => `Finished ${current} → ${into}`)} />
         )}
       </section>
@@ -93,15 +100,38 @@ export function BranchesView({ repo }: { repo: string }) {
         <BranchList repo={repo} branches={localShown} current={current} busy={!!busy} act={act} />
         <div onMouseLeave={() => setHot(null)} className="mt-3 divide-y divide-line-soft rounded-lg border border-line-soft empty:hidden">
           {remoteShown.length > 0 && <div className="bg-bg px-3 py-1 term-heading">remote only</div>}
-          {remoteShown.map((r) => (
-            <div key={r} onMouseEnter={() => setHot(r)} onFocus={() => setHot(r)} className="group flex min-h-8 items-center gap-2 px-3 py-1">
+          <AnimatePresence initial={false}>
+          {remoteShown.slice(0, needle ? undefined : remoteLimit).map((r) => (
+            <motion.div
+              key={r}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
+              className="overflow-hidden"
+            >
+            <div onMouseEnter={() => setHot(r)} onFocus={() => setHot(r)} className="group flex min-h-8 items-center gap-2 px-3 py-1">
               <span className="w-3" />
               <span className="min-w-0 flex-1 truncate font-mono text-[12px] text-muted">{r}</span>
               <span className={hot === r ? "" : "invisible"}>
                 <GitButton disabled={!!busy} onClick={() => void act("checkout", () => gitMore.checkoutRemote(repo, r), (b) => `Switched to ${b}`)}>checkout</GitButton>
               </span>
             </div>
+            </motion.div>
           ))}
+          </AnimatePresence>
+          {!needle && remoteShown.length > REMOTE_PAGE && (
+            <div className="flex items-center justify-center gap-3 py-1.5 font-mono text-[11px]">
+              {remoteLimit < remoteShown.length && (
+                <button onClick={() => setRemoteLimit((n) => n + REMOTE_PAGE * 2)} className="flex items-center gap-1 text-muted hover:text-fg">
+                  <ChevronDown size={11} /> show more <span className="text-faint">({remoteShown.length - remoteLimit} left)</span>
+                </button>
+              )}
+              {remoteLimit > REMOTE_PAGE && (
+                <button onClick={() => setRemoteLimit(REMOTE_PAGE)} className="text-faint hover:text-fg">show less</button>
+              )}
+            </div>
+          )}
         </div>
       </section>
     </div>
@@ -138,9 +168,11 @@ function FlowFinish({ branch, busy, flow, onFinish }: { branch: string; busy: bo
   const develop = flow?.develop ?? "develop";
   const into = versioned ? `${flow?.main ?? "main"} + ${develop}` : develop;
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-2 rounded-md bg-surface/60 px-3 py-2 text-[12px]">
-      <span className="text-fg-2">You're on <span className="font-mono text-fg">{branch}</span>.</span>
-      <span className="text-faint">Finish merges it (--no-ff) into {into} and deletes it.</span>
+    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-lg bg-surface/60 px-4 py-3 text-[12px]">
+      <div className="min-w-0 space-y-0.5 leading-relaxed">
+        <div className="text-fg-2">You're on <span className="font-mono text-fg">{branch}</span></div>
+        <div className="text-[11.5px] text-faint">Finish merges it (--no-ff) into {into}, then deletes it.</div>
+      </div>
       {versioned && (
         <label className="flex items-center gap-1.5 text-[11.5px] text-fg-2">
           <input type="checkbox" checked={tag} onChange={(e) => setTag(e.target.checked)} className="accent-fg" /> tag {branch.split("/").slice(1).join("/")}

@@ -5,7 +5,7 @@ import { branchService, gitMore, type Branch } from "../../services/git";
 import { useLayout } from "../../stores/layoutStore";
 import { timeAgo } from "../../lib/time";
 import { cn } from "../../lib/cn";
-import { confirmDialog } from "../ui/ConfirmDialog";
+import { confirmChoices } from "../ui/ConfirmDialog";
 import { GitButton, SyncBadges, TextInput } from "./ui";
 
 type Act = <T>(label: string, fn: () => Promise<T>, ok?: string | ((r: T) => string)) => Promise<unknown>;
@@ -17,8 +17,9 @@ function groupByPrefix(branches: Branch[]) {
     const key = b.name.includes("/") ? b.name.split("/")[0]! : "";
     groups.set(key, [...(groups.get(key) ?? []), b]);
   }
-  // Loose branches (main, develop…) first, then folders A→Z.
-  return [...groups.entries()].sort(([a], [b]) => (a === "" ? -1 : b === "" ? 1 : a.localeCompare(b)));
+  // Loose branches (main, develop…) first, then release/hotfix (the urgent ones), then the rest A→Z.
+  const rank = (k: string) => (k === "" ? 0 : k === "release" ? 1 : k === "hotfix" ? 2 : k === "bugfix" ? 3 : k === "feature" ? 4 : 5);
+  return [...groups.entries()].sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b));
 }
 
 /** Local branches: one line each, sync badges, a direct pull/push, and actions on hover. */
@@ -40,8 +41,25 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
       (out) => (/already up.to.date/i.test(String(out)) ? `Nothing to merge: ${current} already has everything from ${b.name}` : `Merged ${b.name} into ${current}`),
     );
   const remove = async (b: Branch) => {
-    const ok = await confirmDialog({ title: "Delete branch", message: `Delete the local branch ${b.name}? Its remote branch (if any) is kept.`, okLabel: "Delete" });
-    if (ok) void act("delete", () => gitMore.deleteBranch(repo, b.name, false), `Deleted ${b.name}`);
+    const opts = await confirmChoices({
+      title: "Delete branch",
+      message: `Delete the local branch ${b.name}?`,
+      okLabel: "Delete",
+      options: [
+        { id: "force", label: "Force delete", hint: "Even if it has commits that aren't merged anywhere (they'll be lost)." },
+        ...(b.upstream ? [{ id: "remote", label: `Also delete ${b.upstream}`, hint: "Removes the branch on the remote for everyone." }] : []),
+      ],
+    });
+    if (!opts) return;
+    void act(
+      "delete",
+      async () => {
+        // Remote first: it needs the local branch's upstream setting.
+        if (opts.remote) await gitMore.deleteRemoteBranch(repo, b.name);
+        await gitMore.deleteBranch(repo, b.name, !!opts.force);
+      },
+      opts.remote ? `Deleted ${b.name} and ${b.upstream}` : `Deleted ${b.name}`,
+    );
   };
 
   const row = (b: Branch, short: string): ReactNode => (
@@ -51,7 +69,7 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
       onFocus={() => setHot(b.name)}
       onDoubleClick={() => switchTo(b)}
       title={b.current ? undefined : "Double-click to switch"}
-      className={cn("group flex h-9 items-center gap-2 pl-3 pr-2", b.current && "bg-surface/50")}
+      className={cn("group flex h-9 items-center gap-2 pr-2", short === b.name ? "pl-3" : "pl-8", b.current && "bg-surface/50")}
     >
       <GitBranch size={13} className={cn("shrink-0", b.current ? "text-accent" : "text-faint")} />
       {renaming?.from === b.name ? (
@@ -73,11 +91,23 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
           {b.current && <span className="ml-2 rounded-sm bg-accent/15 px-1.5 py-px text-[9.5px] font-normal uppercase tracking-[0.08em] text-accent">current</span>}
         </span>
       )}
+      {/* Hover actions open to the LEFT, so pull/push and the date never move. */}
+      {hot === b.name && !renaming && (
+        <span className="flex shrink-0 items-center gap-1">
+          {b.upstream && b.behind === 0 && <GitButton disabled={busy} onClick={() => pull(b)}><ArrowDown size={11} /> pull</GitButton>}
+          {!b.current && current && (
+            <GitButton disabled={busy} title={`Merge ${b.name} into ${current}, the branch you're on`} onClick={() => merge(b)}>
+              <GitMerge size={11} /> merge into my branch
+            </GitButton>
+          )}
+          <GitButton disabled={busy} onClick={() => setRenaming({ from: b.name, to: b.name })}><Pencil size={11} /> rename</GitButton>
+          {!b.current && <GitButton disabled={busy} onClick={() => void remove(b)}><Trash2 size={11} /> delete</GitButton>}
+        </span>
+      )}
       {/* The pull/push buttons carry the counts; only "gone" needs its own badge. */}
       {b.gone && <SyncBadges ahead={0} behind={0} gone />}
-      {/* Direct pull/push, always visible when there's something to sync. */}
       {b.behind > 0 && (
-        <button disabled={busy} onClick={() => pull(b)} className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-fg px-2.5 font-mono text-[11px] font-medium text-bg shadow-sm transition hover:bg-fg/85 disabled:opacity-40">
+        <button disabled={busy} onClick={() => pull(b)} title={`Pull ${b.behind} commit${b.behind === 1 ? "" : "s"} into ${b.name}`} className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-fg px-2.5 font-mono text-[11px] font-medium text-bg shadow-sm transition hover:bg-fg/85 disabled:opacity-40">
           <ArrowDown size={11} strokeWidth={2.5} /> pull {b.behind}
         </button>
       )}
@@ -86,20 +116,7 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
           <ArrowUp size={11} strokeWidth={2.5} /> {b.upstream ? `push ${b.ahead}` : "publish"}
         </button>
       )}
-      {hot === b.name && !renaming ? (
-        <span className="flex shrink-0 items-center gap-1">
-          {b.upstream && b.behind === 0 && <GitButton disabled={busy} onClick={() => pull(b)}><ArrowDown size={11} /> pull</GitButton>}
-          {!b.current && current && (
-            <GitButton disabled={busy} title={`Merge ${b.name} into ${current} (the branch you're on)`} onClick={() => merge(b)}>
-              <GitMerge size={11} /> merge into {current}
-            </GitButton>
-          )}
-          <GitButton disabled={busy} onClick={() => setRenaming({ from: b.name, to: b.name })}><Pencil size={11} /> rename</GitButton>
-          {!b.current && <GitButton disabled={busy} onClick={() => void remove(b)}><Trash2 size={11} /> delete</GitButton>}
-        </span>
-      ) : (
-        <span className="w-16 shrink-0 text-right font-mono text-[10.5px] text-faint">{timeAgo(b.updatedAt)}</span>
-      )}
+      <span className="w-16 shrink-0 text-right font-mono text-[10.5px] text-faint">{timeAgo(b.updatedAt)}</span>
     </div>
   );
 
@@ -114,13 +131,13 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
         const hasCurrent = list.some((b) => b.current);
         return (
           <div key={prefix} className="border-t border-line-soft first:border-t-0">
-            <button onClick={() => toggle(key)} className="flex h-8 w-full items-center gap-2 bg-bg/60 px-3 text-left hover:bg-surface/40">
+            <button onClick={() => toggle(key)} className="flex h-9 w-full items-center gap-2 bg-surface/70 px-3 text-left hover:bg-surface">
               <motion.span animate={{ rotate: isCollapsed ? 0 : 90 }} transition={{ duration: 0.15 }} className="flex text-faint">
                 <ChevronRight size={11} />
               </motion.span>
-              {isCollapsed ? <Folder size={13} className="text-muted" /> : <FolderOpen size={13} className="text-muted" />}
-              <span className={cn("font-mono text-[11.5px]", hasCurrent ? "text-fg" : "text-muted")}>{prefix}/</span>
-              <span className="font-mono text-[10.5px] text-faint">{list.length}</span>
+              {isCollapsed ? <Folder size={14} className="text-accent/80" /> : <FolderOpen size={14} className="text-accent/80" />}
+              <span className={cn("font-mono text-[12px] font-semibold uppercase tracking-[0.06em]", hasCurrent ? "text-fg" : "text-fg-2")}>{prefix}</span>
+              <span className="rounded-full bg-bg px-1.5 font-mono text-[10px] text-muted">{list.length}</span>
               {isCollapsed && <SyncBadges ahead={ahead} behind={behind} />}
             </button>
             {!isCollapsed && <div className="divide-y divide-line-soft border-t border-line-soft">{list.map((b) => row(b, b.name.slice(prefix.length + 1)))}</div>}

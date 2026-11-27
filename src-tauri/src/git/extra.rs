@@ -172,6 +172,12 @@ pub fn branch_delete(repo: &str, name: &str, force: bool) -> Result<(), String> 
     git(repo, &["branch", if force { "-D" } else { "-d" }, name]).map(|_| ())
 }
 
+/// Deletes the branch on its remote (its upstream, else origin/<same name>).
+pub fn remote_branch_delete(repo: &str, branch: &str) -> Result<String, String> {
+    let (remote, name) = upstream_of(repo, branch).unwrap_or_else(|_| ("origin".into(), branch.into()));
+    git(repo, &["push", &remote, "--delete", &name])
+}
+
 pub fn branch_rename(repo: &str, old: &str, new: &str) -> Result<(), String> {
     if !exists(repo, old) {
         return Err(format!("no branch {old}"));

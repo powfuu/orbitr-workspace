@@ -68,6 +68,7 @@ pub fn run() {
             commands::git::git_branch_create,
             commands::git::git_checkout_remote,
             commands::git::git_branch_delete,
+            commands::git::git_remote_branch_delete,
             commands::git::git_branch_rename,
             commands::git::git_merge,
             commands::git::git_merge_abort,

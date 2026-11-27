@@ -85,7 +85,7 @@ export function CredentialsDialog() {
               e.preventDefault();
               submit();
             }}
-            className="w-[420px] max-w-full rounded-xl border border-line bg-bg-2 p-5 shadow-pop"
+            className="w-[420px] max-w-full rounded-xl bg-bg-2 p-5 ring-1 ring-white/[0.04] shadow-[0_24px_64px_-16px_rgba(0,0,0,0.85)]"
           >
             <div className="mb-1 flex items-center gap-2 font-mono text-[13px] text-fg">
               <KeyRound size={14} className="text-muted" /> sign in to {req.host}

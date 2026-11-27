@@ -16,6 +16,7 @@ import { VoiceIndicator } from "../voice/VoiceIndicator";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
 import { FloatingTerminal } from "../floating/FloatingTerminal";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
+import { TitleTooltips } from "../ui/TitleTooltips";
 import { CredentialsDialog } from "../git/CredentialsDialog";
 import { windowDragProps } from "../../hooks/useWindowDrag";
 import { Minimize2 } from "lucide-react";
@@ -75,6 +76,7 @@ export function AppShell() {
       <ErrorBoundary label="Approvals"><ApprovalsTray /></ErrorBoundary>
       <ErrorBoundary label="Floating terminal"><FloatingTerminal /></ErrorBoundary>
       <ConfirmDialog />
+      <TitleTooltips />
       <CredentialsDialog />
     </div>
   );

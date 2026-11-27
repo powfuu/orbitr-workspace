@@ -71,7 +71,7 @@ export function SystemThemeDialog({ open, onClose }: { open: boolean; onClose: (
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
-            className="w-[560px] max-w-full rounded-xl border border-line bg-bg-2 p-5 shadow-pop"
+            className="w-[560px] max-w-full rounded-xl bg-bg-2 p-5 ring-1 ring-white/[0.04] shadow-[0_24px_64px_-16px_rgba(0,0,0,0.85)]"
           >
             <div className="mb-1 font-mono text-[13px] text-fg"><span className="text-success">❯</span> match system</div>
             <p className="mb-4 text-[11.5px] text-muted">Orbitr switches between these two when macOS changes between dark and light.</p>
