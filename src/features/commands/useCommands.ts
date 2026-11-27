@@ -1,5 +1,5 @@
 import {
-  ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BarChart3, Blocks, Bot, Newspaper, Columns2, Download, FileCode2, Folder, FolderGit2, FolderPlus,
+  ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BarChart3, Blocks, Bot, Newspaper, Columns2, Download, FileCode2, Folder, FolderPlus,
   FolderSearch, Gauge, GitBranch, Maximize2, Keyboard, LayoutDashboard, LayoutGrid, ListTree, MessagesSquare, Mic, Palette, PanelLeft,
   PanelRight, Pencil, Plus, RefreshCw, RotateCw, Rows2, Search, Settings, Sparkles, Square, SquareTerminal, TextQuote,
   Trash2, X, type LucideIcon,
@@ -157,7 +157,6 @@ export function useCommands(): Command[] {
       add({ id: `rm-${p.id}`, title: `Remove project ${p.name}`, group: "Project", icon: Trash2, run: () => void removeProject(p.id) });
       for (const a of agentList.filter((x) => installed[x.kind])) {
         add({ id: `start-${a.kind}-${p.id}`, title: `Start ${a.displayName} in ${p.name}`, group: "Agent", icon: Bot, run: () => void startAgent(a.kind, p.id) });
-        add({ id: `start-wt-${a.kind}-${p.id}`, title: `Start ${a.displayName} in new worktree of ${p.name}`, group: "Agent", icon: FolderGit2, run: () => void startAgent(a.kind, p.id, { worktree: true }) });
       }
     });
 
