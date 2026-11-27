@@ -136,7 +136,7 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
                 <ChevronRight size={11} />
               </motion.span>
               {isCollapsed ? <Folder size={14} className="text-accent/80" /> : <FolderOpen size={14} className="text-accent/80" />}
-              <span className={cn("font-mono text-[12px] font-semibold uppercase tracking-[0.06em]", hasCurrent ? "text-fg" : "text-fg-2")}>{prefix}</span>
+              <span className={cn("font-mono text-[12px] font-semibold", hasCurrent ? "text-fg" : "text-fg-2")}>{prefix}</span>
               <span className="rounded-full bg-bg px-1.5 font-mono text-[10px] text-muted">{list.length}</span>
               {isCollapsed && <SyncBadges ahead={ahead} behind={behind} />}
             </button>
