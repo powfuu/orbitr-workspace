@@ -97,7 +97,7 @@ export function BranchList({ repo, branches, current, busy, act }: { repo: strin
           {b.upstream && b.behind === 0 && <GitButton disabled={busy} onClick={() => pull(b)}><ArrowDown size={11} /> pull</GitButton>}
           {!b.current && current && (
             <GitButton disabled={busy} title={`Merge ${b.name} into ${current}, the branch you're on`} onClick={() => merge(b)}>
-              <GitMerge size={11} /> merge into my branch
+              <GitMerge size={11} /> merge into {current.split("/").pop()}
             </GitButton>
           )}
           <GitButton disabled={busy} onClick={() => setRenaming({ from: b.name, to: b.name })}><Pencil size={11} /> rename</GitButton>
